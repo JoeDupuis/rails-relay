@@ -1924,3 +1924,3023 @@ The addition of the wildcard limitation shows RFC 2812 documented a specific tec
 
 ---
 
+
+## RFC 2810: Architecture Document
+
+### Overview
+
+RFC 2810 "Internet Relay Chat: Architecture" (April 2000) represents a fundamental restructuring of the IRC specification family. Unlike RFC 1459, which was a monolithic document covering all aspects of IRC, RFC 2810 is the first of a new four-document suite (RFC 2810-2813) that formally separates architectural concepts from protocol implementation details.
+
+**Purpose:** RFC 2810 specifically focuses on the high-level architecture and design philosophy of IRC, establishing the foundational concepts that the other three documents build upon. It does not define protocol commands or message formats - instead, it documents the client-server model, network topology, and service abstractions that make IRC work.
+
+**Document Family Position:**
+- RFC 2810: Architecture (this document)
+- RFC 2811: Channel Management
+- RFC 2812: Client Protocol
+- RFC 2813: Server Protocol
+
+### Sections 1-4: Components, Architecture, Protocol Services
+
+#### Comparison with RFC 1459
+
+**Structural Evolution:**
+
+RFC 1459 Section 1 presented architectural concepts intermixed with implementation details across subsections 1.1-1.3.1 (Servers, Clients, Operators, Channels, Channel Operators). RFC 2810 separates these concerns into a dedicated architecture document with clearer component definitions and service abstractions.
+
+**Major Conceptual Shifts:**
+
+1. **Formalized Component Model (RFC 2810 Section 2)**
+   - RFC 1459: Described components implicitly through their behavior
+   - RFC 2810: Explicitly defines component types with clear boundaries:
+     - Servers (2.1): "forms the backbone of IRC"
+     - Clients (2.2): "anything connecting to a server that is not another server"
+     - User Clients (2.2.1): Human-operated chat interfaces
+     - Service Clients (2.2.2): Automated services with limited chat access
+
+2. **Service Clients - New Concept**
+   - RFC 1459: Only recognized "Operators" (1.2.1) as a special client class
+   - RFC 2810: Introduces "Service Clients" (2.2.2) as a distinct component type
+   - Evolution: From human operators with network privileges to automated services as first-class architectural components
+   - Purpose: Services are "typically automatons used to provide some kind of service (not necessarily related to IRC itself) to users"
+   - Example given: Statistics collection service
+   - Technical distinction: "not intended to be used manually nor for talking" with "more limited access to chat functions" but "optionally having access to more private data from servers"
+
+3. **Network Architecture Formalization (RFC 2810 Section 3)**
+   - RFC 1459 (1.1): Mentioned "spanning tree" with large complex diagram (Figure 1, 15 servers)
+   - RFC 2810 (3): Provides concise definition: "The only network configuration allowed for IRC servers is that of a spanning tree where each server acts as a central node for the rest of the network it sees"
+   - Simpler diagram (Figure 1: 5 servers, 4 clients) focuses on topology concepts
+   - Explicit constraint: "The IRC protocol provides no mean for two clients to directly communicate. All communication between clients is relayed by the server(s)."
+
+#### Key Content
+
+**Section 1: Introduction (Lines 80-98)**
+
+Critical acknowledgment of IRC's fundamental limitation:
+> "This distributed model, which requires each server to have a copy of the global state information, is still the most flagrant problem of the protocol as it is a serious handicap, which limits the maximum size a network can reach."
+
+This represents a significant shift from RFC 1459, which did not explicitly frame the distributed state model as a fundamental limitation in its introduction.
+
+**Section 2: Components (Lines 100-145)**
+
+**2.1 Servers:**
+- "The only component of the protocol which is able to link all the other components together"
+- Provides connection points for both clients [IRC-CLIENT] and servers [IRC-SERVER]
+- Responsible for "providing the basic services defined by the IRC protocol"
+
+**2.2 Clients:**
+Definition: "A client is anything connecting to a server that is not another server"
+
+**2.2.1 User Clients:**
+- Programs with text-based interface for interactive communication
+- "often referred as 'users'"
+
+**2.2.2 Service Clients (NEW):**
+This is RFC 2810's major architectural innovation compared to RFC 1459:
+- Not intended for manual use or talking
+- Limited chat function access
+- Optional access to private server data
+- "Typically automatons used to provide some kind of service"
+- Example: Statistics collection about user origins
+
+**Comparison with RFC 1459's Operators:**
+- RFC 1459 (1.2.1): Operators were privileged human users with network maintenance powers (SQUIT, CONNECT, KILL)
+- RFC 2810: Separates the concept - Service Clients are automated components, while operator privileges are now considered a user attribute rather than a component type
+
+**Section 3: Architecture (Lines 147-177)**
+
+**Network Definition:**
+"An IRC network is defined by a group of servers connected to each other. A single server forms the simplest IRC network."
+
+**Topology Constraint:**
+"The only network configuration allowed for IRC servers is that of a spanning tree where each server acts as a central node for the rest of the network it sees."
+
+**Diagram Evolution:**
+- RFC 1459: Large, complex 15-server tree diagram emphasizing scale
+- RFC 2810: Small 5-server, 4-client diagram emphasizing topology principles
+
+**Critical Architectural Rule:**
+"The IRC protocol provides no mean for two clients to directly communicate. All communication between clients is relayed by the server(s)."
+
+This explicit statement formalizes what was implicit in RFC 1459's description.
+
+**Section 4: IRC Protocol Services (Lines 179-211)**
+
+RFC 2810 introduces an abstraction layer not present in RFC 1459: defining IRC as a set of "services" rather than just a message protocol. This services-oriented view separates what IRC does from how it does it.
+
+**4.1 Client Locator:**
+- Purpose: Enable clients to find each other
+- Mechanism: Registration using labels upon connection
+- Server responsibility: "keeping track of all the labels being used"
+- RFC 1459 equivalent: Implicit in nickname registration discussion (1.2)
+
+**4.2 Message Relaying:**
+- Reiterates the client communication constraint
+- Explicitly names "relaying" as a distinct service
+- RFC 1459 equivalent: Described in server functionality (1.1) but not abstracted as a service
+
+**4.3 Channel Hosting and Management:**
+- Definition: "A channel is a named group of one or more users which will all receive messages addressed to that channel"
+- Characterized by: name, members, properties
+- Server responsibilities:
+  - Host channels
+  - Provide message multiplexing
+  - Manage channels (track members)
+- Reference to separate document [IRC-CHAN] for detailed channel management
+- RFC 1459 equivalent: Section 1.3 Channels provided implementation details; RFC 2810 abstracts these into service concepts
+
+**Key Differences from RFC 1459:**
+
+1. **Abstraction Level**: RFC 2810 operates at architectural/service level vs. RFC 1459's mixed architecture/implementation approach
+
+2. **Document Modularity**: RFC 2810 references separate documents for details ([IRC-CLIENT], [IRC-SERVER], [IRC-CHAN]) vs. RFC 1459's monolithic structure
+
+3. **Service-Oriented Design**: RFC 2810 explicitly identifies three core protocol services, enabling clearer reasoning about what IRC provides
+
+4. **Problem Acknowledgment**: RFC 2810 directly acknowledges the distributed state model as "the most flagrant problem of the protocol" in the introduction, whereas RFC 1459 only discussed scalability issues in Section 9 (Current Problems)
+
+5. **Architectural Precision**: RFC 2810 provides precise definitions ("anything connecting to a server that is not another server") vs. RFC 1459's more descriptive approach
+
+**Evolution Summary:**
+
+RFC 2810 represents a maturation of IRC specification from a protocol description to an architectural framework. It:
+- Separates concerns (architecture vs. implementation)
+- Introduces service abstractions (Client Locator, Message Relaying, Channel Hosting)
+- Formalizes component types (especially Service Clients)
+- Acknowledges fundamental limitations upfront
+- Provides clearer topology constraints
+- Enables modular specification through document family structure
+
+This architectural foundation allows RFC 2811-2813 to focus on specific aspects (channels, client protocol, server protocol) without repeating architectural concepts, improving specification clarity and maintainability.
+
+---
+
+### Section 5: IRC Concepts (moved from RFC 1459 Section 3)
+
+#### Summary
+RFC 1459 Section 3 "IRC Concepts" was migrated to become RFC 2810 Section 5 "IRC Concepts" as part of the protocol reorganization. This section describes the fundamental message delivery patterns in IRC: one-to-one, one-to-many, and one-to-all communications. While the core concepts remained intact during the migration, RFC 2810 introduced more formal language, reordered subsections for better clarity, and provided more precise technical specifications using RFC 2119 keywords (MUST, SHALL, REQUIRED).
+
+#### Detailed Comparison
+
+##### 5.1 One-To-One Communication
+
+**RFC 1459 (Section 3.1):**
+```
+Communication on a one-to-one basis is usually only performed by
+clients, since most server-server traffic is not a result of servers
+talking only to each other.  To provide a secure means for clients to
+talk to each other, it is required that all servers be able to send a
+message in exactly one direction along the spanning tree in order to
+reach any client.  The path of a message being delivered is the
+shortest path between any two points on the spanning tree.
+```
+
+**RFC 2810 (Section 5.1):**
+```
+Communication on a one-to-one basis is usually performed by clients,
+since most server-server traffic is not a result of servers talking
+only to each other.  To provide a means for clients to talk to each
+other, it is REQUIRED that all servers be able to send a message in
+exactly one direction along the spanning tree in order to reach any
+client.  Thus the path of a message being delivered is the shortest
+path between any two points on the spanning tree.
+```
+
+**Key Changes:**
+- **Language formalization:** "usually only performed" → "usually performed" (removed "only" for precision)
+- **Security language removed:** "secure means" → "means" (reflects that security moved to architecture concerns)
+- **RFC 2119 keywords:** "required" → "REQUIRED" (uppercase for formal requirement)
+- **Clarity improvement:** Added "Thus" to make the logical connection explicit
+
+**Examples:** Both versions use identical examples (1, 2, and 3) referencing Figure 2/1:
+- Example 1: Message between clients 1 and 2 (same server)
+- Example 2: Message between clients 1 and 3 (via servers A & B)
+- Example 3: Message between clients 2 and 4 (via servers A, B, C & D)
+
+**Analysis:** The concept is preserved exactly, but the language is more precise and formal in RFC 2810.
+
+---
+
+##### 5.2 One-To-Many
+
+**Opening Paragraph Comparison:**
+
+**RFC 1459 (Section 3.2):**
+```
+The main goal of IRC is to provide a  forum  which  allows  easy  and
+efficient  conferencing (one to many conversations).  IRC offers
+several means to achieve this, each serving its own purpose.
+```
+
+**RFC 2810 (Section 5.2):**
+```
+The main goal of IRC is to provide a forum which allows easy and
+efficient conferencing (one to many conversations).  IRC offers
+several means to achieve this, each serving its own purpose.
+```
+
+**Changes:**
+- Minor formatting cleanup (removed extra spaces)
+- Content identical
+
+**MAJOR STRUCTURAL CHANGE:** The subsection order was completely reorganized:
+
+**RFC 1459 Order:**
+1. 3.2.1 To a list
+2. 3.2.2 To a group (channel)
+3. 3.2.3 To a host/server mask
+
+**RFC 2810 Order:**
+1. 5.2.1 To A Channel
+2. 5.2.2 To A Host/Server Mask
+3. 5.2.3 To A List
+
+**Rationale for Reordering:**
+The reordering places the most important and commonly used mechanism (channels) first, followed by the moderately used (host/server masks), and finally the least efficient method (lists). This better reflects actual IRC usage patterns and importance.
+
+---
+
+###### 5.2.1 To A Channel (was 3.2.2 To a group (channel))
+
+**RFC 1459 (Section 3.2.2):**
+```
+In IRC the channel has a role equivalent to that of the multicast
+group; their existence is dynamic (coming and going as people join
+and leave channels) and the actual conversation carried out on a
+channel is only sent to servers which are supporting users on a given
+channel.  If there are multiple users on a server in the same
+channel, the message text is sent only once to that server and then
+sent to each client on the channel.  This action is then repeated for
+each client-server combination until the original message has fanned
+out and reached each member of the channel.
+```
+
+**RFC 2810 (Section 5.2.1):**
+```
+In IRC the channel has a role equivalent to that of the multicast
+group; their existence is dynamic and the actual conversation carried
+out on a channel MUST only be sent to servers which are supporting
+users on a given channel.  Moreover, the message SHALL only be sent
+once to every local link as each server is responsible to fan the
+original message to ensure that it will reach all the recipients.
+```
+
+**Key Changes:**
+1. **Removed explanatory parenthetical:** "(coming and going as people join and leave channels)" - considered self-evident
+2. **Formalized requirements:** "is only sent" → "MUST only be sent" (RFC 2119 keyword)
+3. **Added stricter requirement:** "SHALL only be sent once to every local link" (new formal constraint)
+4. **Simplified explanation:** Removed detailed step-by-step fan-out description in favor of server responsibility statement
+5. **More concise:** 107 words → 64 words while maintaining all essential information
+
+**Technical Implication:** The RFC 2810 version is more prescriptive about server behavior (MUST, SHALL) while being less descriptive about mechanism.
+
+**Examples:** Both versions use identical examples (4, 5, and 6):
+- Example 4: 1 client in channel (nowhere to send)
+- Example 5: 2 clients (like private message path)
+- Example 6: Clients 1, 2, 3 (message fan-out demonstration)
+
+---
+
+###### 5.2.2 To A Host/Server Mask (was 3.2.3)
+
+**RFC 1459 (Section 3.2.3):**
+```
+To provide IRC operators with some mechanism to send  messages  to  a
+large body of related users, host and server mask messages are
+provided.  These messages are sent to users whose host or server
+information  match that  of  the mask.  The messages are only sent to
+locations where users are, in a fashion similar to that of channels.
+```
+
+**RFC 2810 (Section 5.2.2):**
+```
+To provide with some mechanism to send messages to a large body of
+related users, host and server mask messages are available.  These
+messages are sent to users whose host or server information match
+that of the mask.  The messages are only sent to locations where
+users are, in a fashion similar to that of channels.
+```
+
+**Key Changes:**
+1. **Scope broadened:** "IRC operators with some mechanism" → "with some mechanism" (removed "IRC operators" restriction)
+2. **Wording update:** "are provided" → "are available" (more neutral language)
+3. **Otherwise identical:** Core functionality description unchanged
+
+**Analysis:** The removal of "IRC operators" suggests this mechanism may not be operator-only in all implementations, or RFC 2810 aimed to be less prescriptive about who can use this feature.
+
+---
+
+###### 5.2.3 To A List (was 3.2.1)
+
+**RFC 1459 (Section 3.2.1):**
+```
+The least efficient style of one-to-many conversation is through
+clients talking to a 'list' of users.  How this is done is almost
+self explanatory: the client gives a list of destinations to which
+the message is to be delivered and the server breaks it up and
+dispatches a separate copy of the message to each given destination.
+This isn't as efficient as using a group since the destination list
+is broken up and the dispatch sent without checking to make sure
+duplicates aren't sent down each path.
+```
+
+**RFC 2810 (Section 5.2.3):**
+```
+The least efficient style of one-to-many conversation is through
+clients talking to a 'list' of targets (client, channel, mask).  How
+this is done is almost self explanatory: the client gives a list of
+destinations to which the message is to be delivered and the server
+breaks it up and dispatches a separate copy of the message to each
+given destination.
+
+This is not as efficient as using a channel since the destination
+list MAY be broken up and the dispatch sent without checking to make
+sure duplicates aren't sent down each path.
+```
+
+**Key Changes:**
+1. **Clarified target types:** "list of users" → "list of targets (client, channel, mask)" (explicit enumeration)
+2. **Formalized uncertainty:** "is broken up" → "MAY be broken up" (RFC 2119 keyword acknowledging implementation variation)
+3. **Terminology update:** "using a group" → "using a channel" (consistent with section 5.2.1 title change)
+4. **Split into two paragraphs:** Better readability
+5. **Improved grammar:** "This isn't" → "This is not" (more formal)
+
+**Technical Implication:** The use of "MAY" in RFC 2810 acknowledges that implementation details vary, whereas RFC 1459 stated it as a certainty.
+
+---
+
+##### 5.3 One-To-All
+
+**Opening Paragraphs Comparison:**
+
+**RFC 1459 (Section 3.3):**
+```
+The one-to-all type of message is better described as a broadcast
+message, sent to all clients or servers or both.  On a large network
+of users and servers, a single message can result in a lot of traffic
+being sent over the network in an effort to reach all of the desired
+destinations.
+
+For some messages, there is no option but to broadcast it to all
+servers so that the state information held by each server is
+reasonably consistent between servers.
+```
+
+**RFC 2810 (Section 5.3):**
+```
+The one-to-all type of message is better described as a broadcast
+message, sent to all clients or servers or both.  On a large network
+of users and servers, a single message can result in a lot of traffic
+being sent over the network in an effort to reach all of the desired
+destinations.
+
+For some class of messages, there is no option but to broadcast it to
+all servers so that the state information held by each server is
+consistent between servers.
+```
+
+**Key Changes:**
+1. **Precision improvement:** "For some messages" → "For some class of messages" (indicates categories, not individual messages)
+2. **Strengthened requirement:** "reasonably consistent" → "consistent" (stronger consistency expectation)
+
+**Analysis:** RFC 2810 removes the qualifier "reasonably" - reflecting that state consistency is critical, not optional.
+
+---
+
+###### 5.3.1 Client-to-Client
+
+**RFC 1459 (Section 3.3.1):**
+```
+There is no class of message which, from a single message, results in
+a message being sent to every other client.
+```
+
+**RFC 2810 (Section 5.3.1):**
+```
+There is no class of message which, from a single message, results in
+a message being sent to every other client.
+```
+
+**Changes:** **IDENTICAL** - No changes whatsoever.
+
+**Analysis:** This fundamental constraint of IRC (no client broadcast to all other clients) remained unchanged.
+
+---
+
+###### 5.3.2 Client-to-Server
+
+**RFC 1459 (Section 3.3.2):**
+```
+Most of the commands which result in a change of state information
+(such as channel membership, channel mode, user status, etc) must be
+sent to all servers by default, and this distribution may not be
+changed by the client.
+```
+
+**RFC 2810 (Section 5.3.2):**
+```
+Most of the commands which result in a change of state information
+(such as channel membership, channel mode, user status, etc.) MUST be
+sent to all servers by default, and this distribution SHALL NOT be
+changed by the client.
+```
+
+**Key Changes:**
+1. **Formalized requirement:** "must be sent" → "MUST be sent" (RFC 2119 keyword)
+2. **Strengthened prohibition:** "may not be changed" → "SHALL NOT be changed" (RFC 2119 keyword)
+3. **Punctuation fix:** "etc)" → "etc.)" (proper period before closing parenthesis)
+
+**Analysis:** The use of RFC 2119 keywords (MUST, SHALL NOT) makes this a formal protocol requirement rather than a suggestion.
+
+---
+
+###### 5.3.3 Server-to-Server
+
+**RFC 1459 (Section 3.3.3):**
+```
+While most messages between servers are distributed to all 'other'
+servers, this is only required for any message that affects either a
+user, channel or server.  Since these are the basic items found in
+IRC, nearly all messages originating from a server are broadcast to
+all other connected servers.
+```
+
+**RFC 2810 (Section 5.3.3):**
+```
+While most messages between servers are distributed to all 'other'
+servers, this is only required for any message that affects a user,
+channel or server.  Since these are the basic items found in IRC,
+nearly all messages originating from a server are broadcast to all
+other connected servers.
+```
+
+**Key Changes:**
+1. **Grammar simplification:** "affects either a user" → "affects a user" (removed unnecessary "either")
+2. **Otherwise identical:** Core requirement unchanged
+
+**Analysis:** Minor grammar cleanup; the fundamental concept that state-affecting messages must be broadcast remains unchanged.
+
+---
+
+#### Changes and Clarifications
+
+**1. Formalization Through RFC 2119 Keywords**
+
+RFC 2810 systematically replaced informal requirement language with formal RFC 2119 keywords:
+- "required" → "REQUIRED"
+- "must" → "MUST"
+- "may not" → "SHALL NOT"
+- Added "MAY" where implementation flexibility exists
+
+This transformation makes RFC 2810 a proper protocol specification suitable for interoperable implementations.
+
+**2. Structural Reorganization**
+
+The most significant change was reordering One-to-Many subsections from least-to-most important (RFC 1459) to most-to-least important (RFC 2810):
+
+**Before (RFC 1459):**
+- To a list (least efficient)
+- To a group/channel (most important)
+- To a host/server mask (moderate)
+
+**After (RFC 2810):**
+- To A Channel (most important)
+- To A Host/Server Mask (moderate)
+- To A List (least efficient)
+
+This better reflects actual IRC usage and pedagogical clarity.
+
+**3. Removed Implementation Details**
+
+RFC 2810 removed specific implementation mechanism descriptions (e.g., detailed fan-out process for channels) in favor of responsibility statements. This gives implementers more flexibility while maintaining interoperability requirements.
+
+**Example:**
+- RFC 1459: "the message text is sent only once to that server and then sent to each client on the channel"
+- RFC 2810: "each server is responsible to fan the original message to ensure that it will reach all the recipients"
+
+**4. Strengthened Consistency Requirements**
+
+RFC 2810 removed qualifiers like "reasonably" from consistency requirements:
+- "reasonably consistent between servers" → "consistent between servers"
+
+This reflects lessons learned about the importance of state synchronization in IRC networks.
+
+**5. Broadened Scope Where Appropriate**
+
+Some restrictions were loosened or made more general:
+- Host/server mask messages: "IRC operators" restriction removed
+- Implementations given flexibility: "is broken up" → "MAY be broken up"
+
+**6. Terminology Standardization**
+
+RFC 2810 updated terminology for consistency:
+- "group" → "channel" (consistent naming)
+- "users" → "targets (client, channel, mask)" (precise enumeration)
+- "secure means" → "means" (security discussion moved to architecture)
+
+**7. Precision Improvements**
+
+Throughout the section, RFC 2810 made language more precise:
+- "For some messages" → "For some class of messages"
+- "affects either a user" → "affects a user"
+- Removed redundant explanations that could be inferred
+
+**8. What Was Preserved**
+
+Despite all changes, the fundamental concepts were completely preserved:
+- Spanning tree shortest-path routing for one-to-one
+- Channel multicast semantics for one-to-many
+- State synchronization broadcast for one-to-all
+- No client-to-all-clients capability
+- All examples remained identical
+
+**9. Document Context**
+
+The migration of this section from RFC 1459 to RFC 2810 (not RFC 2812) is significant:
+
+- **RFC 1459:** Combined protocol specification (client + server + architecture)
+- **RFC 2810:** Architecture document
+- **RFC 2812:** Client protocol
+- **RFC 2813:** Server protocol
+
+The "IRC Concepts" section belongs in the Architecture document because it describes the fundamental communication patterns that underlie both client and server protocols. This organizational change reflects the maturation of IRC from a single specification to a properly layered protocol suite.
+
+**10. Implications for Implementers**
+
+The changes in RFC 2810 provide implementers with:
+- **Clearer requirements:** RFC 2119 keywords remove ambiguity
+- **Better organization:** Most important concepts first
+- **Implementation flexibility:** MAY/SHOULD where appropriate, MUST where critical
+- **Consistency expectations:** Stronger guarantees about state synchronization
+- **Proper layering:** Architecture separate from protocol details
+
+The migration successfully preserved all essential IRC concepts while modernizing the specification to meet IETF standards for protocol documentation.
+
+---
+
+## RFC 2813 Section 3: The IRC Server Specification
+
+### Section 3: The IRC Server Specification
+
+#### Summary
+
+RFC 2813 Section 3 defines the IRC protocol specifically for server-to-server communications, representing a fundamental architectural split from RFC 1459. This section establishes strict security requirements for inter-server messaging, including mandatory prefix validation, automatic link termination for invalid sources, and prohibition of extended prefix formats. The specification emphasizes that server communication is primarily routing-oriented rather than reply-oriented, with most server messages not generating responses. It references the separate "IRC Client Protocol" (RFC 2812) document for detailed message format specifications and numeric reply lists.
+
+#### Comparison with RFC 1459 Section 2
+
+**Scope and Purpose:**
+- **RFC 1459 Section 2**: Designed as a unified specification covering BOTH server-to-server AND client-to-server connections within a single protocol definition
+- **RFC 2813 Section 3**: Explicitly scoped ONLY for server-to-server connections, with explicit referral to separate IRC Client Protocol for client connections
+
+**Overview Philosophy (2.1 vs 3.1):**
+- **RFC 1459**: "The protocol as described herein is for use both with server to server and client to server connections. There are, however, more restrictions on client connections (which are considered to be untrustworthy) than on server connections."
+- **RFC 2813**: "The protocol as described herein is for use with server to server connections. For client to server connections, see the IRC Client Protocol specification."
+- The shift represents a formal protocol separation, moving from a single document with different trust levels to separate specifications for different connection types
+
+**Character Codes (2.2 vs 3.2):**
+Both sections are nearly identical:
+- 8-bit protocol based on octets
+- Control codes used as message delimiters
+- Delimiters and keywords allow USASCII terminal and telnet compatibility
+- No specific character set required
+- **Difference**: RFC 2813 inherits this unchanged, but the context is now purely server-to-server where character handling is more predictable (no untrusted client input)
+
+**Message Handling Philosophy (2.3 vs 3.3):**
+
+*RFC 1459 Section 2.3:*
+```
+"Servers and clients send eachother messages which may or may not
+generate a reply. If the message contains a valid command, as
+described in later sections, the client should expect a reply as
+specified but it is not advised to wait forever for the reply; client
+to server and server to server communication is essentially
+asynchronous in nature."
+```
+
+*RFC 2813 Section 3.3:*
+```
+"Servers and clients send each other messages which may or may not
+generate a reply. Most communication between servers do not generate
+any reply, as servers mostly perform routing tasks for the clients."
+```
+
+**Key differences:**
+- RFC 1459 focuses on asynchronous nature and client expectations
+- RFC 2813 emphasizes the routing nature of server operations
+- RFC 2813 explicitly states most server communication doesn't generate replies (routing-centric vs reply-centric model)
+
+**Message Format Specifications:**
+
+Both use identical basic structure:
+- Optional prefix (indicated by leading ':')
+- Command (letters or 3-digit numeric)
+- Parameters (maximum 15)
+- Components separated by ASCII space (0x20)
+
+*RFC 1459 2.3 (spacing):*
+```
+"The prefix, command, and all parameters are separated by one (or more) 
+ASCII space character(s) (0x20)."
+```
+
+*RFC 2813 3.3 (spacing):*
+```
+"The prefix, command, and all parameters are separated by one ASCII 
+space character (0x20) each."
+```
+
+**Critical difference**: RFC 1459 allows "one (or more)" spaces as separators, while RFC 2813 specifies exactly "one ASCII space character (0x20) each" - a stricter requirement for server protocol.
+
+**Prefix Validation and Security:**
+
+*RFC 1459 Section 2.3 (lenient):*
+```
+"If the source identified by the prefix cannot be found from the 
+server's internal database, or if the source is registered from a 
+different link than from which the message arrived, the server must 
+ignore the message silently."
+```
+
+*RFC 2813 Section 3.3 (strict):*
+```
+"When a server receives a message, it MUST identify its source using
+the (eventually assumed) prefix. If the prefix cannot be found in
+the server's internal database, it MUST be discarded, and if the
+prefix indicates the message comes from an (unknown) server, the link
+from which the message was received MUST be dropped."
+```
+
+**Major security enhancement:**
+- RFC 1459: Silent message dropping only
+- RFC 2813: Message discarding PLUS mandatory link termination for unknown server sources
+- RFC 2813 adds: If prefix identifies client but message came from server link, issue KILL and propagate to all servers
+- RFC 2813: Acknowledges "Dropping a link in such circumstances is a little excessive but necessary to maintain the integrity of the network and to prevent future problems"
+- This represents a zero-tolerance approach to source spoofing in the server network
+
+**Message Format BNF (2.3.1 vs 3.3.1):**
+
+*RFC 1459 Section 2.3.1:* Titled "Message format in 'pseudo' BNF" and includes complete BNF specification:
+```
+<message>  ::= [':' <prefix> <SPACE> ] <command> <params> <crlf>
+<prefix>   ::= <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
+<command>  ::= <letter> { <letter> } | <number> <number> <number>
+<SPACE>    ::= ' ' { ' ' }
+<params>   ::= <SPACE> [ ':' <trailing> | <middle> <params> ]
+<middle>   ::= <Any *non-empty* sequence of octets not including SPACE
+               or NUL or CR or LF, the first of which may not be ':'>
+<trailing> ::= <Any, possibly *empty*, sequence of octets not including
+                 NUL or CR or LF>
+<crlf>     ::= CR LF
+```
+
+*RFC 2813 Section 3.3.1:* Titled "Message format in Augmented BNF" but does NOT include the BNF itself:
+```
+"The Augmented BNF representation for this is found in 'IRC Client
+Protocol' [IRC-CLIENT]."
+```
+
+**Key change:**
+- RFC 1459 embedded the complete BNF specification
+- RFC 2813 references external document (RFC 2812) for BNF definition
+- This creates dependency and ensures consistency between client and server protocols
+- Title change from "pseudo BNF" to "Augmented BNF" suggests adoption of more formal RFC 2234 ABNF notation
+
+**Critical Server-Specific Restriction:**
+
+RFC 2813 Section 3.3.1 adds an explicit prohibition not present in RFC 1459:
+```
+"The extended prefix (["!" user "@" host ]) MUST NOT be used in server
+to server communications and is only intended for server to client
+messages in order to provide clients with more useful information
+about who a message is from without the need for additional queries."
+```
+
+**Significance:**
+- The extended prefix format `nick!user@host` is explicitly forbidden in server-to-server messages
+- This format is reserved exclusively for server-to-client messages
+- Prevents unnecessary bandwidth usage in server mesh
+- Servers already maintain full user databases, making extended prefix redundant
+- Clients benefit from extended prefix to avoid additional WHO/WHOIS queries
+
+**Numeric Replies (2.4 vs 3.4):**
+
+Both sections are nearly identical in text:
+
+*RFC 1459 Section 2.4:*
+```
+"Most of the messages sent to the server generate a reply of some
+sort. The most common reply is the numeric reply, used for both
+errors and normal replies. The numeric reply must be sent as one
+message consisting of the sender prefix, the three digit numeric, and
+the target of the reply. A numeric reply is not allowed to originate
+from a client; any such messages received by a server are silently
+dropped. In all other respects, a numeric reply is just like a normal
+message, except that the keyword is made up of 3 numeric digits
+rather than a string of letters. A list of different replies is
+supplied in section 6."
+```
+
+*RFC 2813 Section 3.4:*
+```
+"Most of the messages sent to the server generate a reply of some
+sort. The most common reply is the numeric reply, used for both
+errors and normal replies. The numeric reply MUST be sent as one
+message consisting of the sender prefix, the three digit numeric, and
+the target of the reply. A numeric reply is not allowed to originate
+from a client; any such messages received by a server are silently
+dropped. In all other respects, a numeric reply is just like a normal
+message, except that the keyword is made up of 3 numeric digits
+rather than a string of letters. A list of different replies is
+supplied in 'IRC Client Protocol' [IRC-CLIENT]."
+```
+
+**Minor differences:**
+- RFC 1459 uses "must" (lowercase)
+- RFC 2813 uses "MUST" (RFC 2119 keyword - normative requirement)
+- RFC 1459 references "section 6" (same document)
+- RFC 2813 references "[IRC-CLIENT]" (RFC 2812 - separate document)
+
+#### Server-Specific Extensions
+
+**1. Strict Link Integrity Enforcement**
+
+RFC 2813 introduces mandatory link termination rules not present in RFC 1459:
+
+- **Unknown server source**: MUST drop link immediately
+- **Prefix mismatch (source vs. arrival link)**: 
+  - If message from server link but prefix identifies client: Issue KILL for client, propagate to all servers
+  - For clients: SHOULD drop link
+  - For servers: MUST drop link
+- **Philosophy**: "Dropping a link in such circumstances is a little excessive but necessary to maintain the integrity of the network and to prevent future problems"
+
+This represents evolution from RFC 1459's lenient "ignore the message silently" to aggressive network protection.
+
+**2. Extended Prefix Prohibition**
+
+Server-to-server protocol explicitly forbids the `nick!user@host` format:
+
+```
+The extended prefix (["!" user "@" host ]) MUST NOT be used in server
+to server communications
+```
+
+**Rationale:**
+- Servers maintain complete user databases, making extended info redundant
+- Reduces bandwidth in server mesh
+- Extended prefix reserved for server-to-client optimization (reduces WHO/WHOIS queries)
+- Clear separation of concerns between server mesh and client access
+
+**3. Stricter Spacing Requirements**
+
+- RFC 1459: "one (or more) ASCII space character(s)" (tolerant parsing)
+- RFC 2813: "one ASCII space character (0x20) each" (strict formatting)
+
+This tightens the protocol for server-to-server, where both endpoints can be expected to format messages correctly.
+
+**4. Routing-Centric Model**
+
+RFC 2813 explicitly characterizes server behavior:
+
+```
+"Most communication between servers do not generate any reply, as 
+servers mostly perform routing tasks for the clients."
+```
+
+This contrasts with RFC 1459's emphasis on asynchronous request-reply patterns. Server protocol prioritizes:
+- Message forwarding and propagation
+- State synchronization
+- Minimal acknowledgment overhead
+- Network topology maintenance
+
+**5. Formal Protocol Separation**
+
+RFC 2813 completes the architectural separation begun in RFC 1459:
+
+- **RFC 1459**: Single protocol with trust level distinctions
+- **RFC 2813 + RFC 2812**: Separate specifications for:
+  - Server-to-Server (RFC 2813) - trusted, efficient, strict
+  - Client-to-Server (RFC 2812) - untrusted, informative, lenient
+
+**Cross-references:**
+- BNF definition: Refers to [IRC-CLIENT] instead of embedding
+- Numeric replies: Refers to [IRC-CLIENT] for authoritative list
+- Client connections: Explicitly redirects to separate specification
+
+**6. Normative Language Adoption**
+
+RFC 2813 uses RFC 2119 keywords (MUST, SHOULD, MAY) consistently:
+
+- "MUST be sent" (vs RFC 1459 "must be sent")
+- "MUST be dropped" (new requirement)
+- "MUST NOT be used" (new prohibition)
+- "SHOULD be dropped" (conditional requirement)
+
+This provides clearer implementation requirements and interoperability expectations.
+
+#### How RFC 2813 Differs from RFC 2812's Client Specification
+
+**Scope Division:**
+- **RFC 2813 (Server Protocol)**: Server-to-server mesh communications, network integrity, message routing
+- **RFC 2812 (Client Protocol)**: Client-to-server interactions, user commands, service access
+
+**Trust Model:**
+- **RFC 2813**: Trusted peer network with strict validation and harsh penalties for violations
+- **RFC 2812**: Untrusted clients with lenient error handling and minimal disconnections
+
+**Message Format:**
+- **RFC 2813**: Prohibits extended prefix (`nick!user@host`), requires exact single-space separators
+- **RFC 2812**: Allows extended prefix in server-to-client direction, more tolerant parsing
+
+**Error Handling:**
+- **RFC 2813**: Invalid sources trigger immediate link termination, KILL propagation
+- **RFC 2812**: Invalid messages typically result in error replies to client
+
+**Documentation Approach:**
+- **RFC 2813**: References RFC 2812 for shared definitions (BNF, numeric codes)
+- **RFC 2812**: Self-contained specification with complete message catalog
+
+**Message Generation:**
+- **RFC 2813**: Most messages don't generate replies (routing focus)
+- **RFC 2812**: Most commands generate explicit replies (user interaction focus)
+
+**Security Posture:**
+- **RFC 2813**: Zero-tolerance for spoofing, network integrity paramount
+- **RFC 2812**: User experience balanced with security, informative error messages
+
+This architectural separation allows optimization of each protocol for its specific use case while maintaining a coherent overall IRC network architecture.
+
+---
+### Section 4.2: Channel Operations (Server Protocol)
+
+#### Summary
+
+RFC 2813 Section 4.2 describes server-to-server channel operations, introducing the NJOIN message as a major efficiency improvement for network synchronization. This section focuses on how servers propagate channel membership and state information across the IRC network, distinguishing server protocol from client protocol.
+
+**Key documents:**
+- RFC 2813 Section 4.2 (pages 14-16): Server Protocol - Channel Operations
+- RFC 1459 Section 4.2 (pages 19-20): Client Protocol - JOIN message
+- RFC 2812 Section 3.2 (pages 16-17): Client Protocol - Channel operations
+
+#### NJOIN Message (NEW - RFC 2813 only)
+
+**Command:** `NJOIN`  
+**Parameters:** `<channel> [ "@@" / "@" ] [ "+" ] <nickname> *( "," [ "@@" / "@" ] [ "+" ] <nickname> )`
+
+The NJOIN message is a server-only command introduced in RFC 2813 for efficient bulk channel membership synchronization during network joins (netjoins). This command does not exist in RFC 1459 or RFC 2812 (client protocols).
+
+**Purpose and usage:**
+- **Server-to-server only:** If received from a client, it MUST be ignored
+- **Network synchronization:** Used when two servers connect to each other to exchange the complete list of channel members for each channel
+- **Efficiency improvement:** While the same function can be performed using multiple successive JOIN messages, NJOIN SHOULD be used instead as it is significantly more efficient
+- **Batch operation:** Allows transmitting multiple users' channel memberships in a single message
+
+**User status encoding:**
+- `@@` prefix: Indicates the user is the "channel creator"
+- `@` prefix: Indicates a "channel operator"
+- `+` prefix: Indicates the user has "voice" privilege
+- No prefix: Regular channel member with no special privileges
+
+**Example from RFC 2813:**
+```
+:ircd.stealth.net NJOIN #Twilight_zone :@WiZ,+syrk,avalon
+```
+This announces three users joining #Twilight_zone:
+- WiZ with channel operator status (@)
+- syrk with voice privilege (+)
+- avalon with no special privileges
+
+**Numeric replies:**
+- ERR_NEEDMOREPARAMS
+- ERR_NOSUCHCHANNEL
+- ERR_ALREADYREGISTRED
+
+**Comparison with client protocols:**
+- **RFC 1459 and RFC 2812:** No equivalent command. Network synchronization must use individual JOIN messages
+- **RFC 2813:** Introduces NJOIN specifically to reduce message overhead during netjoins and server linking
+
+#### JOIN and MODE Differences
+
+**4.2.1 JOIN Message - Server-to-Server Format**
+
+**RFC 2813 (Server Protocol):**
+```
+Parameters: <channel>[ %x7 <modes> ] *( "," <channel>[ %x7 <modes> ] )
+```
+
+The server protocol extends JOIN with an optional channel modes parameter:
+- User status (channel modes 'O', 'o', and 'v') may be appended to the channel name
+- Separator: Control G (^G or ASCII 7, represented as %x7)
+- **Server-only format:** This data MUST be ignored if the message wasn't received from a server
+- **Client protection:** This format MUST NOT be sent to clients; it can only be used between servers
+- **Deprecation note:** This format SHOULD be avoided (NJOIN is preferred)
+
+**Broadcast requirement:**
+> "The JOIN command MUST be broadcast to all servers so that each server knows where to find the users who are on the channel. This allows optimal delivery of PRIVMSG and NOTICE messages to the channel."
+
+**RFC 1459 (Client Protocol):**
+```
+Parameters: <channel>{,<channel>} [<key>{,<key>}]
+```
+
+- Simpler format with optional channel keys
+- No mode transmission capability
+- Server-side validation: Only the local server validates whether a client is allowed to join
+- Automatic propagation: All other servers automatically add the user when received from other servers
+
+**RFC 2812 (Client Protocol):**
+```
+Parameters: ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
+```
+
+- Similar to RFC 1459 but with formal syntax notation
+- Servers MUST be able to parse lists but SHOULD NOT use lists when sending JOIN to clients
+- Adds "0" parameter for leaving all channels (not in RFC 1459's JOIN section)
+- No server-to-server mode transmission mentioned (client protocol only)
+
+**Key differences:**
+1. **Mode transmission:** Only RFC 2813 supports transmitting user status (O/o/v) with JOIN
+2. **Efficiency:** RFC 2813 deprecates the extended JOIN format in favor of NJOIN
+3. **Client isolation:** RFC 2813 explicitly forbids sending server format to clients
+
+**4.2.3 MODE Message - Server Handling**
+
+All three RFCs describe MODE as a "dual-purpose command" affecting both channels and users, but they differ in emphasis and requirements.
+
+**RFC 2813 (Server Protocol) - Section 4.2.3:**
+- Brief treatment (8 lines total)
+- **RECOMMENDED:** Parse entire message first, then pass on changes
+- **REQUIRED:** Servers MUST be able to change channel modes to create "channel creator" and "channel operators"
+- Server responsibility for establishing channel authority structure
+- No detailed mode specifications (assumes knowledge from client protocol)
+
+**RFC 1459 (Client Protocol) - Section 4.2.3:**
+- Extended treatment with detailed mode specifications
+- **Recommended:** Parse entire message first, then pass on changes (same guidance, weaker language)
+- **Required:** Servers MUST be able to change channel modes for channel operator creation
+- Detailed channel mode parameters:
+  ```
+  Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>] [<ban mask>]
+  ```
+- Complete mode character definitions and behaviors
+- Rationale: "one day nicknames will be obsolete and the equivalent property will be the channel"
+
+**RFC 2812 (Client Protocol) - Section 3.2.3:**
+- Most formal and detailed treatment
+- Refers to separate "Internet Relay Chat: Channel Management" [IRC-CHAN] document for mode details
+- **Maximum limit:** Three (3) changes per command for modes that take a parameter
+- Enhanced numeric replies (11 different reply codes)
+- More comprehensive error handling
+- **Channel creator concept:** Formal error ERR_UNIQOPPRIVSNEEDED for MODE requiring "channel creator" privileges
+
+**Key differences:**
+1. **Detail level:** RFC 2813 provides minimal detail (server context only), RFC 1459 moderate detail, RFC 2812 most comprehensive with external references
+2. **Requirements:** RFC 2813 emphasizes server capability requirements; RFC 1459 focuses on mode semantics; RFC 2812 adds rate limiting
+3. **Channel creator:** RFC 2813 and RFC 2812 explicitly reference "channel creator" mode; RFC 1459 only mentions "channel operators"
+4. **Parsing guidance:** RFC 2813 uses RECOMMENDED (RFC 2119), RFC 1459 uses informal "recommended"
+
+#### How Servers Synchronize Channel State
+
+**Network join scenario:**
+
+1. **Server connection established:** Two servers complete SERVER/PASS handshake (Section 4.1.4)
+
+2. **Channel membership exchange:**
+   - **RFC 2813 preferred method:** Use NJOIN messages for each channel
+     ```
+     :server.example.net NJOIN #channel :@@creator,@op1,@op2,+voice1,user1,user2
+     ```
+   - **Alternative (should be avoided):** Individual JOIN messages with mode suffixes
+     ```
+     :user JOIN #channel^Go
+     ```
+     (where ^G is ASCII 7 and 'o' indicates operator status)
+
+3. **Mode synchronization:**
+   - Servers MUST be able to apply MODE changes to establish channel creator and operator status
+   - MODE messages propagate through the network to maintain consistency
+   - RFC 2813 emphasizes parsing the entire MODE message before applying changes
+
+4. **Ongoing synchronization:**
+   - All channel operations (JOIN, PART, MODE, KICK, QUIT) are broadcast to all servers
+   - Each server maintains a map of which users are on which channels
+   - This enables optimal routing of PRIVMSG and NOTICE to channels
+
+**Race condition handling:**
+
+RFC 2813 explicitly acknowledges race conditions:
+> "In implementing these, a number of race conditions are inevitable when users at opposing ends of a network send commands which will ultimately clash."
+
+Mitigation requirements:
+- **Nickname history:** Servers REQUIRED to keep nickname history to ensure <nick> parameters are checked against recent changes
+- **Message parsing:** RECOMMENDED to parse entire MODE message before applying (prevents partial state)
+- **Automatic propagation:** Non-originating servers automatically accept channel membership changes from other servers (no validation)
+
+**Comparison with client protocols:**
+
+- **RFC 1459/2812:** Describe the theoretical requirement that "JOIN must be broadcast to all servers" but provide no implementation details
+- **RFC 2813:** Provides concrete server-to-server mechanisms (NJOIN, mode suffixes) and acknowledges practical synchronization challenges
+- **Efficiency evolution:** RFC 2813 shows awareness that the RFC 1459 approach (multiple JOINs) is inefficient at scale, introducing NJOIN as optimization
+
+---
+
+## RFC 2810 (Architecture) Sections 6-7: Current Problems & Security
+
+### Summary
+
+RFC 2810 (Internet Relay Chat: Architecture, April 2000) introduced a formalized "Current Problems" section that categorizes IRC's architectural challenges into four distinct areas: Scalability, Reliability, Network Congestion, and Privacy. This represents a significant shift from RFC 1459's approach, which embedded authentication details in Section 7 and discussed problems primarily from an implementation perspective in Section 9.
+
+The security treatment also differs markedly: RFC 2810's Security Considerations section (Section 7) is remarkably brief, dismissing security as "irrelevant to this document" aside from privacy concerns. In contrast, RFC 1459 dedicated Section 7 to detailed authentication mechanisms and referenced security throughout multiple sections.
+
+### New Problem Categories in RFC 2810
+
+RFC 2810 Section 6 identifies four architectural problems, three of which represent new categorizations not explicitly separated in RFC 1459:
+
+#### 6.1 Scalability
+**RFC 2810 (Page 7):**
+> It is widely recognized that this protocol does not scale sufficiently well when used in a large arena. The main problem comes from the requirement that all servers know about all other servers, clients and channels and that information regarding them be updated as soon as it changes.
+
+**RFC 1459 Equivalent (Section 9.1, Page 63):**
+> It is widely recognized that this protocol does not scale sufficiently well when used in a large arena. The main problem comes from the requirement that all servers know about all other servers and users and that information regarding them be updated as soon as it changes. It is also desirable to keep the number of servers low so that the path length between any two points is kept minimal and the spanning tree as strongly branched as possible.
+
+**Analysis:** The scalability problem description is nearly identical between both RFCs. However, RFC 2810 adds "clients and channels" (versus RFC 1459's "servers and users"), reflecting more comprehensive state tracking. RFC 1459 included additional implementation guidance about keeping server counts low and maintaining minimal path lengths, which RFC 2810 omits.
+
+#### 6.2 Reliability (NEW in RFC 2810)
+**RFC 2810 (Page 7):**
+> As the only network configuration allowed for IRC servers is that of a spanning tree, each link between two servers is an obvious and quite serious point of failure. This particular issue is addressed more in detail in "Internet Relay Chat: Server Protocol" [IRC-SERVER].
+
+**RFC 1459:** No equivalent dedicated section. Reliability concerns were implicit but not explicitly categorized.
+
+**Analysis:** RFC 2810 formally recognizes the spanning tree topology as a fundamental reliability problem. The single point of failure created by each server-to-server link is now explicitly documented as an architectural concern, with reference to RFC 2813 (Server Protocol) for details.
+
+#### 6.3 Network Congestion (NEW in RFC 2810)
+**RFC 2810 (Pages 7-8):**
+> Another problem related to the scalability and reliability issues, as well as the spanning tree architecture, is that the protocol and architecture for IRC are extremely vulnerable to network congestions. This problem is endemic, and should be solved for the next generation: if congestion and high traffic volume cause a link between two servers to fail, not only this failure generates more network traffic, but the reconnection (eventually elsewhere) of two servers also generates more traffic.
+> 
+> In an attempt to minimize the impact of these problems, it is strongly RECOMMENDED that servers do not automatically try to reconnect too fast, in order to avoid aggravating the situation.
+
+**RFC 1459:** Not explicitly discussed as a separate problem category. Message delivery issues were mentioned in Section 8.3 (implementation details) but not as an architectural problem.
+
+**Analysis:** RFC 2810 identifies network congestion as a cascading problem where failures generate additional traffic, creating a positive feedback loop. The recommendation against rapid automatic reconnection is a new architectural guideline. This represents a mature understanding of IRC's operational challenges gained from 7 years of deployment experience between 1993 and 2000.
+
+#### 6.4 Privacy (NEW in RFC 2810)
+**RFC 2810 (Page 8):**
+> Besides not scaling well, the fact that servers need to know all information about other entities, the issue of privacy is also a concern. This is in particular true for channels, as the related information is quite a lot more revealing than whether a user is online or not.
+
+**RFC 1459 Equivalent (Section 9.2.2, Page 63):**
+> The current channel layout requires that all servers know about all channels, their inhabitants and properties. Besides not scaling well, the issue of privacy is also a concern.
+
+**Analysis:** Both RFCs mention privacy concerns related to global channel state knowledge. However, RFC 2810 elevates privacy to a standalone problem category (6.4) and explicitly notes that channel information is "a lot more revealing" than mere online presence. This reflects growing privacy awareness in the late 1990s.
+
+### Security Considerations Comparison
+
+The treatment of security differs dramatically between RFC 1459 and RFC 2810:
+
+#### RFC 2810 Section 7: Security Considerations (Page 8)
+**Complete text:**
+> Asides from the privacy concerns mentioned in section 6.4 (Privacy), security is believed to be irrelevant to this document.
+
+**Analysis:** This single-sentence dismissal is striking. RFC 2810 takes the position that security is outside the scope of an architecture document, aside from privacy. This likely reflects the decision to split security concerns between the client protocol (RFC 2812) and server protocol (RFC 2813) documents.
+
+#### RFC 1459 Section 7: Client and server authentication (Pages 56-57)
+
+RFC 1459 dedicated an entire section to authentication mechanisms:
+
+**Authentication layers described:**
+1. **IP to hostname lookup** - Reverse DNS verification for all connections
+2. **Password checks** - Optional for clients, commonly used for servers
+3. **Username identification** - IDENT protocol (RFC 1413) for username verification
+
+**Key statement (Page 56):**
+> Given that without passwords it is not easy to reliably determine who is on the other end of a network connection, use of passwords is strongly recommended on inter-server connections in addition to any other measures such as using an ident server.
+
+**Analysis:** RFC 1459 treats authentication as a core protocol concern, providing specific implementation guidance. The progressive layering (DNS, password, IDENT) represents a defense-in-depth approach.
+
+#### RFC 1459 Section 11: Security Considerations (Page 65)
+**Complete text:**
+> Security issues are discussed in sections 4.1, 4.1.1, 4.1.3, 5.5, and 7.
+
+**Sections referenced:**
+- **4.1, 4.1.1, 4.1.3** - Connection registration and password message details
+- **5.5** - OPER message (operator authentication)
+- **7** - Client and server authentication (detailed above)
+
+**Analysis:** RFC 1459's security section acts as a cross-reference index, acknowledging that security is distributed throughout the protocol specification rather than isolated in a single section.
+
+### Key Differences in Problem and Security Documentation
+
+#### 1. Architectural vs. Implementation Focus
+
+**RFC 2810:** Problems are framed as inherent architectural limitations:
+- Spanning tree topology creates reliability issues
+- Global state requirements create scalability issues
+- Network congestion is a systemic architectural vulnerability
+
+**RFC 1459:** Problems are framed as implementation challenges to be solved:
+- Section 9 notes problems "hope to be solved sometime in the near future during its rewrite"
+- Focuses on labels (9.2), algorithms (9.3), and implementation details
+- More optimistic tone about future solutions
+
+#### 2. Problem Categorization Evolution
+
+**RFC 1459 Section 9 structure:**
+- 9.1 Scalability
+- 9.2 Labels (nicknames, channels, servers)
+- 9.3 Algorithms (N^2 complexity, database consistency, race conditions)
+
+**RFC 2810 Section 6 structure:**
+- 6.1 Scalability (inherited from 1459)
+- 6.2 Reliability (new category)
+- 6.3 Network Congestion (new category)
+- 6.4 Privacy (elevated from sub-issue to main category)
+
+**What RFC 2810 removed:**
+- **Labels problem (RFC 1459 9.2):** Nickname, channel, and server name collision issues
+- **Algorithms problem (RFC 1459 9.3):** N^2 algorithms, lack of database consistency checks, race conditions from non-unique labels
+
+**Analysis:** The removal of implementation-level problems (labels, algorithms) and addition of operational problems (reliability, congestion) reflects a shift from a protocol specification document to an architectural overview document. By 2000, the IRC community had accepted that certain problems (like label collisions and algorithmic complexity) were inherent rather than solvable.
+
+#### 3. Security Documentation Philosophy
+
+**RFC 1459 approach:**
+- Security integrated throughout the document
+- Dedicated section for authentication (Section 7)
+- Practical implementation guidance (passwords, IDENT, DNS)
+- Multiple cross-references in Security Considerations section
+
+**RFC 2810 approach:**
+- Security declared "irrelevant to this document"
+- Only privacy concerns addressed
+- Defers security to protocol-specific documents (RFC 2812/2813)
+- Reflects modular document structure
+
+**Analysis:** The difference reflects the document reorganization between 1993 and 2000. RFC 1459 was a monolithic specification covering all aspects; RFC 2810 is part of a suite where security details belong in protocol-specific documents. The dismissal of security as "irrelevant" is somewhat misleading—it's not that security doesn't matter, but rather that RFC 2810 is scoped as an architectural overview, not an implementation guide.
+
+#### 4. Maturity and Acceptance of Limitations
+
+**RFC 1459 (1993):**
+- Acknowledges problems but expresses hope for solutions
+- "all of which hope to be solved sometime in the near future during its rewrite"
+- Active development mindset
+- Problems framed as temporary
+
+**RFC 2810 (2000):**
+- Problems presented as inherent architectural characteristics
+- Recommendations focus on mitigation (e.g., "do not automatically try to reconnect too fast")
+- Acceptance that fundamental issues require "the next generation" of protocols
+- Problems framed as endemic to the design
+
+**Analysis:** Seven years of operational experience led to a more realistic assessment. By 2000, the IRC community understood that certain architectural decisions (spanning tree, global state) created fundamental limitations that could not be resolved without a complete redesign.
+
+### Conclusion
+
+The evolution from RFC 1459 Section 7 & 9 to RFC 2810 Section 6 & 7 reflects both document reorganization and community learning:
+
+1. **Problems became categorized by impact area** (scalability, reliability, congestion, privacy) rather than implementation detail (labels, algorithms)
+
+2. **New problem categories emerged** from operational experience: reliability of spanning tree topology and network congestion cascades were not initially recognized as distinct architectural issues
+
+3. **Security treatment bifurcated**: RFC 1459 treated authentication as a core protocol concern; RFC 2810 deferred security to protocol-specific documents while elevating privacy to a first-class architectural concern
+
+4. **Tone shifted from optimism to acceptance**: RFC 1459 hoped problems would be solved "in the near future"; RFC 2810 acknowledged they were "endemic" and would require "the next generation"
+
+This evolution demonstrates how operational experience (1993-2000) led to a more nuanced understanding of IRC's fundamental architectural trade-offs and limitations.
+
+---
+
+
+## RFC 2813: Server Protocol Document
+
+### Overview
+
+RFC 2813 (April 2000) defines the server-to-server protocol for IRC, separating concerns that were previously combined in RFC 1459. While RFC 2812 focused on the client protocol, RFC 2813 addresses how servers communicate with each other to maintain network state and relay messages across the spanning tree topology.
+
+**Key points from the Introduction (Section 1):**
+- IRC servers connect to each other forming a network (client-server model extended to server-server)
+- Originally a superset of the client protocol, but has evolved differently
+- Development focused on scalability improvements
+- Enabled world-wide networks to grow beyond old specification limits
+- References separate architecture [IRC-ARCH] and channel management [IRC-CHAN] documents
+
+**Scope:**
+- Server-to-server communication protocol
+- Three basic services: client locator (via client protocol), message relaying (via server protocol), channel hosting/management (via channel rules)
+- Intended for implementers of IRC servers and services
+
+### Section 2: Global Database
+
+#### Comparison with RFC 1459/2812
+
+**Architectural Framing:**
+RFC 2813 explicitly introduces the concept of a "global state database" - a term not used in RFC 1459 or RFC 2812. This represents a fundamental shift in how the protocol conceptualizes network state:
+
+- **RFC 1459 (Section 1)**: Describes servers, clients, and channels as independent components of the protocol without explicitly calling it a "database"
+- **RFC 2812 (Section 1)**: Reorganizes the same information under "Labels" - treating them as identifiers rather than state
+- **RFC 2813 (Section 2)**: Frames these components as a "global state database" that each server maintains about the entire network, emphasizing that this database is "in theory, identical on all servers"
+
+This framing acknowledges the fundamental challenge of IRC: maintaining distributed consensus about global state across a spanning tree network.
+
+**Evolution of Scope Concept:**
+
+RFC 2813 introduces explicit acknowledgment that not all state is truly global:
+- **Servers**: Generally known to all other servers (global), but hostmasking allows grouping and hiding individual servers
+- **Clients**: Must be globally known (all servers track all clients)
+- **Channels**: Have "scope" and are "not necessarily known to all servers" - acknowledging what RFC 1459 described as local (&) vs distributed (#) channels
+
+This is a significant evolution from RFC 1459's simpler binary model (local vs distributed channels) to a more nuanced understanding of scope and visibility in the network.
+
+**Relationship to Spanning Tree:**
+
+While RFC 1459 Section 1.1 explicitly describes the spanning tree topology with an ASCII diagram, RFC 2813 assumes this knowledge and focuses instead on the state synchronization challenges this topology creates:
+- The global database must be synchronized across all servers
+- Server-to-server connections form the edges of the spanning tree
+- State updates propagate through the tree structure
+- The hostmask feature allows creating "areas" within the tree where internal structure is hidden from external servers
+
+#### Key Content
+
+**2.1 Servers**
+
+**Identity and Naming:**
+- Uniquely identified by name (maximum 63 characters)
+- Name format defined by protocol grammar rules in Section 3.3.1
+
+**Hostmasking (NEW feature not in RFC 1459/2812):**
+- Servers can be grouped by defining a "hostmask"
+- Within the hostmasked area: all servers have names matching the hostmask
+- Outside the area: other servers see only a virtual server with the hostmask as its name
+- Restriction: servers matching the hostmask SHALL NOT connect to the network outside the hostmasked area
+- Effect: hides internal topology, improves scalability
+
+**Comparison:**
+- RFC 1459 (1.1): Described servers as "central nodes" in spanning tree, emphasized topology
+- RFC 2812 (1.1): Simply defines server name length (63 chars), no topology discussion
+- RFC 2813 (2.1): Adds hostmask concept for hierarchical topology hiding
+
+**2.2 Clients**
+
+**General Requirements:**
+All servers MUST maintain for each client:
+1. A netwide unique identifier (format depends on client type)
+2. The server to which the client is connected
+
+This is consistent across all RFCs but RFC 2813 makes it explicit as a database requirement.
+
+**2.2.1 Users**
+
+**Identity:**
+- Distinguished by unique nickname (maximum 9 characters)
+- Nickname format defined in Section 3.3.1 grammar rules
+
+**Required Information:**
+All servers MUST have for all users:
+1. Nickname (unique identifier)
+2. Hostname (the host the user is running on)
+3. Username (on that host)
+4. Server connection (which server the client is connected to)
+
+**Comparison with RFC 1459:**
+- RFC 1459 (1.2): "the real name of the host that the client is running on"
+- RFC 2813 (2.2.1): "the name of the host that the user is running on"
+- Subtle language shift from "real name" to "name" - acknowledging that DNS names may not always reflect "reality"
+
+**Comparison with RFC 2812:**
+- RFC 2812 (1.2.1): Only defines nickname length and format
+- Does NOT specify what information servers must maintain about users
+- This is appropriate since RFC 2812 is client protocol - server state requirements belong in server protocol
+
+**2.2.2 Services**
+
+**Identity:**
+- Distinguished by service name = nickname + server name
+- Nickname has maximum length of 9 characters
+- Server name is the server to which the service is connected
+- Format: Creates a compound identifier unique across the network
+
+**Required Information:**
+All servers MUST know:
+1. Service name (nickname@servername format)
+2. Service type
+
+**Key Differences from Users:**
+RFC 2813 explicitly documents how services differ from users:
+
+1. **Identifier format**: Compound (nick + server) vs simple nickname
+2. **Access rights**: Can request global state information vs normal client operations
+3. **Command restrictions**: More restricted command set (see IRC-CLIENT for details)
+4. **Channel access**: NOT allowed to join channels
+5. **Flood control**: NOT subject to flood control mechanism (Section 5.8)
+
+**Evolution:**
+- RFC 1459: Does not have a "Services" concept in Section 1 (services were not formalized)
+- RFC 2812 (1.2.2): Defines service identity but not the functional differences
+- RFC 2813 (2.2.2): Fully documents services as a distinct client category with different privileges and restrictions
+
+This formalization of services as first-class entities with special database access represents a major evolution in the protocol, enabling bots, authentication services, and other automated systems to integrate properly with the IRC network.
+
+**2.3 Channels**
+
+**Scope and Visibility:**
+- Channels have "scope" (reference to [IRC-CHAN])
+- Are NOT necessarily known to all servers
+- When a channel's existence is known to a server, that server MUST track:
+  1. Channel members (who is in the channel)
+  2. Channel modes (channel state/configuration)
+
+**Comparison with RFC 1459:**
+
+RFC 1459 (1.3) described two channel types:
+1. **Distributed channels** (starting with #): Known to all connected servers
+2. **Local channels** (starting with &): Only exist on one server
+
+RFC 1459 also described channel lifecycle:
+- Created implicitly when first client joins
+- Ceases to exist when last client leaves
+- Can span network splits and rejoin when split heals
+
+**Comparison with RFC 2812:**
+
+RFC 2812 (1.3) describes channel identifiers:
+- Strings beginning with &, #, +, or ! (four types vs two in RFC 1459)
+- Maximum length 50 characters
+- Explicitly states: "The definition of the channel types is not relevant to the client-server protocol"
+- Defers channel semantics to [IRC-CHAN] document
+
+**RFC 2813's Approach:**
+
+RFC 2813 takes a middle ground:
+- Acknowledges channels have "scope" (not all global)
+- References [IRC-CHAN] for detailed channel type definitions
+- Focuses on server state requirements: IF a server knows about a channel, it MUST track members and modes
+- Does not specify channel lifecycle or creation semantics (those are in IRC-CHAN)
+
+**Database Implications:**
+
+The "scope" concept in RFC 2813 is crucial for scalability:
+- Not all servers need to know about all channels
+- Local/scoped channels reduce global state synchronization burden
+- Servers only maintain channel state for channels they need to know about
+- This allows the network to scale beyond a model where every server tracks every channel
+
+This represents a significant architectural acknowledgment that true global state for channels is neither necessary nor desirable for scalability.
+
+### Relationship to Spanning Tree Architecture
+
+RFC 2813's Global Database concept is intrinsically tied to the spanning tree topology described in RFC 1459:
+
+**State Synchronization:**
+- Each server maintains its view of global state
+- State updates propagate through the spanning tree structure
+- Each server acts as a relay point for state updates to servers "behind" it in the tree
+- The database should be "in theory, identical on all servers" - acknowledging that in practice, propagation delays and network splits create temporary inconsistencies
+
+**Hierarchy and Abstraction:**
+- Hostmasking creates hierarchical areas within the spanning tree
+- External servers see aggregated/virtual servers rather than internal topology
+- This allows scaling by reducing the O(N^2) full-mesh visibility problem
+
+**Scope and Locality:**
+- The spanning tree enables efficient scoped state (channels not known everywhere)
+- State only propagates as far as needed based on channel scope
+- Services can be server-local or network-wide depending on requirements
+
+**Resilience:**
+- Network splits partition the global database
+- Each partition maintains its own consistent view
+- When splits heal, state must be merged (channels, nicknames, modes)
+- The spanning tree topology ensures there's always a unique path between any two servers, simplifying merge logic
+
+### Key Insights
+
+1. **Distributed Consensus Challenge**: RFC 2813 frames IRC's core challenge as maintaining a distributed database that should be identical across all servers - making explicit what was implicit in RFC 1459
+
+2. **Scalability Through Scoping**: The evolution from RFC 1459 to RFC 2813 shows increasing sophistication about what needs to be global vs. what can be scoped (hostmasks for servers, scope for channels)
+
+3. **Services as Database Consumers**: Formalizing services with special access to global state information represents recognition that network management and automation require programmatic access to the database
+
+4. **Separation of Concerns**: By 2000, the protocol had evolved to separate:
+   - Client protocol (RFC 2812): How clients interact, what identifiers mean
+   - Server protocol (RFC 2813): How servers maintain and synchronize state
+   - Channel management (IRC-CHAN): How channel semantics work
+   - Architecture (IRC-ARCH): Overall system design
+
+5. **Theoretical vs. Practical**: The phrase "in theory, identical on all servers" acknowledges that distributed systems face race conditions, propagation delays, and network partitions - the database is eventually consistent rather than strictly consistent
+
+---
+## RFC 2813 Section 5: Implementation Details
+
+### Summary
+
+RFC 2813 Section 5 "Implementation details" (pages 16-21) is the updated and reorganized version of RFC 1459 Section 8 "Current implementations" (pages 56-65). This section provides essential guidance for implementing IRC servers, covering connection management, state synchronization, nickname tracking, and performance optimizations. RFC 2813 introduces significant new features including compressed server links, anti-abuse protections, and formalized nickname delay mechanisms, while removing implementation-specific details like configuration file layouts.
+
+### Key Comparisons with RFC 1459 Section 8
+
+#### Connection Liveness (5.1 vs 8.4)
+
+**RFC 2813 Changes:**
+- Uses formal RFC 2119 language: "server MUST poll each of its connections"
+- Explicitly references PING command from "IRC Client Protocol" [IRC-CLIENT]
+- More concise presentation of the same concept
+
+**RFC 1459 Original:**
+- Informal language: "server must ping each of its connections"
+- No formal protocol references
+- Longer explanation of timeout behavior
+
+**Unchanged:**
+- Core mechanism: ping-based liveness detection
+- Connection closure for non-responsive connections
+- Sendq overflow handling (implicit in both)
+
+**Analysis:** RFC 2813 formalizes the language without changing the fundamental mechanism. The explicit reference to the PING command location reflects the protocol split between client and server specifications.
+
+---
+
+#### Accepting Client-Server Connections (5.2 vs 8.5)
+
+**Major RFC 2813 Changes:**
+
+**NEW Structure - Separated subsections:**
+- **5.2.1 Users**: Detailed user registration sequence
+- **5.2.2 Services**: NEW - Separate handling for service connections
+
+**5.2.1 Users - Enhanced Requirements:**
+```
+REQUIRED to send:
+- RPL_WELCOME (user identifiers)
+- RPL_YOURHOST (server name/version)
+- RPL_CREATED (server birth info)
+- RPL_MYINFO (available modes)
+- MAY send introductory messages
+
+SHALL send:
+- LUSER reply (user/service/server count)
+- MOTD (if any)
+
+MUST use extended NICK message (Section 4.1.3)
+- NOT separate NICK and USER messages as in IRC-CLIENT
+```
+
+**RFC 1459 Original (8.5):**
+```
+Required to send:
+- MOTD (if present)
+- LUSER command output
+- Server name/version
+- Introductory messages
+
+Must send:
+- NICK first, followed by USER
+- Information from DNS/authentication servers
+```
+
+**5.2.2 Services (NEW in RFC 2813):**
+```
+Only sends:
+- RPL_YOURESERVICE
+- RPL_YOURHOST
+- RPL_MYINFO
+
+Uses SERVICE message to propagate to other servers
+```
+
+**Analysis:** RFC 2813 provides much more structured guidance with explicit reply codes and formal language. The separation of user and service registration is a significant organizational improvement. The mandate to use extended NICK messages (combining user info in one message) improves efficiency over the two-message approach in RFC 1459.
+
+---
+
+#### Server-Server Connection Establishment (5.3 vs 8.6)
+
+**RFC 2813 Major Additions:**
+
+**5.3.1 Link Options (COMPLETELY NEW)**
+
+RFC 2813 introduces a formalized link options system using the PASS message options parameter:
+
+**5.3.1.1 Compressed Server Links (NEW):**
+```
+Z flag in PASS options parameter:
+- Both servers must request compression
+- Both must successfully initialize compressed streams
+- Uses RFC 1950 (ZLIB), RFC 1951 (DEFLATE), RFC 1952 (GZIP)
+- Failure: send uncompressed ERROR and close connection
+
+Benefits:
+- Reduced bandwidth usage on server links
+- Particularly valuable for networks with slow connections
+- Standardized compression format
+```
+
+**5.3.1.2 Anti-Abuse Protections (NEW):**
+```
+P flag in PASS options parameter:
+- Requires all servers on network implement abuse protections
+- If present, server REQUIRES all its server links enable protections
+- Commonly referenced protections:
+  - Section 5.7: Tracking recently used nicknames
+  - Section 5.8: Flood control of clients
+
+Purpose:
+- Network-wide enforcement of abuse prevention
+- Ensures consistent protection across server links
+- Indispensable on some networks, superfluous on others
+```
+
+**RFC 1459 Original (8.6):**
+```
+Basic PASS/SERVER exchange:
+- Receive PASS/SERVER pair
+- Validate as being valid
+- Reply with own PASS/SERVER
+- Send all state information
+- Initiating server checks authentication
+```
+
+**Unchanged Core Process:**
+- PASS/SERVER pair exchange and validation
+- Mutual authentication required
+- State information exchange after authentication
+- Race condition awareness
+
+**Analysis:** The link options system is one of RFC 2813's most significant additions. Compressed links address bandwidth concerns that became more apparent as IRC networks grew. The anti-abuse flag system allows networks to enforce consistent security policies across all server links, preventing weak links in the security chain.
+
+---
+
+#### State Information Exchange (5.3.2 vs 8.6.1)
+
+**RFC 2813 Changes:**
+
+```
+REQUIRED order:
+1. All known servers (SERVER messages)
+2. All known client information (NICK and SERVICE messages)
+3. All known channel information (NJOIN/MODE messages)
+
+Channel topics: SHOULD NOT be exchanged
+Reasoning: TOPIC overwrites old topic, sides would just exchange topics
+```
+
+**RFC 1459 Original:**
+
+```
+Required order:
+1. All known other servers (SERVER messages)
+2. All known user information (NICK/USER/MODE/JOIN messages)
+3. All known channel information (MODE messages)
+
+Channel topics: NOT exchanged
+Reasoning: TOPIC overwrites, so at best sides exchange topics
+```
+
+**Key Differences:**
+
+| Aspect | RFC 2813 | RFC 1459 |
+|--------|----------|----------|
+| Terminology | "Client information" | "User information" |
+| User sync | NICK and SERVICE messages | NICK/USER/MODE/JOIN |
+| Channel sync | NJOIN/MODE messages | MODE messages |
+| Services | Explicitly included (SERVICE) | Not mentioned |
+| Topic exchange | "SHOULD NOT" (formal) | "NOT" (informal) |
+
+**Unchanged Philosophy:**
+- Servers first to detect server collisions before nickname collisions
+- Collision location indicates network split point
+- Acyclic graph topology requirement
+- Network may have reconnected elsewhere
+
+**Analysis:** RFC 2813's use of "client information" reflects the broader concept including both users and services. The NJOIN command (efficient bulk channel membership synchronization) replaces individual JOIN messages. The explicit inclusion of SERVICE messages formalizes service support. The change from "NOT" to "SHOULD NOT" uses RFC 2119 language properly.
+
+---
+
+#### Terminating Connections
+
+**Server-Client Termination (5.4 vs 8.7):**
+
+**RFC 2813 (5.4):**
+```
+When client connection unexpectedly closes:
+- QUIT message generated on behalf of client
+- By the server to which client was connected
+- No other message to be generated or used
+```
+
+**RFC 1459 (8.8):**
+```
+When client connection closes:
+- QUIT message generated on behalf of client
+- No other message to be generated or used
+```
+
+**Difference:** RFC 2813 adds "unexpectedly" qualifier and clarifies which server generates the message.
+
+---
+
+**Server-Server Termination (5.5 vs 8.8):**
+
+**RFC 2813 (5.5):**
+```
+If server-server connection closed (SQUIT or natural causes):
+- Rest of IRC network MUST have information updated
+- Server which detected closure sends:
+  - List of SQUITs (one for each server behind connection)
+- Reference to Section 4.1.6 (SQUIT)
+```
+
+**RFC 1459 (8.8):**
+```
+If server-server connection closed (SQUIT or natural causes):
+- Rest of connected IRC network must have information updated
+- Server which detected closure sends:
+  - List of SQUITs (one for each server behind connection)
+  - List of QUITs (one for each client behind connection)
+```
+
+**Significant Difference:** RFC 2813 **removes the explicit requirement to send QUIT messages** for clients behind the connection. This is a protocol simplification - the SQUIT implicitly invalidates all clients behind that server.
+
+**Analysis:** The removal of explicit QUIT requirements suggests this was handled implicitly by server implementations. When a server receives SQUIT for a remote server, it already knows to invalidate all associated clients. The explicit QUIT messages may have been redundant network traffic.
+
+---
+
+#### Nickname Tracking (5.6 vs 8.9)
+
+**RFC 2813 (5.6):**
+```
+Servers REQUIRED to keep history of recent nickname changes
+Purpose: Mitigate race conditions
+
+Commands that MUST trace nick changes:
+- KILL (nick being disconnected)
+- MODE (+/- o,v on channels)
+- KICK (nick being removed from channel)
+
+No other commands need to check nick changes.
+
+Process:
+1. Check for nickname existence
+2. Check history to see who nick now belongs to
+3. RECOMMENDED: use time range, ignore old entries
+
+History size: SHOULD keep previous nickname for every client
+Limited by: memory and other factors
+```
+
+**RFC 1459 (8.9):**
+```
+All IRC servers required to keep history of recent nickname changes
+Purpose: Keep in touch when nick-change race conditions occur
+
+Commands which must trace nick changes:
+- KILL (nick being killed)
+- MODE (+/- o,v)
+- KICK (nick being kicked)
+
+No other commands to have nick changes checked.
+
+Process:
+1. Check for nickname existence
+2. Check history to see who nick currently belongs to (if anyone!)
+3. Recommended: time range be given, ignore too-old entries
+
+History size: should keep previous nickname for every client
+Limited by: memory, etc
+```
+
+**Key Differences:**
+
+| Aspect | RFC 2813 | RFC 1459 |
+|--------|----------|----------|
+| Language | REQUIRED, MUST, RECOMMENDED | required, must, recommended |
+| KILL description | "nick being disconnected" | "nick being killed" |
+| MODE description | "+/- o,v on channels" | "+/- o,v" |
+| History check | "nick now belongs to" | "nick currently belongs to" |
+
+**Analysis:** Nearly identical functionality with formalized language in RFC 2813. The change from "killed" to "disconnected" is more neutral terminology. The MODE clarification explicitly mentions "on channels" which was implicit in RFC 1459.
+
+---
+
+#### Tracking Recently Used Nicknames (5.7 - NEW in RFC 2813)
+
+**COMPLETELY NEW Section:**
+
+This section, commonly known as "Nickname Delay," is entirely new to RFC 2813:
+
+```
+Purpose:
+- Significantly reduce nickname collisions from network splits/reconnections
+- Reduce abuse potential
+- Proven effective mechanism
+
+Mechanism:
+Servers SHOULD keep track of nicknames that were:
+- Recently used AND
+- Released due to network split OR KILL message
+
+These nicknames become:
+- Unavailable to server local clients
+- Cannot be re-used even though not currently in use
+- Blocked for a certain period of time
+
+Duration considerations:
+- Network size (user wise)
+- Usual duration of network splits
+- SHOULD be uniform on all servers for given IRC network
+
+Reference from 5.3.1.2:
+- Part of "commonly found protections"
+- Can be enforced network-wide via P flag
+```
+
+**Why This Is New:**
+
+RFC 1459 had no equivalent section. While RFC 1459 tracked nickname *changes* (Section 8.9), it did not track recently *released* nicknames.
+
+**Problem Addressed:**
+
+Classic scenario:
+1. Network splits into two parts
+2. User A on one side, User B on other side
+3. User A disconnects, releasing nickname "Alice"
+4. User B immediately claims "Alice" on their side
+5. Network reconnects
+6. Collision: both sides have different "Alice"
+7. One or both get killed
+
+**Nickname Delay Solution:**
+
+1. Network splits
+2. User A disconnects, server marks "Alice" as delayed
+3. User B tries to claim "Alice" - DENIED (nickname delay active)
+4. Network reconnects
+5. No collision because "Alice" was protected
+
+**Analysis:** This is a major anti-abuse and stability improvement. The explicit formalization in RFC 2813 suggests it became a standard practice after RFC 1459. The requirement for uniform duration across networks shows awareness of the need for consistent behavior. The reference from the anti-abuse protections section (5.3.1.2) shows this became a key network protection mechanism.
+
+---
+
+#### Flood Control (5.8 vs 8.10)
+
+**RFC 2813 (5.8):**
+```
+Purpose: Protect network from client message flooding
+
+Applied to: All clients except services
+Exception: Services MAY also be subject to this mechanism
+
+Algorithm:
+1. Check if client's message timer < current time (set equal if true)
+2. Read any data present from client
+3. While timer < 10 seconds ahead of current time:
+   - Parse present messages
+   - Penalize client by 2 seconds for each message
+4. Additional penalties MAY be used for specific commands
+   which generate lot of traffic across network
+
+Result: Client may send 1 message every 2 seconds without being adversely affected
+```
+
+**RFC 1459 (8.10):**
+```
+Purpose: Provide flood protection at server (not client responsibility)
+
+Applied to: All clients except services
+
+Algorithm:
+1. Check if client's message timer < current time (set equal if true)
+2. Read any data present from client  
+3. While timer < 10 seconds ahead of current time:
+   - Parse present messages
+   - Penalize client by 2 seconds for each message
+
+Result: Client may send 1 message every 2 seconds without being adversely affected
+
+Services: Explicitly exempted from flood control
+```
+
+**Key Differences:**
+
+| Aspect | RFC 2813 | RFC 1459 |
+|--------|----------|----------|
+| Services exemption | "MAY also be subject" | "except services" (firm exemption) |
+| Additional penalties | NEW: "MAY be used for specific commands" | Not mentioned |
+| Formatting | Bullet points | Indented list with semicolons |
+
+**Additional Penalties (NEW):**
+
+RFC 2813 introduces the concept of command-specific penalties:
+- Some commands generate more network traffic
+- Examples might include: WHOIS, WHO, LIST
+- Servers MAY impose higher penalties for expensive commands
+- Prevents abuse through resource-intensive queries
+
+**Services Change:**
+
+RFC 1459: Services completely exempt (never subject to flood control)
+RFC 2813: Services MAY be subject to flood control (server's choice)
+
+**Rationale:** Malicious or buggy services could still flood the network. Allowing servers to apply flood control to services provides additional protection while maintaining flexibility.
+
+**Analysis:** The basic algorithm remains identical (1 message per 2 seconds), but RFC 2813 adds important flexibility. The command-specific penalties acknowledge that not all messages have equal cost. The services change reflects maturity in understanding that services, while typically trusted, may still need rate limiting.
+
+---
+
+#### Non-blocking Lookups (5.9 vs 8.11)
+
+**RFC 2813 (5.9):**
+```
+Requirement: Real-time environment with minimal waiting
+- Essential for fair service to all clients
+- Requires non-blocking I/O on all network read/write operations
+- Support operations may cause blocking (e.g., disk reads)
+- Such activity SHOULD be performed with short timeout
+
+5.9.1 Hostname (DNS) lookups:
+- Standard resolver libraries cause large delays on timeouts
+- Solution: Separate set of DNS routines written for current implementation
+- Setup for non-blocking I/O operations with local cache
+- Polled from within main server I/O loop
+
+5.9.2 Username (Ident) lookups:
+- Numerous ident libraries exist implementing "Identification Protocol" [IDENT]
+- Problem: Operated in synchronous manner, resulted in frequent delays
+- Solution: Set of routines cooperating with rest of server
+- Work using non-blocking I/O
+```
+
+**RFC 1459 (8.11):**
+```
+Requirement: Real-time environment, server does minimal waiting
+- Essential so all clients are serviced fairly
+- Requires non-blocking I/O on all network read/write operations
+- Support operations may cause server to block (e.g., disk reads)
+- Such activity should be performed with short timeout
+
+8.11.1 Hostname (DNS) lookups:
+- Berkeley and other standard resolver libraries meant large delays
+- Delays occurred where replies timed out
+- Solution: Separate set of DNS routines written
+- Setup for non-blocking I/O operations
+- Polled from within main server I/O loop
+
+8.11.2 Username (Ident) lookups:
+- Numerous ident libraries for use and inclusion into programs
+- Problem: Operated in synchronous manner, resulted in frequent delays
+- Solution: Set of routines cooperating with rest of server
+- Work using non-blocking I/O
+```
+
+**Key Differences:**
+
+| Aspect | RFC 2813 | RFC 1459 |
+|--------|----------|----------|
+| Language | "SHOULD be performed" (formal) | "should be performed" (informal) |
+| DNS cache | "with local cache" (explicit) | Not mentioned |
+| Ident reference | References [IDENT] protocol formally | No formal reference |
+| Implementation note | "for the current implementation" | Implied as general practice |
+
+**New in RFC 2813:**
+- **Local cache** for DNS explicitly mentioned
+- **Formal reference** to Identification Protocol [IDENT]
+- **Qualification** that DNS routines were "for the current implementation" (acknowledges other implementations may differ)
+
+**Analysis:** The content is nearly identical, showing these techniques remained best practice. The explicit mention of DNS caching in RFC 2813 highlights an important optimization. The formal IDENT reference reflects better documentation standards. The "current implementation" qualifier shows awareness that RFC 2813 describes one approach, not mandating specific implementation.
+
+---
+
+### Sections Removed from RFC 2813
+
+RFC 1459 Section 8 included several subsections that were **completely removed** from RFC 2813:
+
+#### 8.1 Network protocol: TCP (REMOVED)
+
+**RFC 1459 content:**
+- Rationale for using TCP as reliable network protocol
+- Discussion of multicast IP as alternative (not widely available)
+
+**8.1.1 Support of Unix sockets (REMOVED)**
+- Configuration to accept connections on Unix domain sockets
+- Recognition of paths starting with '/'
+- Hostname substitution requirements
+
+**Reason for removal:** These are implementation choices, not protocol requirements. The choice of TCP became obvious and didn't need justification in a 2000 standard.
+
+---
+
+#### 8.2 Command Parsing (REMOVED)
+
+**RFC 1459 content:**
+- Private input buffer design (512 bytes per connection)
+- Non-buffered network I/O implementation
+- Parsing after every read operation
+- Handling multiple messages with care for client removal
+
+**Reason for removal:** Implementation detail, not protocol specification. Different implementations may use different buffering strategies.
+
+---
+
+#### 8.3 Message delivery (REMOVED)
+
+**RFC 1459 content:**
+- "Send queue" as FIFO queue for outgoing data
+- Queue management for saturated network links
+- Typical queue sizes (up to 200 Kbytes)
+- Polling strategy: read/parse all input first, then send queued data
+- Reduction of write() system calls and TCP packet optimization
+
+**Reason for removal:** Implementation optimization, not protocol requirement. Modern servers may use different queuing strategies.
+
+---
+
+#### 8.12 Configuration File (REMOVED - Entire Section)
+
+**RFC 1459 content included:**
+
+**8.12 Configuration File:**
+- Flexible server setup via configuration file
+- Which hosts to accept client connections from
+- Which hosts to allow as servers
+- Which hosts to connect to (active/passive)
+- Server location information
+- Administrator contact information
+- Operator hostnames and passwords
+
+**8.12.1 Allowing clients to connect:**
+- Access control list (ACL) read at startup
+- Both 'deny' and 'allow' implementations
+
+**8.12.2 Operators:**
+- Two-password requirement
+- Storage in configuration files
+- Crypted password format using crypt(3)
+- Protection against abuse and theft
+
+**8.12.3 Allowing servers to connect:**
+- Server connection whitelist (bidirectional)
+- No arbitrary host connections
+- Password and link characteristics storage
+
+**8.12.4 Administrivia:**
+- Administrator details for ADMIN command
+- Server location information
+- Responsible party contact
+- Hostname formats (domain names and dot notation)
+
+**Reason for removal:** These are entirely implementation details. Different IRC server software (ircd, ircd-hybrid, UnrealIRCd, etc.) use vastly different configuration formats. Specifying configuration file structure in a protocol document is inappropriate.
+
+---
+
+#### 8.13 Channel membership (REMOVED)
+
+**RFC 1459 content:**
+- Limit: 10 channels per local user
+- No limit for non-local users (consistency across network)
+
+**Reason for removal:** Implementation policy, not protocol requirement. Different networks and servers have different limits.
+
+---
+
+### New in RFC 2813
+
+Features that appear in RFC 2813 Section 5 but not in RFC 1459 Section 8:
+
+1. **Compressed Server Links (5.3.1.1)**
+   - Z flag in PASS options
+   - zlib/deflate/gzip compression
+   - Bandwidth optimization for server links
+
+2. **Anti-Abuse Protections Flag (5.3.1.2)**
+   - P flag in PASS options
+   - Network-wide enforcement of abuse protections
+   - References to nickname delay and flood control
+
+3. **Service Registration (5.2.2)**
+   - Separate subsection for service connections
+   - Different reply sequence (RPL_YOURESERVICE, RPL_YOURHOST, RPL_MYINFO)
+   - SERVICE message propagation
+
+4. **Tracking Recently Used Nicknames (5.7)**
+   - Nickname delay mechanism
+   - Post-split and post-KILL nickname blocking
+   - Duration considerations for network size
+   - Uniform duration requirements
+
+5. **Extended NICK Message Requirement (5.2.1)**
+   - Must use extended NICK format for server-to-server
+   - Replaces separate NICK and USER messages
+   - More efficient state synchronization
+
+6. **NJOIN for Channel Synchronization (5.3.2)**
+   - Bulk channel membership exchange
+   - Replaces individual JOIN messages
+   - More efficient state transfer
+
+7. **Command-Specific Flood Penalties (5.8)**
+   - Additional penalties for high-traffic commands
+   - Flexibility beyond basic 2-second-per-message rule
+
+8. **Services Flood Control Option (5.8)**
+   - Services MAY be subject to flood control
+   - Changed from firm exemption in RFC 1459
+
+9. **DNS Local Cache Mention (5.9.1)**
+   - Explicit mention of caching in DNS lookups
+   - Performance optimization documentation
+
+10. **Formal Protocol References**
+    - [IRC-CLIENT] references for PING, NICK, etc.
+    - [IDENT] reference for Identification Protocol
+    - [ZLIB], [DEFLATE], [GZIP] for compression
+    - Better standards documentation
+
+---
+
+### Language and Formalization Changes
+
+**RFC 2119 Keywords:**
+
+RFC 2813 consistently uses formal requirement levels:
+- **MUST / MUST NOT**: Absolute requirements
+- **REQUIRED / SHALL**: Absolute requirements (synonyms)
+- **SHOULD / SHOULD NOT**: Strong recommendations
+- **RECOMMENDED**: Strong recommendations
+- **MAY**: Optional features
+
+RFC 1459 used informal language:
+- "must", "should", "required" without RFC 2119 semantics
+- Less clear distinction between requirements and recommendations
+
+**Examples:**
+
+| Topic | RFC 1459 | RFC 2813 |
+|-------|----------|----------|
+| Polling connections | "must ping" | "MUST poll" |
+| User registration | "required to send" | "REQUIRED to send" |
+| State exchange order | "required order" | "REQUIRED order" |
+| Topic exchange | "NOT exchanged" | "SHOULD NOT be exchanged" |
+| Nickname history | "required to keep" | "REQUIRED to keep" |
+| History size | "should be able to keep" | "SHOULD be able to keep" |
+
+**Impact:** RFC 2813's formal language makes implementation requirements unambiguous and testable.
+
+---
+
+### Structural Improvements
+
+**RFC 2813 Organization:**
+```
+5. Implementation details
+   5.1 Connection 'Liveness'
+   5.2 Accepting a client to server connection
+       5.2.1 Users
+       5.2.2 Services
+   5.3 Establishing a server-server connection
+       5.3.1 Link options
+           5.3.1.1 Compressed server to server links
+           5.3.1.2 Anti abuse protections
+       5.3.2 State information exchange when connecting
+   5.4 Terminating server-client connections
+   5.5 Terminating server-server connections
+   5.6 Tracking nickname changes
+   5.7 Tracking recently used nicknames
+   5.8 Flood control of clients
+   5.9 Non-blocking lookups
+       5.9.1 Hostname (DNS) lookups
+       5.9.2 Username (Ident) lookups
+```
+
+**RFC 1459 Organization:**
+```
+8. Current implementations
+   8.1 Network protocol: TCP
+       8.1.1 Support of Unix sockets
+   8.2 Command Parsing
+   8.3 Message delivery
+   8.4 Connection 'Liveness'
+   8.5 Establishing a server to client connection
+   8.6 Establishing a server-server connection
+       8.6.1 Server exchange of state information when connecting
+   8.7 Terminating server-client connections
+   8.8 Terminating server-server connections
+   8.9 Tracking nickname changes
+   8.10 Flood control of clients
+   8.11 Non-blocking lookups
+       8.11.1 Hostname (DNS) lookups
+       8.11.2 Username (Ident) lookups
+   8.12 Configuration File
+       8.12.1 Allowing clients to connect
+       8.12.2 Operators
+       8.12.3 Allowing servers to connect
+       8.12.4 Administrivia
+   8.13 Channel membership
+```
+
+**Key Organizational Changes:**
+
+1. **Removed implementation-specific sections** (8.1, 8.2, 8.3, 8.12, 8.13)
+2. **Added hierarchical link options** (5.3.1.x - new feature organization)
+3. **Split client acceptance** into users and services (5.2.1, 5.2.2)
+4. **Added nickname delay** as separate section (5.7)
+5. **Streamlined structure** focusing on protocol requirements, not implementation choices
+
+**Result:** RFC 2813 is more focused on **what must be implemented** (protocol behavior) versus **how to implement it** (implementation techniques).
+
+---
+
+### Overall Assessment
+
+**Philosophy Shift:**
+
+RFC 1459 Section 8 mixed:
+- Protocol requirements (connection liveness, state sync)
+- Implementation guidance (buffering, queuing)
+- Configuration advice (config files, operator passwords)
+- Performance optimizations (non-blocking I/O)
+
+RFC 2813 Section 5 focuses on:
+- Protocol requirements exclusively
+- Interoperability needs
+- Network-wide features (compression, anti-abuse)
+- State management requirements
+
+**Maturity Indicators:**
+
+1. **Formalized language** - RFC 2119 compliance
+2. **New features** - Compression and anti-abuse show protocol evolution
+3. **Services integration** - Explicit service support throughout
+4. **Network protection** - Nickname delay and enhanced flood control
+5. **Better references** - Formal citations to related RFCs
+6. **Removed bloat** - Configuration details moved to implementation docs
+
+**Backward Compatibility:**
+
+Core mechanisms unchanged:
+- Connection liveness (PING-based)
+- State synchronization order
+- Nickname change tracking
+- Basic flood control algorithm
+- Non-blocking lookup approach
+
+New features are optional:
+- Compression (Z flag) - negotiated
+- Anti-abuse (P flag) - network policy choice
+- Nickname delay - SHOULD, not MUST
+- Command penalties - MAY add extras
+
+**Conclusion:**
+
+RFC 2813 Section 5 represents a **refinement and formalization** of RFC 1459 Section 8. It removes implementation advice that doesn't belong in a protocol specification while adding important new features that address real operational needs (bandwidth optimization via compression, abuse prevention via nickname delay and enforced protections). The consistent use of RFC 2119 language makes requirements testable and unambiguous. The protocol evolution shows learning from nearly a decade of IRC operational experience between 1993 (RFC 1459) and 2000 (RFC 2813).
+
+---
+
+## RFC 2813 Section 4.1: Connection Registration (Server Protocol)
+
+### Summary
+
+This section compares server-to-server connection registration between RFC 1459 Section 4.1 and RFC 2813 Section 4.1, focusing on the commands specific to server protocol that were removed from RFC 2812 (the client protocol).
+
+**RFC 1459 Section 4.1** combined both client and server connection registration in a single section, documenting how both types of connections establish themselves on the IRC network.
+
+**RFC 2813 Section 4.1** focuses exclusively on server-to-server connection registration, extracting and expanding the server-specific portions from RFC 1459.
+
+**Key distinction:**
+- **Client registration**: PASS (optional) → NICK → USER
+- **Server registration**: PASS (required) → SERVER
+
+The server protocol uses enhanced versions of NICK and SERVICE to propagate new users and services across the server mesh, rather than the separate NICK/USER messages used by clients.
+
+---
+
+### PASS Message (Server Password Handling)
+
+**RFC 1459 Section 4.1.1:**
+```
+Command: PASS
+Parameters: <password>
+```
+- Single password parameter
+- MUST be sent before SERVER command (for servers)
+- Only last PASS before registration is used
+- Simple password verification
+- Multiple PASS commands allowed before registration, but only last one counts
+
+**RFC 2813 Section 4.1.1:**
+```
+Command: PASS
+Parameters: <password> <version> <flags> [<options>]
+```
+
+**Major enhancements:**
+
+1. **`<version>`** parameter (NEW):
+   - Format: 4 digits + 6 digits (e.g., "0210010000")
+   - First 4 digits: Protocol version (0210 = version 2.10)
+   - Last 6 digits: Implementation-specific flags
+   - Enables version negotiation between servers
+
+2. **`<flags>`** parameter (NEW):
+   - Capability flags indicating server features
+   - Format: alphanumeric string with special characters
+   - Example: "IRC|aBgH$" indicates various capabilities
+   - Enables feature negotiation during connection
+
+3. **`<options>`** parameter (NEW, optional):
+   - Extended server capabilities
+   - Format varies by implementation
+   - Examples: "Z" for compression, "P" for anti-abuse protections
+   - Future extensibility for new features
+
+**Stricter requirements:**
+- PASS MUST be sent before SERVER (not optional for servers)
+- Only ONE (1) PASS command SHALL be accepted
+- Last three (3) parameters MUST be ignored if received from client
+- Better version compatibility checking
+
+**Example:**
+```
+PASS moresecretpassword 0210010000 IRC|aBgH$ Z
+```
+Meaning: Password "moresecretpassword", version 2.10, capability flags "IRC|aBgH$", compression option "Z"
+
+**Numeric Replies:**
+- ERR_NEEDMOREPARAMS
+- ERR_ALREADYREGISTRED
+
+**Interpretation:**
+The enhanced PASS command enables capability negotiation between servers, allowing servers to advertise their features and version before completing registration. This is critical for maintaining compatibility across different server implementations and versions. The version field allows graceful handling of protocol evolution, while the flags and options parameters enable feature negotiation (compression, anti-abuse, etc.).
+
+---
+
+### SERVER Message (Key Server-Specific Command)
+
+**RFC 1459 Section 4.1.4:**
+```
+Command: SERVER
+Parameters: <servername> <hopcount> <info>
+```
+
+**Purpose:**
+- Register new server connection
+- Propagate server introduction across network
+- Build server topology tree
+
+**Parameters:**
+- `<servername>`: Fully qualified domain name of server
+- `<hopcount>`: Distance from origin (local connection = 1, increments per hop)
+- `<info>`: Free-form description of server
+
+**Usage:**
+1. New server introduces itself to its peer
+2. Peer propagates SERVER message to all other connected servers
+3. Each server updates its network topology map
+4. Hopcount increments as message propagates
+
+**Examples:**
+```
+SERVER test.oulu.fi 1 :Experimental server
+  ; New server introducing itself (hopcount 1 = direct connection)
+
+:tolsun.oulu.fi SERVER csd.bu.edu 5 :BU Central Server
+  ; Server tolsun.oulu.fi announcing csd.bu.edu (5 hops away)
+```
+
+---
+
+**RFC 2813 Section 4.1.2:**
+```
+Command: SERVER
+Parameters: <servername> <hopcount> <token> <info>
+```
+
+**Major addition: `<token>` parameter**
+
+**Token system (NEW in RFC 2813):**
+- Numeric identifier for the server (integer)
+- Used for efficient server references in other messages
+- Replaces servername in NICK and SERVICE messages
+- Reduces bandwidth (number vs string)
+- Assigned by the server introducing the new server
+
+**Enhanced error handling:**
+- Errors typically sent via ERROR command (not numeric)
+- Connection terminated for most SERVER errors
+- Duplicate server detection (closes connection)
+- Acyclic tree validation (prevents loops)
+
+**Duplicate server detection:**
+If a SERVER message introduces a server already known to the receiving server:
+- Connection from which message arrived MUST be closed
+- Indicates duplicate route (tree loop formed)
+- May close the other connection instead (implementation-specific)
+- Can indicate two servers with same name (human intervention required)
+- Particularly insidious: can split network into isolated partitions
+
+**Examples:**
+```
+SERVER test.oulu.fi 1 1 :Experimental server
+  ; New server test.oulu.fi introducing itself with token "1"
+
+:tolsun.oulu.fi SERVER csd.bu.edu 5 34 :BU Central Server
+  ; Server tolsun.oulu.fi announcing csd.bu.edu (5 hops, token 34)
+  ; Token "34" will be used when introducing users/services from csd.bu.edu
+```
+
+**Numeric Replies:**
+- ERR_ALREADYREGISTRED
+
+**Critical difference:**
+The token system is the most significant enhancement. Instead of using full server names in every NICK/SERVICE message, the compact numeric token is used, significantly reducing protocol overhead in large networks.
+
+**Why this matters:**
+In a network with thousands of users joining, using "csd.bu.edu" (12 bytes) vs "34" (2 bytes) for every user introduction results in substantial bandwidth savings.
+
+**Comparison:**
+- RFC 1459: 3 parameters (name, hopcount, info)
+- RFC 2813: 4 parameters (name, hopcount, **token**, info)
+- The token is the key innovation for efficiency
+
+---
+
+### NICK Message (Server-to-Server Format)
+
+**RFC 1459 Section 4.1.2 (Client NICK):**
+```
+Command: NICK
+Parameters: <nickname> [ <hopcount> ]
+```
+- Used for both client registration and server-to-server propagation
+- Optional hopcount parameter for server propagation
+- Minimal information in server-to-server format
+- Requires separate USER message for complete client information
+
+**RFC 2813 Section 4.1.3 (Server NICK):**
+```
+Command: NICK
+Parameters: <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
+```
+
+**This is a completely different message format** - essentially combines NICK + USER + MODE into a single server-to-server message.
+
+**Parameters:**
+
+1. **`<nickname>`**: User's nickname
+2. **`<hopcount>`**: Hops from user's server to current server (0 for local)
+3. **`<username>`**: Username (ident)
+4. **`<host>`**: Hostname or IP address
+5. **`<servertoken>`**: Token of server user is connected to (from SERVER message)
+6. **`<umode>`**: Initial user modes (e.g., "+i" for invisible)
+7. **`<realname>`**: Real name / GECOS field
+
+**Critical rule:**
+This form MUST NOT be allowed from user connections. It's exclusively for server-to-server propagation.
+
+**Hopcount behavior:**
+- Local connection: hopcount = 0
+- Incremented by each server as message propagates
+- Indicates "distance" from user's home server
+
+**Server token usage:**
+Replaces the `<servername>` parameter from RFC 1459's USER command. Instead of sending the full server name, the compact numeric token is used.
+
+**Example:**
+```
+NICK syrk 5 kalt millennium.stealth.net 34 +i :Christophe Kalt
+  ; New user "syrk" (username: kalt)
+  ; Connected from millennium.stealth.net
+  ; To server token "34" (csd.bu.edu from earlier example)
+  ; 5 hops away
+  ; Invisible mode (+i)
+  ; Real name: Christophe Kalt
+
+:krys NICK syrk
+  ; Nickname change (same format as client NICK in RFC 2812)
+  ; krys changed nickname to syrk
+```
+
+**Two NICK formats in server protocol:**
+
+1. **User introduction** (7 parameters): New user joining network
+2. **Nickname change** (1 parameter): Existing user changing nick
+
+Servers MUST distinguish between these based on parameter count.
+
+**Efficiency gain:**
+Combining NICK/USER/MODE into one message reduces:
+- Number of messages (1 instead of 3)
+- Parsing overhead
+- Network bandwidth
+- State synchronization complexity
+
+**Comparison with client protocol:**
+- **Client (RFC 2812)**: NICK, USER, MODE sent as 3 separate messages
+- **Server (RFC 2813)**: All combined into single NICK with 7 parameters
+- Client never sees the extended NICK format
+- Server never accepts extended NICK from clients
+
+---
+
+### SERVICE Message (Server Introduction of Services)
+
+**RFC 1459:**
+**No SERVICE command existed in RFC 1459.**
+
+Services (like NickServ, ChanServ) were implementation-specific and not part of the protocol specification. Only some service-related numeric replies existed (RPL_SERVICE, RPL_SERVICEINFO, etc.), but no standardized way to register services.
+
+**RFC 2813 Section 4.1.4:**
+```
+Command: SERVICE
+Parameters: <servicename> <servertoken> <distribution> <type> <hopcount> <info>
+```
+
+**This is a new addition** formalizing services in the protocol.
+
+**Parameters:**
+
+1. **`<servicename>`**: Name of the service (e.g., "dict@irc.fr")
+2. **`<servertoken>`**: Token of server service is connected to
+3. **`<distribution>`**: Service visibility mask (which servers can see it)
+4. **`<type>`**: Service type (reserved for future use)
+5. **`<hopcount>`**: Hops from service's server (like NICK)
+6. **`<info>`**: Description of the service
+
+**Purpose:**
+Introduce a new service to the IRC network and propagate this information to other servers.
+
+**Critical rule:**
+This form SHOULD NOT be allowed from client connections. It MUST be used between servers to notify other servers of new services.
+
+**Server token usage:**
+Like the enhanced NICK message, SERVICE uses the server token to identify which server the service is connected to, reducing bandwidth.
+
+**Distribution mask (KEY FEATURE):**
+- Controls service visibility across network
+- Service only known to servers matching the mask
+- Network path between servers must all match mask
+- "*" = no restriction (globally visible service)
+- Example: "*.fr" = only visible to servers with names matching *.fr
+
+**Hopcount:**
+- Local connection: hopcount = 0
+- Incremented by each server as propagated
+- Indicates distance from service's home server
+
+**Type parameter:**
+Reserved for future usage. Currently not used but available for service categorization (e.g., nickname services, channel services, etc.).
+
+**Example:**
+```
+SERVICE dict@irc.fr 9 *.fr 0 1 :French Dictionary
+  ; Service "dict@irc.fr" registered on server token "9"
+  ; Only available on servers matching "*.fr"
+  ; Hopcount 1 (one hop away)
+  ; Type 0 (reserved)
+  ; Description: French Dictionary
+```
+
+**Numeric Replies:**
+- ERR_ALREADYREGISTRED
+- ERR_NEEDMOREPARAMS
+- ERR_ERRONEUSNICKNAME
+- RPL_YOURESERVICE
+- RPL_YOURHOST
+- RPL_MYINFO
+
+**Why this matters:**
+Before RFC 2813, services were bolted onto IRC without protocol support. This formalization:
+1. Standardizes service introduction across the network
+2. Enables service visibility control (distribution masks)
+3. Allows services to be properly integrated into server topology
+4. Provides framework for future service types
+5. Uses token system for efficiency
+
+**Comparison with RFC 2812:**
+RFC 2812 Section 3.1.6 also has a SERVICE command, but with a completely different format meant for client registration as a service. This is somewhat confusing - the two SERVICE commands serve different purposes:
+- **RFC 2812 (client)**: Service registering itself as a client
+- **RFC 2813 (server)**: Server announcing a service to other servers
+
+The RFC 2813 version is the real server-to-server service protocol.
+
+---
+
+### QUIT and SQUIT (Server Disconnect Handling)
+
+**QUIT - RFC 1459 Section 4.1.6:**
+```
+Command: QUIT
+Parameters: [<Quit Message>]
+```
+
+**Server behavior:**
+- Server must close connection after receiving QUIT
+- QUIT propagated to other servers for network-wide notification
+- Special netsplit format: two server names separated by space
+  - First name: server still connected
+  - Second name: server that disconnected
+- Server fills in quit message if client connection dies without QUIT
+- Channel members must be notified when user quits
+
+**QUIT - RFC 2813 Section 4.1.5:**
+```
+Command: QUIT
+Parameters: [<Quit Message>]
+```
+
+**Enhancements:**
+
+**Netsplit message format (formalized):**
+```
+<Quit Message> = ":" servername SPACE servername
+```
+
+**Server protection (NEW):**
+Servers SHOULD NOT allow clients to use quit messages in the netsplit format. This prevents clients from forging netsplit messages for social engineering or ban evasion.
+
+**Automatic QUIT generation:**
+Server REQUIRED to generate QUIT if connection closes without client issuing QUIT.
+
+---
+
+**SQUIT - RFC 1459 Section 4.1.7:**
+```
+Command: SQUIT
+Parameters: <server> <comment>
+```
+
+**Two uses:**
+1. Operator breaking server link
+2. Netsplit notification
+
+**Requirements:**
+- Both sides send SQUIT for all downstream servers
+- QUIT messages for all downstream clients
+- Update network topology
+
+**SQUIT - RFC 2813 Section 4.1.6:**
+```
+Command: SQUIT
+Parameters: <server> <comment>
+```
+
+**Enhancements:**
+
+**QUIT propagation relaxed:**
+- QUIT MAY be sent for downstream clients (was implicit MUST)
+- Channel members MUST receive QUIT for lost users
+
+**NEW: Nickname delay list:**
+Server SHOULD add removed nicknames to temporarily unavailable list to prevent future collisions.
+
+**This helps prevent nickname hijacking during netsplits.**
+
+---
+
+### Key Innovations Summary
+
+| Feature | RFC 1459 | RFC 2813 |
+|---------|----------|----------|
+| **Server tokens** | Not present | Central efficiency feature |
+| **Version negotiation** | Not supported | PASS version/flags/options |
+| **NICK consolidation** | Separate NICK/USER | Combined 7-parameter NICK |
+| **SERVICE command** | Did not exist | Formalized service protocol |
+| **Netsplit protection** | Basic | Anti-forgery + nickname delay |
+| **Capability flags** | Not supported | Compression, anti-abuse, etc. |
+
+---
+
+## RFC 2813 Section 4.1: Connection Registration (Server Protocol)
+
+### Summary
+
+This section compares server-to-server connection registration between RFC 1459 Section 4.1 and RFC 2813 Section 4.1, focusing on the commands specific to server protocol that were removed from RFC 2812 (the client protocol).
+
+**RFC 1459 Section 4.1** combined both client and server connection registration in a single section, documenting how both types of connections establish themselves on the IRC network.
+
+**RFC 2813 Section 4.1** focuses exclusively on server-to-server connection registration, extracting and expanding the server-specific portions from RFC 1459.
+
+**Key distinction:**
+- **Client registration**: PASS (optional) → NICK → USER
+- **Server registration**: PASS (required) → SERVER
+
+The server protocol uses enhanced versions of NICK and SERVICE to propagate new users and services across the server mesh, rather than the separate NICK/USER messages used by clients.
+
+---
+
+### PASS Message (Server Password Handling)
+
+**RFC 1459 Section 4.1.1:**
+```
+Command: PASS
+Parameters: <password>
+```
+- Single password parameter
+- MUST be sent before SERVER command (for servers)
+- Only last PASS before registration is used
+- Simple password verification
+- Multiple PASS commands allowed before registration, but only last one counts
+
+**RFC 2813 Section 4.1.1:**
+```
+Command: PASS
+Parameters: <password> <version> <flags> [<options>]
+```
+
+**Major enhancements:**
+
+1. **`<version>`** parameter (NEW):
+   - Format: 4 digits + 6 digits (e.g., "0210010000")
+   - First 4 digits: Protocol version (0210 = version 2.10)
+   - Last 6 digits: Implementation-specific flags
+   - Enables version negotiation between servers
+
+2. **`<flags>`** parameter (NEW):
+   - Capability flags indicating server features
+   - Format: alphanumeric string with special characters
+   - Example: "IRC|aBgH$" indicates various capabilities
+   - Enables feature negotiation during connection
+
+3. **`<options>`** parameter (NEW, optional):
+   - Extended server capabilities
+   - Format varies by implementation
+   - Examples: "Z" for compression, "P" for anti-abuse protections
+   - Future extensibility for new features
+
+**Stricter requirements:**
+- PASS MUST be sent before SERVER (not optional for servers)
+- Only ONE (1) PASS command SHALL be accepted
+- Last three (3) parameters MUST be ignored if received from client
+- Better version compatibility checking
+
+**Example:**
+```
+PASS moresecretpassword 0210010000 IRC|aBgH$ Z
+```
+Meaning: Password "moresecretpassword", version 2.10, capability flags "IRC|aBgH$", compression option "Z"
+
+**Numeric Replies:**
+- ERR_NEEDMOREPARAMS
+- ERR_ALREADYREGISTRED
+
+**Interpretation:**
+The enhanced PASS command enables capability negotiation between servers, allowing servers to advertise their features and version before completing registration. This is critical for maintaining compatibility across different server implementations and versions. The version field allows graceful handling of protocol evolution, while the flags and options parameters enable feature negotiation (compression, anti-abuse, etc.).
+
+---
+
+### SERVER Message (Key Server-Specific Command)
+
+**RFC 1459 Section 4.1.4:**
+```
+Command: SERVER
+Parameters: <servername> <hopcount> <info>
+```
+
+**Purpose:**
+- Register new server connection
+- Propagate server introduction across network
+- Build server topology tree
+
+**Parameters:**
+- `<servername>`: Fully qualified domain name of server
+- `<hopcount>`: Distance from origin (local connection = 1, increments per hop)
+- `<info>`: Free-form description of server
+
+**Usage:**
+1. New server introduces itself to its peer
+2. Peer propagates SERVER message to all other connected servers
+3. Each server updates its network topology map
+4. Hopcount increments as message propagates
+
+**Examples:**
+```
+SERVER test.oulu.fi 1 :Experimental server
+  ; New server introducing itself (hopcount 1 = direct connection)
+
+:tolsun.oulu.fi SERVER csd.bu.edu 5 :BU Central Server
+  ; Server tolsun.oulu.fi announcing csd.bu.edu (5 hops away)
+```
+
+**RFC 2813 Section 4.1.2:**
+```
+Command: SERVER
+Parameters: <servername> <hopcount> <token> <info>
+```
+
+**Major addition: `<token>` parameter**
+
+**Token system (NEW in RFC 2813):**
+- Numeric identifier for the server (integer)
+- Used for efficient server references in other messages
+- Replaces servername in NICK and SERVICE messages
+- Reduces bandwidth (number vs string)
+- Assigned by the server introducing the new server
+
+**Enhanced error handling:**
+- Errors typically sent via ERROR command (not numeric)
+- Connection terminated for most SERVER errors
+- Duplicate server detection (closes connection)
+- Acyclic tree validation (prevents loops)
+
+**Duplicate server detection:**
+If a SERVER message introduces a server already known to the receiving server:
+- Connection from which message arrived MUST be closed
+- Indicates duplicate route (tree loop formed)
+- May close the other connection instead (implementation-specific)
+- Can indicate two servers with same name (human intervention required)
+- Particularly insidious: can split network into isolated partitions
+
+**Examples:**
+```
+SERVER test.oulu.fi 1 1 :Experimental server
+  ; New server test.oulu.fi introducing itself with token "1"
+
+:tolsun.oulu.fi SERVER csd.bu.edu 5 34 :BU Central Server
+  ; Server tolsun.oulu.fi announcing csd.bu.edu (5 hops, token 34)
+  ; Token "34" will be used when introducing users/services from csd.bu.edu
+```
+
+**Numeric Replies:**
+- ERR_ALREADYREGISTRED
+
+**Critical difference:**
+The token system is the most significant enhancement. Instead of using full server names in every NICK/SERVICE message, the compact numeric token is used, significantly reducing protocol overhead in large networks.
+
+**Why this matters:**
+In a network with thousands of users joining, using "csd.bu.edu" (12 bytes) vs "34" (2 bytes) for every user introduction results in substantial bandwidth savings.
+
+**Comparison:**
+- RFC 1459: 3 parameters (name, hopcount, info)
+- RFC 2813: 4 parameters (name, hopcount, **token**, info)
+- The token is the key innovation for efficiency
+
+---
+
+### NICK Message (Server-to-Server Format)
+
+**RFC 1459 Section 4.1.2 (Client NICK):**
+```
+Command: NICK
+Parameters: <nickname> [ <hopcount> ]
+```
+- Used for both client registration and server-to-server propagation
+- Optional hopcount parameter for server propagation
+- Minimal information in server-to-server format
+- Requires separate USER message for complete client information
+
+**RFC 2813 Section 4.1.3 (Server NICK):**
+```
+Command: NICK
+Parameters: <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
+```
+
+**This is a completely different message format** - essentially combines NICK + USER + MODE into a single server-to-server message.
+
+**Parameters:**
+
+1. **`<nickname>`**: User's nickname
+2. **`<hopcount>`**: Hops from user's server to current server (0 for local)
+3. **`<username>`**: Username (ident)
+4. **`<host>`**: Hostname or IP address
+5. **`<servertoken>`**: Token of server user is connected to (from SERVER message)
+6. **`<umode>`**: Initial user modes (e.g., "+i" for invisible)
+7. **`<realname>`**: Real name / GECOS field
+
+**Critical rule:**
+This form MUST NOT be allowed from user connections. It's exclusively for server-to-server propagation.
+
+**Hopcount behavior:**
+- Local connection: hopcount = 0
+- Incremented by each server as message propagates
+- Indicates "distance" from user's home server
+
+**Server token usage:**
+Replaces the `<servername>` parameter from RFC 1459's USER command. Instead of sending the full server name, the compact numeric token is used.
+
+**Example:**
+```
+NICK syrk 5 kalt millennium.stealth.net 34 +i :Christophe Kalt
+  ; New user "syrk" (username: kalt)
+  ; Connected from millennium.stealth.net
+  ; To server token "34" (csd.bu.edu from earlier example)
+  ; 5 hops away
+  ; Invisible mode (+i)
+  ; Real name: Christophe Kalt
+
+:krys NICK syrk
+  ; Nickname change (same format as client NICK in RFC 2812)
+  ; krys changed nickname to syrk
+```
+
+**Two NICK formats in server protocol:**
+
+1. **User introduction** (7 parameters): New user joining network
+2. **Nickname change** (1 parameter): Existing user changing nick
+
+Servers MUST distinguish between these based on parameter count.
+
+**Efficiency gain:**
+Combining NICK/USER/MODE into one message reduces:
+- Number of messages (1 instead of 3)
+- Parsing overhead
+- Network bandwidth
+- State synchronization complexity
+
+**Comparison with client protocol:**
+- **Client (RFC 2812)**: NICK, USER, MODE sent as 3 separate messages
+- **Server (RFC 2813)**: All combined into single NICK with 7 parameters
+- Client never sees the extended NICK format
+- Server never accepts extended NICK from clients
+
+---
+
+### SERVICE Message (Server Introduction of Services)
+
+**RFC 1459:**
+**No SERVICE command existed in RFC 1459.**
+
+Services (like NickServ, ChanServ) were implementation-specific and not part of the protocol specification. Only some service-related numeric replies existed (RPL_SERVICE, RPL_SERVICEINFO, etc.), but no standardized way to register services.
+
+**RFC 2813 Section 4.1.4:**
+```
+Command: SERVICE
+Parameters: <servicename> <servertoken> <distribution> <type> <hopcount> <info>
+```
+
+**This is a new addition** formalizing services in the protocol.
+
+**Parameters:**
+
+1. **`<servicename>`**: Name of the service (e.g., "dict@irc.fr")
+2. **`<servertoken>`**: Token of server service is connected to
+3. **`<distribution>`**: Service visibility mask (which servers can see it)
+4. **`<type>`**: Service type (reserved for future use)
+5. **`<hopcount>`**: Hops from service's server (like NICK)
+6. **`<info>`**: Description of the service
+
+**Purpose:**
+Introduce a new service to the IRC network and propagate this information to other servers.
+
+**Critical rule:**
+This form SHOULD NOT be allowed from client connections. It MUST be used between servers to notify other servers of new services.
+
+**Server token usage:**
+Like the enhanced NICK message, SERVICE uses the server token to identify which server the service is connected to, reducing bandwidth.
+
+**Distribution mask (KEY FEATURE):**
+- Controls service visibility across network
+- Service only known to servers matching the mask
+- Network path between servers must all match mask
+- "*" = no restriction (globally visible service)
+- Example: "*.fr" = only visible to servers with names matching *.fr
+
+**Hopcount:**
+- Local connection: hopcount = 0
+- Incremented by each server as propagated
+- Indicates distance from service's home server
+
+**Type parameter:**
+Reserved for future usage. Currently not used but available for service categorization (e.g., nickname services, channel services, etc.).
+
+**Example:**
+```
+SERVICE dict@irc.fr 9 *.fr 0 1 :French Dictionary
+  ; Service "dict@irc.fr" registered on server token "9"
+  ; Only available on servers matching "*.fr"
+  ; Hopcount 1 (one hop away)
+  ; Type 0 (reserved)
+  ; Description: French Dictionary
+```
+
+**Numeric Replies:**
+- ERR_ALREADYREGISTRED
+- ERR_NEEDMOREPARAMS
+- ERR_ERRONEUSNICKNAME
+- RPL_YOURESERVICE
+- RPL_YOURHOST
+- RPL_MYINFO
+
+**Why this matters:**
+Before RFC 2813, services were bolted onto IRC without protocol support. This formalization:
+1. Standardizes service introduction across the network
+2. Enables service visibility control (distribution masks)
+3. Allows services to be properly integrated into server topology
+4. Provides framework for future service types
+5. Uses token system for efficiency
+
+**Comparison with RFC 2812:**
+RFC 2812 Section 3.1.6 also has a SERVICE command, but with a completely different format meant for client registration as a service. This is somewhat confusing - the two SERVICE commands serve different purposes:
+- **RFC 2812 (client)**: Service registering itself as a client
+- **RFC 2813 (server)**: Server announcing a service to other servers
+
+The RFC 2813 version is the real server-to-server service protocol.
+
+---
+
+### QUIT and SQUIT (Server Disconnect Handling)
+
+**QUIT - RFC 1459 Section 4.1.6:**
+```
+Command: QUIT
+Parameters: [<Quit Message>]
+```
+
+**Server behavior:**
+- Server must close connection after receiving QUIT
+- QUIT propagated to other servers for network-wide notification
+- Special netsplit format: two server names separated by space
+  - First name: server still connected
+  - Second name: server that disconnected
+- Server fills in quit message if client connection dies without QUIT
+- Channel members must be notified when user quits
+
+**QUIT - RFC 2813 Section 4.1.5:**
+```
+Command: QUIT
+Parameters: [<Quit Message>]
+```
+
+**Enhancements:**
+
+**Netsplit message format (formalized):**
+```
+<Quit Message> = ":" servername SPACE servername
+```
+
+**Server protection (NEW):**
+Servers SHOULD NOT allow clients to use quit messages in the netsplit format. This prevents clients from forging netsplit messages for social engineering or ban evasion.
+
+**Automatic QUIT generation:**
+Server REQUIRED to generate QUIT if connection closes without client issuing QUIT.
+
+---
+
+**SQUIT - RFC 1459 Section 4.1.7:**
+```
+Command: SQUIT
+Parameters: <server> <comment>
+```
+
+**Two uses:**
+1. Operator breaking server link
+2. Netsplit notification
+
+**Requirements:**
+- Both sides send SQUIT for all downstream servers
+- QUIT messages for all downstream clients
+- Update network topology
+
+**SQUIT - RFC 2813 Section 4.1.6:**
+```
+Command: SQUIT
+Parameters: <server> <comment>
+```
+
+**Enhancements:**
+
+**QUIT propagation relaxed:**
+- QUIT MAY be sent for downstream clients (was implicit MUST)
+- Channel members MUST receive QUIT for lost users
+
+**NEW: Nickname delay list:**
+Server SHOULD add removed nicknames to temporarily unavailable list to prevent future collisions.
+
+**This helps prevent nickname hijacking during netsplits.**
+
+---
+
+### Summary Table
+
+| Command | RFC 1459 Parameters | RFC 2813 Parameters | Key Innovation |
+|---------|---------------------|---------------------|----------------|
+| **PASS** | 1 (password) | 4 (password, version, flags, options) | Version/capability negotiation |
+| **SERVER** | 3 (name, hopcount, info) | 4 (name, hopcount, **token**, info) | Token system for efficiency |
+| **NICK** | 2 (nick, hopcount) | 7 (nick, hop, user, host, **token**, mode, name) | Message consolidation |
+| **SERVICE** | Did not exist | 6 (name, **token**, dist, type, hop, info) | Formalized service protocol |
+| **QUIT** | Informal netsplit format | Formalized + anti-forgery | Protection against fake netsplits |
+| **SQUIT** | Implicit client QUITs | Optional QUITs + nickname delay | Collision prevention |
+
+---
+
+### Interpretation
+
+The evolution from RFC 1459 to RFC 2813 represents maturation of the server protocol through operational experience (1993-2000):
+
+**Key innovations:**
+
+1. **Token system**: Most significant efficiency improvement
+   - Reduces bandwidth by ~80% for server references
+   - Critical for scaling to large networks
+
+2. **Message consolidation**: NICK combines 3 messages into 1
+   - 66% reduction in user introduction overhead
+   - Simpler state synchronization
+
+3. **Service formalization**: Services become first-class protocol entities
+   - Distribution masks enable service scoping
+   - Integration into network topology
+
+4. **Version negotiation**: PASS enables capability detection
+   - Graceful handling of protocol evolution
+   - Feature negotiation (compression, anti-abuse)
+
+5. **Netsplit protection**: Multiple enhancements
+   - Anti-forgery for QUIT messages
+   - Nickname delay list prevents collisions
+   - Relaxed but clearer SQUIT requirements
+
+**Backward compatibility maintained** despite enhancements, allowing gradual network upgrades.
+
+---
