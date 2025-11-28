@@ -1,0 +1,173 @@
+# Server Management
+
+## Description
+
+Users can add, edit, and remove IRC servers they want to connect to. This feature handles the CRUD operations for server configuration - actual connection to IRC is handled in a separate feature.
+
+## Behavior
+
+### Server List
+
+- Located at `/servers` (also the root path after sign in)
+- Shows all servers for the current user
+- Each server shows: name/address, connection status indicator
+- "Add Server" button/link
+
+### Add Server
+
+- Form at `/servers/new`
+- Fields:
+  - Address (required) - e.g., "irc.libera.chat"
+  - Port (required, default 6697)
+  - SSL (checkbox, default true)
+  - Nickname (required)
+  - Username (optional, placeholder shows it defaults to nickname)
+  - Real Name (optional, placeholder shows it defaults to nickname)
+  - Auth Method (select: None, NickServ, SASL)
+  - Auth Password (password field, shown only if auth method != None)
+
+- Submit creates server, redirects to server show page
+
+### Edit Server
+
+- Form at `/servers/:id/edit`
+- Same fields as add
+- Cannot edit while connected (or disconnect first)
+
+### Delete Server
+
+- DELETE `/servers/:id`
+- Confirmation required ("Are you sure?")
+- Cannot delete while connected (must disconnect first)
+- Redirects to servers index
+
+### Show Server
+
+- Located at `/servers/:id`
+- Shows server details
+- Shows list of channels for this server
+- Connect/Disconnect button (handled in process-lifecycle feature)
+
+## Models
+
+Uses Server model. See `docs/data-model.md`.
+
+### Validations
+
+- address: present
+- port: present, numeric, between 1 and 65535
+- nickname: present, matches IRC nick format (`/\A[a-zA-Z][a-zA-Z0-9_\-\[\]\\`^{}]{0,8}\z/`)
+- ssl: boolean
+- auth_method: in ["none", "nickserv", "sasl"]
+- auth_password: present if auth_method != "none"
+- unique constraint: [address, port] per user (can't add same server twice)
+
+### Defaults
+
+- port: 6697
+- ssl: true
+- username: nickname (if blank)
+- realname: nickname (if blank)
+- auth_method: "none"
+
+## Tests
+
+### Controller: ServersController
+
+**GET /servers (index)**
+- Returns 200
+- Renders server list
+
+**GET /servers/new**
+- Returns 200
+- Renders form
+
+**POST /servers with valid params**
+- Creates server
+- Redirects to server show page
+
+**POST /servers with missing address**
+- Returns 422
+- Re-renders form with error
+
+**POST /servers with invalid port**
+- Returns 422
+- Re-renders form with error
+
+**POST /servers with invalid nickname**
+- Returns 422
+- Re-renders form with error
+
+**POST /servers with duplicate address+port**
+- Returns 422
+- Re-renders form with error
+
+**GET /servers/:id**
+- Returns 200
+- Renders server details
+
+**GET /servers/:id/edit**
+- Returns 200
+- Renders edit form
+
+**PATCH /servers/:id with valid params**
+- Updates server
+- Redirects to server show page
+
+**PATCH /servers/:id with invalid params**
+- Returns 422
+- Re-renders form with error
+
+**DELETE /servers/:id**
+- Destroys server
+- Redirects to servers index
+
+### Model: Server
+
+**Validates presence of address**
+**Validates presence of port**
+**Validates port is numeric**
+**Validates port in range 1-65535**
+**Validates presence of nickname**
+**Validates nickname format**
+**Validates uniqueness of address+port per user**
+**Validates auth_password present when auth_method is nickserv**
+**Validates auth_password present when auth_method is sasl**
+**Defaults port to 6697**
+**Defaults ssl to true**
+**Defaults auth_method to none**
+
+### Integration: Server CRUD Flow
+
+**User adds a server**
+- Visit /servers/new
+- Fill in address: "irc.libera.chat"
+- Fill in nickname: "testnick"
+- Submit
+- See server details page
+- Server exists in database
+
+**User edits a server**
+- Have existing server
+- Visit /servers/:id/edit
+- Change nickname
+- Submit
+- See updated nickname on details page
+
+**User deletes a server**
+- Have existing server
+- Visit /servers/:id
+- Click delete, confirm
+- Redirected to index
+- Server gone
+
+## Implementation Notes
+
+- Password should be encrypted at rest (use Rails encrypted attributes or similar)
+- Connection status shown but not functional until process-lifecycle feature
+- Root path (`/`) should redirect to `/servers`
+
+## Dependencies
+
+- Requires `auth-signin.md` (authentication)
+- Requires `auth-multitenant.md` (tenant isolation)
