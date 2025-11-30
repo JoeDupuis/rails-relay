@@ -152,7 +152,7 @@ Do NOT proceed to commit until QA has approved the implementation.
 Commit your changes with a clear message describing the feature:
 
 ```bash
-git add -A && git commit -m "Implement [feature-name]"
+git add -A && git commit --no-gpg-sign -m "Implement [feature-name]"
 ```
 
 ### 7. Mark Complete
