@@ -1,0 +1,90 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0 var(--space-md);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  height: var(--header-height);
+
+  & > .logo {
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  & > .logo:hover {
+    color: var(--color-primary);
+  }
+
+  & > .spacer {
+    flex: 1;
+  }
+
+  & > .hamburger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: var(--font-lg);
+    cursor: pointer;
+    padding: var(--space-sm);
+  }
+
+  & > .notifications {
+    position: relative;
+  }
+
+  & > .notifications > .bell {
+    background: none;
+    border: none;
+    font-size: var(--font-lg);
+    cursor: pointer;
+    padding: var(--space-sm);
+    position: relative;
+  }
+
+  & > .notifications > .bell > .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--color-danger);
+    color: white;
+    font-size: var(--font-xs);
+    padding: 0 var(--space-xs);
+    border-radius: var(--radius-full);
+    min-width: 16px;
+    text-align: center;
+  }
+
+  & > .notifications > .bell > .badge.-hidden {
+    display: none;
+  }
+
+  & > .usermenu {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+  }
+
+  & > .usermenu > .signout {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-sm);
+    color: var(--color-text);
+    cursor: pointer;
+    font-size: var(--font-sm);
+  }
+
+  & > .usermenu > .signout:hover {
+    background: var(--color-surface-raised);
+  }
+
+  @media (max-width: 1023px) {
+    & > .hamburger {
+      display: block;
+    }
+  }
+}

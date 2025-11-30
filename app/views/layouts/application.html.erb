@@ -24,12 +24,40 @@
   </head>
 
   <body>
-    <% if flash[:notice] %>
-      <div class="notice"><%= flash[:notice] %></div>
+    <% if authenticated? %>
+      <div class="app-layout <%= '-no-userlist' unless content_for?(:userlist) %>" data-controller="sidebar">
+        <header class="app-header header">
+          <%= render "shared/header" %>
+        </header>
+
+        <nav class="sidebar channel-sidebar" data-sidebar-target="sidebar">
+          <%= render "shared/sidebar" %>
+        </nav>
+
+        <main class="main">
+          <% if flash[:notice] %>
+            <div class="notice"><%= flash[:notice] %></div>
+          <% end %>
+          <% if flash[:alert] %>
+            <div class="alert"><%= flash[:alert] %></div>
+          <% end %>
+          <%= yield %>
+        </main>
+
+        <% if content_for?(:userlist) %>
+          <aside class="userlist">
+            <%= yield :userlist %>
+          </aside>
+        <% end %>
+      </div>
+    <% else %>
+      <% if flash[:notice] %>
+        <div class="notice"><%= flash[:notice] %></div>
+      <% end %>
+      <% if flash[:alert] %>
+        <div class="alert"><%= flash[:alert] %></div>
+      <% end %>
+      <%= yield %>
     <% end %>
-    <% if flash[:alert] %>
-      <div class="alert"><%= flash[:alert] %></div>
-    <% end %>
-    <%= yield %>
   </body>
 </html>

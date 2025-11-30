@@ -1,0 +1,32 @@
+.channel-sidebar {
+  padding: var(--space-sm) 0;
+
+  & > .servergroup {
+    margin-bottom: var(--space-sm);
+  }
+
+  & > .servergroup > .servername {
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  & > .servergroup > .servername > .link {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  & > .servergroup > .servername > .link:hover {
+    color: var(--color-primary);
+  }
+
+  & > .servergroup > .channels {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}

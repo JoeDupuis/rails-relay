@@ -1,5 +1,5 @@
-<li id="channel_<%= channel.id %>_sidebar" class="channel-item <%= '-unread' if channel.unread? %>">
-  <%= link_to channel_path(channel), class: "link" do %>
+<li id="channel_<%= channel.id %>_sidebar" class="channel-item <%= '-unread' if channel.unread? %> <%= '-active' if current_channel == channel %>" data-qa="channel-item">
+  <%= link_to channel_path(channel), class: "link", data: { qa: "channel-link" } do %>
     <%= channel.name %>
     <% if channel.unread_count > 0 %>
       <span class="badge"><%= channel.unread_count %></span>

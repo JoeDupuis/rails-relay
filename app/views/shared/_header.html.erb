@@ -1,0 +1,15 @@
+<button class="hamburger" data-action="click->sidebar#toggle" data-qa="hamburger">☰</button>
+<%= link_to "IRC Client", root_path, class: "logo", data: { qa: "logo" } %>
+<div class="spacer"></div>
+<div class="notifications">
+  <button class="bell">
+    🔔
+    <span class="badge <%= '-hidden' if unread_notification_count.zero? %>">
+      <%= unread_notification_count %>
+    </span>
+  </button>
+</div>
+<div class="usermenu">
+  <span data-qa="user-email"><%= Current.user.email_address %></span>
+  <%= button_to "Sign out", session_path, method: :delete, class: "signout", data: { qa: "signout" } %>
+</div>

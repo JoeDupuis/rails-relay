@@ -149,15 +149,8 @@ Wait for QA to complete. The QA agent will review your implementation and either
 
 Do NOT proceed to commit until QA has approved the implementation.
 
-### 6. Commit
 
-Commit your changes with a clear message describing the feature:
-
-```bash
-git add -A && git commit --no-gpg-sign -m "Implement [feature-name]"
-```
-
-### 7. Mark Complete
+### 6. Mark Complete
 
 When feature is done, tests pass, and **QA has approved**:
 
@@ -170,6 +163,16 @@ When feature is done, tests pass, and **QA has approved**:
    - Add entry to Session History
    - Update Current State
    - Suggest next feature
+
+### 7. Commit
+
+Commit your changes with a clear message describing the feature:
+Verify the files that are modified, to make sure you do not add temporary or trash files. Add everything relevant. Then
+
+```bash
+git commit --no-gpg-sign -m "Implement [feature-name]"
+```
+
 
 ### 8. Exit
 

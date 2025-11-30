@@ -1,0 +1,14 @@
+.connection-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+
+  &.-connected {
+    background: var(--color-success);
+  }
+
+  &.-disconnected {
+    background: var(--color-gray-400);
+  }
+}
