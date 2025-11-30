@@ -2,7 +2,7 @@
 
 ## Current State
 
-Project not yet started. Features are spec'd and ready for implementation.
+Feature `01-auth-signin` completed. Basic authentication implemented with User and Session models.
 
 ---
 
@@ -42,10 +42,30 @@ Project not yet started. Features are spec'd and ready for implementation.
 
 ## Session History
 
-_No sessions yet._
+### Session 2025-11-29
+
+**Feature**: 01-auth-signin
+**Status**: Completed
+
+**What was done**:
+- Created User model with has_secure_password and email normalization
+- Created Session model with belongs_to user association
+- Implemented SessionsController for login/logout flows
+- Implemented PasswordsController for password reset flows
+- Created PasswordsMailer for reset emails
+- Added Authentication concern for session management
+- Created views for login, password reset request, and password reset
+- Added rate limiting (10 requests per 3 minutes) on login and password reset
+- Implemented email enumeration protection (same response for valid/invalid emails)
+- Added comprehensive test coverage for all controllers
+- Passed QA review
+
+**Notes for next session**:
+- bin/brakeman had --ensure-latest flag that caused CI failures; removed it
+- Authentication uses Rails' signed tokens for password reset with expiration
 
 ---
 
 ## Suggested Next Feature
 
-Start with `01-auth-signin.md` - this sets up Rails authentication which everything else depends on.
+Continue with `02-auth-multitenant.md` - adds per-user database isolation to ensure data separation between users.

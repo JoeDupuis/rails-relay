@@ -42,3 +42,4 @@ devenv.local.nix
 
 .claude/settings.local.json
 .claude/ralph/loop-control
+.claude/ralph/pid
