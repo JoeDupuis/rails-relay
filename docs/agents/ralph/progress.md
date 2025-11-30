@@ -2,11 +2,11 @@
 
 ## Current State
 
-Feature `12-notifications-highlights` completed. Notifications system is now fully functional with highlight detection (word boundary matching), DM notifications, browser push notifications, and a notifications page.
+Feature `14-ui-server-view` completed. Server view page now has complete layout with header (address, port, SSL, nickname, connection status), action buttons, join channel form, channel list with user counts, and collapsible server messages section.
 
 ## Suggested Next Feature
 
-Continue with `14-ui-server-view.md` for the server details page, or `15-ui-channel-view.md` for the channel message view, or `16-media-upload.md` for image uploads.
+Continue with `15-ui-channel-view.md` for the channel message view, or `16-media-upload.md` for image uploads.
 
 ---
 
@@ -403,3 +403,29 @@ Continue with `14-ui-server-view.md` for the server details page, or `15-ui-chan
 - ActionCable broadcasts happen from IrcEventHandler on notification creation
 - Word boundary matching prevents partial matches (e.g., "joey" doesn't match "joe")
 - NotificationsController scopes notifications through message->server->user associations
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 14-ui-server-view
+**Status**: Completed
+
+**What was done**:
+- Updated ServersController#show to load channels (joined, with channel_users eager loaded) and server messages
+- Created new server view layout with RSCSS-compliant CSS structure
+- Server header shows address:port, SSL badge, nickname, connection status and "since" timestamp
+- Actions section with Connect/Disconnect, Edit, Delete buttons
+- Join Channel section (only visible when connected)
+- Channels section with list showing name, user count, View and Leave links
+- Server Messages collapsible section with details/summary
+- Created server-view.css component following RSCSS conventions (all styles nested under .server-view)
+- Added N+1 prevention with includes(:channel_users) and using .size
+- Added controller tests (6 new tests)
+- Added integration tests (4 tests in server_page_test.rb)
+- Passed QA review
+
+**Notes for next session**:
+- All elements in server-view.css use single-word element names nested under .server-view component
+- .button, .link, .badge, .empty are styled as elements within the component using `& .button` syntax
+- Uses .size instead of .count for channel_users to use the eager-loaded association

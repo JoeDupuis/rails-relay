@@ -1,59 +1,76 @@
-<h1><%= @server.address %></h1>
-
-<dl>
-  <dt>Address</dt>
-  <dd><%= @server.address %>:<%= @server.port %></dd>
-
-  <dt>SSL</dt>
-  <dd><%= @server.ssl ? "Yes" : "No" %></dd>
-
-  <dt>Nickname</dt>
-  <dd><%= @server.nickname %></dd>
-
-  <dt>Username</dt>
-  <dd><%= @server.username %></dd>
-
-  <dt>Real Name</dt>
-  <dd><%= @server.realname %></dd>
-
-  <dt>Auth Method</dt>
-  <dd><%= @server.auth_method.titleize %></dd>
-
-  <dt>Status</dt>
-  <dd><%= @server.connected_at ? "Connected" : "Disconnected" %></dd>
-</dl>
-
-<h2>Channels</h2>
-<% joined_channels = @server.channels.joined %>
-<% if joined_channels.any? %>
-  <ul>
-    <% joined_channels.each do |channel| %>
-      <li>
-        <%= link_to channel.name, channel_path(channel) %>
-        <% if channel.unread? %>
-          <span class="unread-badge"><%= channel.unread_count %></span>
-        <% end %>
-      </li>
-    <% end %>
-  </ul>
-<% else %>
-  <p>No channels joined yet.</p>
-<% end %>
-
-<% if @server.connected_at %>
-  <h3>Join Channel</h3>
-  <%= form_with model: Channel.new, url: server_channels_path(@server) do |form| %>
-    <div>
-      <%= form.label :name, "Channel Name" %>
-      <%= form.text_field :name, placeholder: "#channel" %>
+<div class="server-view">
+  <header class="header">
+    <div class="info">
+      <h1 class="address"><%= @server.address %>:<%= @server.port %></h1>
+      <% if @server.ssl %>
+        <span class="badge">SSL</span>
+      <% end %>
+      <p class="nickname">as <strong><%= @server.nickname %></strong></p>
     </div>
-    <%= form.submit "Join" %>
+    <div class="status">
+      <% if @server.connected? %>
+        <span class="indicator -connected">● Connected</span>
+        <span class="since">since <%= @server.connected_at.strftime("%b %d %H:%M") %></span>
+      <% else %>
+        <span class="indicator -disconnected">○ Disconnected</span>
+      <% end %>
+    </div>
+  </header>
+
+  <section class="actions">
+    <% if @server.connected? %>
+      <%= button_to "Disconnect", server_connection_path(@server), method: :delete, class: "button -danger" %>
+    <% else %>
+      <%= button_to "Connect", server_connection_path(@server), method: :post, class: "button -primary" %>
+    <% end %>
+
+    <%= link_to "Edit", edit_server_path(@server), class: "button" %>
+    <%= button_to "Delete", server_path(@server), method: :delete,
+        data: { turbo_confirm: "Delete this server and all its history?" },
+        class: "button -danger" %>
+  </section>
+
+  <% if @server.connected? %>
+    <section class="join">
+      <h2>Join Channel</h2>
+      <%= form_with url: server_channels_path(@server), class: "form" do |f| %>
+        <%= f.text_field :name, name: "channel[name]", placeholder: "#channel", class: "field" %>
+        <%= f.submit "Join", class: "button -primary" %>
+      <% end %>
+    </section>
   <% end %>
-<% end %>
 
-<div>
-  <%= link_to "Edit", edit_server_path(@server) %>
-  <%= button_to "Delete", @server, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+  <section class="channels">
+    <h2>Channels (<%= @channels.size %>)</h2>
+    <% if @channels.any? %>
+      <ul class="list">
+        <% @channels.each do |channel| %>
+          <li class="row">
+            <span class="name"><%= channel.name %></span>
+            <span class="users"><%= channel.channel_users.size %> users</span>
+            <span class="actions">
+              <%= link_to "View", channel_path(channel), class: "link" %>
+              <%= button_to "Leave", channel_path(channel), method: :delete, class: "link -danger" %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="empty">No channels yet. Join one above.</p>
+    <% end %>
+  </section>
+
+  <section class="messages">
+    <details>
+      <summary>Server Messages</summary>
+      <div class="list">
+        <% @server_messages.each do |msg| %>
+          <div class="row">
+            <span class="time"><%= msg.created_at.strftime("%H:%M:%S") %></span>
+            <span class="content"><%= msg.content %></span>
+          </div>
+        <% end %>
+      </div>
+    </details>
+  </section>
 </div>
-
-<%= link_to "Back to Servers", servers_path %>

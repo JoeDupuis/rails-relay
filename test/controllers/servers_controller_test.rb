@@ -180,4 +180,62 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
     delete server_path(server)
     assert_redirected_to servers_path
   end
+
+  test "GET /servers/:id shows server info" do
+    server = @user.servers.create!(address: unique_address("info"), nickname: "testnick", port: 6697, ssl: true)
+
+    get server_path(server)
+    assert_response :ok
+    assert_match server.address, response.body
+    assert_match "6697", response.body
+  end
+
+  test "GET /servers/:id shows channels" do
+    server = @user.servers.create!(address: unique_address("channels"), nickname: "testnick", connected_at: Time.current)
+    Channel.create!(server: server, name: "#ruby", joined: true)
+    Channel.create!(server: server, name: "#rails", joined: true)
+    Channel.create!(server: server, name: "#elixir", joined: true)
+
+    get server_path(server)
+    assert_response :ok
+    assert_match "#ruby", response.body
+    assert_match "#rails", response.body
+    assert_match "#elixir", response.body
+  end
+
+  test "GET /servers/:id shows connection status when connected" do
+    server = @user.servers.create!(address: unique_address("connected"), nickname: "testnick", connected_at: Time.current)
+
+    get server_path(server)
+    assert_response :ok
+    assert_match "Connected", response.body
+  end
+
+  test "GET /servers/:id shows connection status when disconnected" do
+    server = @user.servers.create!(address: unique_address("disconnected"), nickname: "testnick", connected_at: nil)
+
+    get server_path(server)
+    assert_response :ok
+    assert_match "Disconnected", response.body
+  end
+
+  test "GET /servers/:id shows channels list with user counts" do
+    server = @user.servers.create!(address: unique_address("users"), nickname: "testnick", connected_at: Time.current)
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    ChannelUser.create!(channel: channel, nickname: "user1")
+    ChannelUser.create!(channel: channel, nickname: "user2")
+
+    get server_path(server)
+    assert_response :ok
+    assert_match "2 users", response.body
+  end
+
+  test "GET /servers/:id loads server messages" do
+    server = @user.servers.create!(address: unique_address("messages"), nickname: "testnick")
+    Message.create!(server: server, channel: nil, target: nil, sender: "irc.example.com", message_type: "notice", content: "Welcome to IRC")
+
+    get server_path(server)
+    assert_response :ok
+    assert_match "Welcome to IRC", response.body
+  end
 end
