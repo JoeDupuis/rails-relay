@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `05-irc-connections` completed. IRC connection management with yaic gem.
+Feature `06-channels` completed. Channel management with join, leave, list functionality.
 
 ---
 
@@ -179,6 +179,36 @@ Feature `05-irc-connections` completed. IRC connection management with yaic gem.
 
 ---
 
+### Session 2025-11-30 (continued)
+
+**Feature**: 06-channels
+**Status**: Completed
+
+**What was done**:
+- Created Channel model with validations (name presence, format #/&, uniqueness per server)
+- Created ChannelUser model with validations (nickname presence, uniqueness per channel)
+- Implemented Channel methods: unread_count, has_unread?, mark_as_read
+- Implemented ChannelUser methods: op?, voiced?, and scopes (ops, voiced, regular)
+- Created ChannelsController with show, create, destroy actions
+- Added routes: nested create under servers, standalone show/destroy
+- Updated server show view with channel list and join form (only when connected)
+- Updated IrcEventHandler to handle join/part events
+- Created Message model placeholder for channel messages association
+- Added flash message display to application layout
+- Added Channel model tests (15 tests)
+- Added ChannelUser model tests (14 tests)
+- Added ChannelsController tests (16 tests)
+- Added integration tests for join/leave flows (4 tests)
+- Passed QA review
+
+**Notes for next session**:
+- Message model is a placeholder - will be expanded in 07-messages-receive
+- Channel validation regex uses /\A[#&].+\z/ (stricter than spec, requires at least one char after #/&)
+- IrcEventHandler now handles join/part events to update channel.joined status
+- WebMock.reset! used in tests to override setup stubs for error case tests
+
+---
+
 ## Suggested Next Feature
 
-Continue with `06-channels.md` for channel management (join, leave, list).
+Continue with `07-messages-receive.md` for receiving messages from IRC.
