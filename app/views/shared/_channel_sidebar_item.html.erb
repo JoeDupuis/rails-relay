@@ -1,0 +1,8 @@
+<li id="channel_<%= channel.id %>_sidebar" class="channel-item <%= '-unread' if channel.unread? %>">
+  <%= link_to channel_path(channel), class: "link" do %>
+    <%= channel.name %>
+    <% if channel.unread_count > 0 %>
+      <span class="badge"><%= channel.unread_count %></span>
+    <% end %>
+  <% end %>
+</li>

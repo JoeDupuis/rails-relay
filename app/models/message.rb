@@ -6,7 +6,7 @@ class Message < ApplicationRecord
   validates :sender, presence: true
   validates :message_type, presence: true
 
-  after_create_commit :broadcast_message
+  after_create_commit :broadcast_message, :broadcast_sidebar_update
 
   def from_me?(current_nickname)
     sender.downcase == current_nickname.downcase
@@ -22,5 +22,17 @@ class Message < ApplicationRecord
     else
       broadcast_append_to [ server, :server ], target: "server_messages"
     end
+  end
+
+  def broadcast_sidebar_update
+    return unless channel
+    return unless Current.user_id
+
+    broadcast_replace_to(
+      "user_#{Current.user_id}_sidebar",
+      target: "channel_#{channel.id}_sidebar",
+      partial: "shared/channel_sidebar_item",
+      locals: { channel: channel }
+    )
   end
 end

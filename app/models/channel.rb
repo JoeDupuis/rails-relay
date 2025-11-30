@@ -13,11 +13,15 @@ class Channel < ApplicationRecord
     messages.where("id > ?", last_read_message_id).count
   end
 
-  def has_unread?
-    unread_count > 0
+  def unread?
+    if last_read_message_id
+      messages.where("id > ?", last_read_message_id).exists?
+    else
+      messages.exists?
+    end
   end
 
-  def mark_as_read
-    update(last_read_message_id: messages.maximum(:id))
+  def mark_as_read!
+    update!(last_read_message_id: messages.maximum(:id))
   end
 end

@@ -68,7 +68,17 @@ class ChannelTest < ActiveSupport::TestCase
     assert_equal 2, channel.unread_count
   end
 
-  test "mark_as_read updates last_read_message_id" do
+  test "unread_count returns 0 when fully read" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    msg = channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+    channel.update!(last_read_message_id: msg.id)
+
+    assert_equal 0, channel.unread_count
+  end
+
+  test "mark_as_read! updates last_read_message_id" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby")
 
@@ -77,14 +87,43 @@ class ChannelTest < ActiveSupport::TestCase
     last_msg = channel.messages.create!(server: server, sender: "user3", content: "!", message_type: "privmsg")
 
     assert_nil channel.last_read_message_id
-    channel.mark_as_read
+    channel.mark_as_read!
     assert_equal last_msg.id, channel.reload.last_read_message_id
   end
 
-  test "has_unread? returns false when no unread messages" do
+  test "mark_as_read! makes unread? return false" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby")
-    assert_not channel.has_unread?
+
+    channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+
+    assert channel.unread?
+    channel.mark_as_read!
+    assert_not channel.reload.unread?
+  end
+
+  test "unread? returns false when no messages" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    assert_not channel.unread?
+  end
+
+  test "unread? returns true when has unread messages" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+    assert channel.unread?
+  end
+
+  test "unread? returns false when fully read" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    msg = channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+    channel.update!(last_read_message_id: msg.id)
+
+    assert_not channel.unread?
   end
 
   test "joined scope returns only joined channels" do

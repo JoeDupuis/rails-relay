@@ -30,7 +30,7 @@
     <% joined_channels.each do |channel| %>
       <li>
         <%= link_to channel.name, channel_path(channel) %>
-        <% if channel.has_unread? %>
+        <% if channel.unread? %>
           <span class="unread-badge"><%= channel.unread_count %></span>
         <% end %>
       </li>

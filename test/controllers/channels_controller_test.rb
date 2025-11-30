@@ -212,4 +212,29 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select ".message-timestamp"
   end
+
+  test "GET /channels/:id marks channel as read" do
+    server = create_server
+    channel = create_channel(server)
+    msg = Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "new message")
+
+    assert_nil channel.last_read_message_id
+    assert channel.unread?
+
+    get channel_path(channel)
+
+    assert_equal msg.id, channel.reload.last_read_message_id
+    assert_not channel.unread?
+  end
+
+  test "GET /channels/:id updates last_read_message_id to latest" do
+    server = create_server
+    channel = create_channel(server)
+    Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "msg1")
+    msg2 = Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "msg2")
+
+    get channel_path(channel)
+
+    assert_equal msg2.id, channel.reload.last_read_message_id
+  end
 end

@@ -3,6 +3,7 @@ class ChannelsController < ApplicationController
   before_action :set_channel, only: [ :show, :destroy ]
 
   def show
+    @channel.mark_as_read!
     @messages = @channel.messages.order(:created_at)
   end
 
