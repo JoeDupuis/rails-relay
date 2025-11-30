@@ -13,6 +13,7 @@ module ApplicationHelper
   end
 
   def unread_notification_count
-    0
+    return 0 unless Current.user
+    Notification.joins(message: :server).where(servers: { user_id: Current.user.id }).unread.count
   end
 end

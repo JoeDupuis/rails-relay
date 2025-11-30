@@ -1,0 +1,12 @@
+<li class="notification-item" id="<%= dom_id(notification) %>">
+  <%= button_to notification_path(notification), method: :patch, class: "link" do %>
+    <span class="sender"><%= notification.message.sender %></span>
+    <% if notification.reason == "dm" %>
+      <span class="context">Direct Message</span>
+    <% else %>
+      <span class="context"><%= notification.message.channel&.name %></span>
+    <% end %>
+    <span class="preview"><%= truncate(notification.message.content, length: 100) %></span>
+    <span class="time"><%= time_ago_in_words(notification.created_at) %> ago</span>
+  <% end %>
+</li>

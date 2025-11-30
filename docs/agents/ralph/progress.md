@@ -2,11 +2,11 @@
 
 ## Current State
 
-Feature `10-pm-view` completed. Private messages (DMs) now appear in the sidebar alongside channels, with conversation views and message sending.
+Feature `12-notifications-highlights` completed. Notifications system is now fully functional with highlight detection (word boundary matching), DM notifications, browser push notifications, and a notifications page.
 
 ## Suggested Next Feature
 
-Continue with `12-notifications-highlights.md` for browser notifications and highlight detection, or `14-ui-server-view.md` for the server details page.
+Continue with `14-ui-server-view.md` for the server details page, or `15-ui-channel-view.md` for the channel message view, or `16-media-upload.md` for image uploads.
 
 ---
 
@@ -370,3 +370,36 @@ Continue with `12-notifications-highlights.md` for browser notifications and hig
 - DMs are sorted by last_message_at desc in sidebar
 - unread? method correctly handles nil last_read_message_id (new conversations)
 - Broadcast sidebar updates for new PM messages not implemented (could be added later)
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 12-notifications-highlights
+**Status**: Completed
+
+**What was done**:
+- Added read_at column to notifications table
+- Updated Notification model with unread/recent scopes, read? and mark_as_read! methods
+- Updated IrcEventHandler with word boundary matching for highlights (/\b#{nickname}\b/i)
+- Added check to skip highlights from self
+- Created NotificationsController with index and update actions
+- Added routes for notifications (index, update only - RESTful)
+- Created notification list view and _notification partial
+- Created CSS components: notification-list.css, notification-item.css
+- Updated ApplicationHelper#unread_notification_count to query actual count
+- Created notifications_controller.js Stimulus controller for browser push notifications
+- Created NotificationsChannel for ActionCable broadcasts
+- Created ApplicationCable::Channel base class
+- Updated header partial to link bell to notifications page
+- Added ActionCable pin to importmap.rb
+- Added model tests (12 tests)
+- Added controller tests (13 tests)
+- Added integration tests (10 tests)
+- Passed QA review
+
+**Notes for next session**:
+- Browser notifications use MVP approach (Notification API when tab is open)
+- ActionCable broadcasts happen from IrcEventHandler on notification creation
+- Word boundary matching prevents partial matches (e.g., "joey" doesn't match "joe")
+- NotificationsController scopes notifications through message->server->user associations

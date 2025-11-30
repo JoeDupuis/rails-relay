@@ -1,0 +1,13 @@
+<div class="notification-list">
+  <h1 class="title">Notifications</h1>
+
+  <% if @notifications.any? %>
+    <ul class="items">
+      <% @notifications.each do |notification| %>
+        <%= render "notification", notification: notification %>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty">No unread notifications</p>
+  <% end %>
+</div>

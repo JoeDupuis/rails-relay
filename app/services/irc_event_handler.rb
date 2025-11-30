@@ -96,7 +96,8 @@ class IrcEventHandler
         message_type: "privmsg"
       )
 
-      Notification.create!(message: message, reason: "dm")
+      notification = Notification.create!(message: message, reason: "dm")
+      broadcast_notification(notification)
     end
   end
 
@@ -254,8 +255,24 @@ class IrcEventHandler
   end
 
   def check_highlight(message)
-    if message.content.downcase.include?(@server.nickname.downcase)
-      Notification.create!(message: message, reason: "highlight")
+    return if message.sender.casecmp?(@server.nickname)
+    if message.content.match?(/\b#{Regexp.escape(@server.nickname)}\b/i)
+      notification = Notification.create!(message: message, reason: "highlight")
+      broadcast_notification(notification)
     end
+  end
+
+  def broadcast_notification(notification)
+    ActionCable.server.broadcast(
+      "user_#{@server.user.id}_notifications",
+      {
+        type: "notification",
+        id: notification.id,
+        reason: notification.reason,
+        sender: notification.message.sender,
+        preview: notification.message.content.truncate(100),
+        channel: notification.message.channel&.name
+      }
+    )
   end
 end

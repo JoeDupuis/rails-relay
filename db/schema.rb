@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_30_211742) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_30_212848) do
   create_table "channel_users", force: :cascade do |t|
     t.integer "channel_id", null: false
     t.datetime "created_at", null: false
@@ -60,6 +60,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_211742) do
   create_table "notifications", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "message_id", null: false
+    t.datetime "read_at"
     t.string "reason", null: false
     t.datetime "updated_at", null: false
     t.index ["message_id"], name: "index_notifications_on_message_id"

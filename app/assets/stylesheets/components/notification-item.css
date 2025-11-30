@@ -1,0 +1,42 @@
+.notification-item {
+  & > .link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+
+  & > .link:hover {
+    background: var(--color-surface-raised);
+  }
+
+  & > .link > .sender {
+    font-weight: 600;
+  }
+
+  & > .link > .context {
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+  }
+
+  & > .link > .preview {
+    font-size: var(--font-sm);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  & > .link > .time {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+  }
+}

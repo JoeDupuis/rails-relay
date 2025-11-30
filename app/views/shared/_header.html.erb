@@ -1,13 +1,13 @@
 <button class="hamburger" data-action="click->sidebar#toggle" data-qa="hamburger">☰</button>
 <%= link_to "IRC Client", root_path, class: "logo", data: { qa: "logo" } %>
 <div class="spacer"></div>
-<div class="notifications">
-  <button class="bell">
+<div class="notifications" data-controller="notifications" data-notifications-user-id-value="<%= Current.user.id %>">
+  <%= link_to notifications_path, class: "bell", data: { qa: "notifications-bell" } do %>
     🔔
-    <span class="badge <%= '-hidden' if unread_notification_count.zero? %>">
+    <span class="badge <%= '-hidden' if unread_notification_count.zero? %>" data-notifications-target="badge">
       <%= unread_notification_count %>
     </span>
-  </button>
+  <% end %>
 </div>
 <div class="usermenu">
   <span data-qa="user-email"><%= Current.user.email_address %></span>

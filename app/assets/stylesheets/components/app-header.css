@@ -41,6 +41,8 @@
     cursor: pointer;
     padding: var(--space-sm);
     position: relative;
+    text-decoration: none;
+    display: inline-block;
   }
 
   & > .notifications > .bell > .badge {
