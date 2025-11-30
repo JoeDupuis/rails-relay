@@ -40,7 +40,7 @@ After successful sign in, user is redirected to the root path.
 
 ## Models
 
-Uses User and Session models from Rails auth generator. See `docs/data-model.md`.
+Uses User and Session models from Rails auth generator. See `docs/agents/data-model.md`.
 
 ## Tests
 

@@ -1,35 +1,19 @@
-# Agent Prompt
+# Feature Implementor
 
-You are implementing an IRC client Rails application, feature by feature.
+You are implementing features for this project. Work through features one at a time, following the specs exactly.
 
 ## Configuration
 
 ```
-EXIT_SCRIPT: __EXIT_SCRIPT_PATH__
-QA_AGENT: __QA_AGENT_NAME__
+EXIT_SCRIPT: .claude/ralph/bin/kill-claude
 ```
 
-## Getting Your Bearings
+## Project Context
 
-At the start of each session:
-
-1. Read `.claude/ralph/progress.md` for recent context and hints
-2. Run `git log --oneline -10` to see recent work
-3. List `.claude/ralph/features/` to see available features
-4. Pick a feature (files ending in `.md`, not `.md.done`)
-
-The progress file often has a "suggested next feature" from the previous session. Start there unless you have reason to do otherwise.
-
-## Working on a Feature
-
-1. Read the feature file completely
-2. Read any referenced docs (data model, conventions)
-3. Write or verify tests exist for the acceptance criteria
-4. Implement until tests pass
-5. Run `bin/ci` to verify everything passes
-6. Call the QA agent: `__QA_AGENT_NAME__`
-7. If QA passes, wrap up (see below)
-8. If QA has issues, fix them and repeat
+- **Data model**: See `docs/agents/data-model.md`
+- **Conventions**: See `docs/agents/conventions/rails.md` and `docs/agents/conventions/rscss.md`
+- **Features**: See `docs/agents/ralph/features/`
+- **Progress**: See `docs/agents/ralph/progress.md`
 
 ## Running Things
 
@@ -88,7 +72,7 @@ end
 
 ### Fixtures Philosophy
 
-Prefer fixtures over factory creation. Design a semi-realistic world in fixtures that covers most test scenarios. 
+Prefer fixtures over factory creation. Design a semi-realistic world in fixtures that covers most test scenarios.
 
 When writing tests:
 - Use fixtures as the baseline
@@ -107,110 +91,137 @@ end
 
 The `Message.create!` is the point - it shows what triggers the behavior.
 
-## Asking Questions
+## Workflow
 
-If you encounter:
-- Unclear requirements
-- Conflicting information
-- Something that seems wrong
-- A decision that needs human input
+### 1. Check Progress
 
-Use the `AskUserQuestion` tool. Explain the situation clearly and wait for guidance.
+Read `docs/agents/ralph/progress.md` to see:
+- What's been done
+- What to work on next
+- Any notes from previous sessions
 
-Do NOT guess at requirements. Ask.
+### 2. Pick a Feature
 
-## When You Think a Different Feature Should Be Next
+Choose from `docs/agents/ralph/features/`. Pick a `.md` file (not `.md.done`) whose dependencies are satisfied.
 
-If while working you realize a different feature should come first:
-1. Use `AskUserQuestion` to explain your reasoning
-2. If approved, write your findings to `progress.md`
-3. Exit without completing current feature
+If unclear which to pick, check `progress.md` for suggestions.
 
-## Wrapping Up a Feature
+### 3. Implement the Feature
 
-When the feature is complete and QA passes:
+Read the feature spec thoroughly. It contains:
+- Description of the behavior
+- Models/data involved
+- Test descriptions
+- Implementation notes
+- Dependencies
 
-1. **Rename the feature file**
-   ```bash
-   mv .claude/ralph/features/feature-name.md .claude/ralph/features/feature-name.md.done
-   ```
+Implement:
+1. Write tests first (based on spec's test descriptions)
+2. Write code to make tests pass
+3. Run tests to verify
 
-2. **Update progress.md**
-   Append a section with:
-   - What was completed
-   - Any notes for future sessions
-   - Suggested next feature
+### 4. Verify
 
-3. **Commit**
-   ```bash
-   git add -A
-   git commit -m "feat: [description]
-   
-   - Completed: [feature name]
-   - Tests: [what tests were added]"
-   ```
+Run the full test suite. All tests must pass before proceeding.
 
-4. **Exit**
-   Call the exit script to end this session:
-   ```bash
-   __EXIT_SCRIPT_PATH__
-   ```
+### 5. QA Review (REQUIRED)
 
-## Important Rules
+**A feature CANNOT be marked as done unless QA approves it.**
 
-### DO NOT exit until the feature is complete
-The exit script ends the session. Only call it after:
-- Feature is implemented
-- Tests pass
-- QA agent approves
-- Progress file is updated
-- Changes are committed
+After tests pass, run the QA agent:
 
-### DO NOT change tests without approval
-Tests define the contract. If you think a test is wrong:
-1. Use `AskUserQuestion` to explain why
-2. Wait for approval before changing
-3. Document the change in your commit
-
-### DO NOT skip or re-fail passing tests
-Tests may start skipped or failing. Once a test passes, it must stay passing. Do not:
-- Add `skip` to a previously passing test
-- Make changes that cause a passing test to fail
-- Comment out assertions
-
-If a passing test starts failing:
-1. Investigate why
-2. Fix the code, not the test
-3. If the test is wrong, ask for approval to change it
-
-## Conventions
-
-Code must follow project conventions:
-
-- **Rails**: See `docs/conventions/rails.md`
-  - Business logic in models
-  - Controllers: 7 RESTful actions only, no custom actions
-  - Need custom behavior? Create a new resource
-
-- **CSS**: See `docs/conventions/rscss.md`  
-  - Components: two-word names (`.message-item`)
-  - Elements: single word with `>` (`.message-item > .content`)
-  - Variants: dash prefix (`.-unread`)
-  - Component-scoped variables, minimal globals
-
-## File Locations
-
+```bash
+claude --agent-prompt .claude/agents/ralph-qa.md
 ```
-.claude/ralph/
-├── prompt.md          # This file
-├── progress.md        # Session history and hints
-└── features/          # Feature specs
-    ├── feature.md     # Not started or in progress
-    └── feature.md.done # Completed
 
-docs/
-├── data-model.md      # Database schema
-└── conventions/
-    ├── rails.md
-    └── rscss.md
+Wait for QA to complete. The QA agent will review your implementation and either:
+- **APPROVE**: You may proceed to commit and mark complete
+- **FAIL**: You must fix the issues and re-run QA
+
+**If QA fails:**
+1. Read the QA feedback carefully
+2. Fix all issues identified
+3. Run tests again
+4. Re-run the QA agent
+5. Repeat until QA approves
+
+Do NOT proceed to commit until QA has approved the implementation.
+
+### 6. Commit
+
+Commit your changes with a clear message describing the feature:
+
+```bash
+git add -A && git commit -m "Implement [feature-name]"
+```
+
+### 7. Mark Complete
+
+When feature is done, tests pass, and **QA has approved**:
+
+1. Rename the feature file:
+   ```bash
+   mv docs/agents/ralph/features/feature-name.md docs/agents/ralph/features/feature-name.md.done
+   ```
+
+2. Update `docs/agents/ralph/progress.md`:
+   - Add entry to Session History
+   - Update Current State
+   - Suggest next feature
+
+### 8. Exit
+
+**ONLY after QA has approved and the feature is marked complete**, exit by running (must be unsandboxed):
+
+```bash
+.claude/ralph/bin/kill-claude
+```
+
+The loop will restart you with fresh context.
+
+**NEVER call the exit script if you are blocked or have problems.** Use `AskUserQuestion` instead.
+
+## Rules
+
+### Do
+
+- Follow the spec exactly
+- Write tests based on the spec's test descriptions
+- Use `AskUserQuestion` if something is unclear or blocking
+- Update progress.md with useful notes for future sessions
+- Exit after each feature (keeps context fresh)
+
+### Don't
+
+- Change test assertions without asking first
+- Skip tests
+- Implement features out of dependency order
+- Stay in one session for multiple features (exit and restart)
+- Exit without updating progress.md
+- Exit when blocked - use `AskUserQuestion` instead
+- Mark a feature complete without QA approval
+- Skip QA or proceed after QA failure without fixing issues
+
+## If Blocked
+
+If you can't proceed:
+1. Use `AskUserQuestion` to ask the human
+2. Document the blocker in progress.md
+3. Wait for the human to respond - do NOT exit
+
+## Session Notes Format
+
+When updating progress.md, use this format:
+
+```markdown
+### Session [DATE]
+
+**Feature**: [feature-name]
+**Status**: Completed | Blocked | In Progress
+
+**What was done**:
+- [bullet points]
+
+**Notes for next session**:
+- [anything important to know]
 ```

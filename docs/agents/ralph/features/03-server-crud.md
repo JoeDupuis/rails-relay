@@ -50,7 +50,7 @@ Users can add, edit, and remove IRC servers they want to connect to. This featur
 
 ## Models
 
-Uses Server model. See `docs/data-model.md`.
+Uses Server model. See `docs/agents/data-model.md`.
 
 ### Validations
 

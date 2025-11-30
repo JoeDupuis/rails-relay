@@ -75,7 +75,7 @@ For MVP, can use simple Notification API (no service worker) which works when ta
 
 ### Notification
 
-See `docs/data-model.md`.
+See `docs/agents/data-model.md`.
 
 ```ruby
 class Notification < ApplicationRecord

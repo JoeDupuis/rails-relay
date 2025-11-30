@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+LOOP_CONTROL="$PROJECT_DIR/.claude/ralph/loop-control"
+
+if [ -f "$LOOP_CONTROL" ]; then
+    rm "$LOOP_CONTROL"
+    echo "Loop will stop after current session ends."
+else
+    echo "Loop control file not found. Is the loop running?"
+fi

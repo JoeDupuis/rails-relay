@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+PID_FILE="$CLAUDE_PROJECT_DIR/.claude/ralph/pid"
+trap "rm -f \"$PID_FILE\"" EXIT
+if [ -f "$PID_FILE" ]; then
+    kill $(cat "$PID_FILE")
+fi

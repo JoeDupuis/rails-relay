@@ -98,7 +98,7 @@ Messages broadcast to Turbo Stream channels:
 
 ### Message
 
-See `docs/data-model.md`. Key callbacks:
+See `docs/agents/data-model.md`. Key callbacks:
 
 ```ruby
 class Message < ApplicationRecord

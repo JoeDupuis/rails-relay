@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+LOOP_CONTROL="$PROJECT_DIR/.claude/ralph/loop-control"
+
+echo "Starting Ralph Wiggum loop..."
+echo "Run 'scripts/stop-ralph' from another terminal to stop after current session."
+
+touch "$LOOP_CONTROL"
+
+export RALPH_WIGGUM_LOOP=true
+
+while [ -f "$LOOP_CONTROL" ]; do
+    echo ""
+    echo "=== Starting new Claude session ==="
+    echo ""
+
+    claude --agent-prompt "$PROJECT_DIR/.claude/ralph/prompt.md" || true
+
+    if [ -n "$RALPH_NTFY_FEATURE_DONE" ]; then
+        curl -s -d "Claude finished a feature!" "ntfy.sh/$RALPH_NTFY_FEATURE_DONE" >/dev/null
+    fi
+
+    if [ -f "$LOOP_CONTROL" ]; then
+        echo ""
+        echo "Session ended. Starting next session in 2 seconds..."
+        echo "(Run 'scripts/stop-ralph' to exit after this pause)"
+        sleep 2
+    fi
+done
+
+echo ""
+echo "Loop stopped."
