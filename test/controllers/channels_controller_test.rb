@@ -177,4 +177,39 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_match "not connected", response.body
   end
+
+  test "GET /channels/:id loads all messages" do
+    server = create_server
+    channel = create_channel(server)
+    5.times { |i| Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "msg_all_#{i}") }
+
+    get channel_path(channel)
+    assert_response :ok
+    channel.messages.each do |msg|
+      assert_match msg.content, response.body
+    end
+  end
+
+  test "GET /channels/:id orders messages oldest to newest for display" do
+    server = create_server
+    channel = create_channel(server)
+    old = Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "old_message_first", created_at: 2.hours.ago)
+    new_msg = Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "new_message_second", created_at: 1.hour.ago)
+
+    get channel_path(channel)
+    assert_response :ok
+    old_pos = response.body.index(old.content)
+    new_pos = response.body.index(new_msg.content)
+    assert old_pos < new_pos, "Old message should appear before new message"
+  end
+
+  test "GET /channels/:id displays message timestamps" do
+    server = create_server
+    channel = create_channel(server)
+    Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "timestamped_msg")
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_select ".message-timestamp"
+  end
 end

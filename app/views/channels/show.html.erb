@@ -9,10 +9,14 @@
   </header>
 
   <div class="channel-content">
-    <div class="message-list" id="messages">
-      <% @channel.messages.order(:created_at).each do |message| %>
-        <%= render message %>
-      <% end %>
+    <div class="message-list-container" data-controller="message-list" data-message-list-channel-id-value="<%= @channel.id %>">
+      <div id="messages" class="message-list" data-message-list-target="messages">
+        <%= render partial: "messages/message", collection: @messages %>
+      </div>
+
+      <div class="new-messages-indicator hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
+        New messages below
+      </div>
     </div>
 
     <turbo-frame id="channel-users" src="" loading="lazy">

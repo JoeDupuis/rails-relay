@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `07-messages-receive` completed. Message receiving, notifications, and removed tenancy gem.
+Feature `08-messages-send` completed. Users can now send messages to channels and via PM.
 
 ---
 
@@ -238,6 +238,32 @@ Feature `07-messages-receive` completed. Message receiving, notifications, and r
 
 ---
 
+### Session 2025-11-30 (continued)
+
+**Feature**: 08-messages-send
+**Status**: Completed
+
+**What was done**:
+- Created MessagesController with create action for sending messages
+- Implemented all IRC commands: /me, /msg, /notice, /nick, /topic, /part
+- Added from_me? method to Message model (case-insensitive nickname matching)
+- Added connected? helper method to Server model
+- Updated channel show view with Turbo Stream subscription and message input form
+- Added routes for messages nested under both channels and servers
+- Created create.turbo_stream.erb to clear input field after send
+- Added controller tests (16 tests)
+- Added integration tests (3 tests)
+- Added model tests for from_me? (3 tests)
+- Passed QA review
+
+**Notes for next session**:
+- Don't name methods `send_action` - it conflicts with Rails' ActionController method
+- Messages are created locally before sending to IRC (optimistic UI)
+- Turbo Stream broadcasts are handled by the Message model after_create_commit callback
+- Use Current.user (not current_user) to access the authenticated user
+
+---
+
 ## Suggested Next Feature
 
-Continue with `08-messages-send.md` for sending messages to IRC.
+Continue with `09-messages-history.md` for message history and scrollback.

@@ -11,6 +11,6 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   driven_by :cuprite, using: :chrome, screen_size: [ 1400, 1400 ], options: {
     headless: true,
-    process_timeout: 20,
+    process_timeout: 20
   }
 end

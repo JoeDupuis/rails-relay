@@ -1,4 +1,7 @@
 <div id="<%= dom_id(message) %>" class="message message-<%= message.message_type %>">
+  <span class="message-timestamp" title="<%= message.created_at.strftime('%Y-%m-%d %H:%M:%S') %>">
+    <%= message.created_at.to_date == Date.current ? message.created_at.strftime('%H:%M') : message.created_at.strftime('%b %d %H:%M') %>
+  </span>
   <span class="message-sender"><%= message.sender %></span>
   <span class="message-content"><%= message.content %></span>
 </div>
