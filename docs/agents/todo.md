@@ -1,0 +1,6 @@
+- User list is not updating
+- interface super glitchy
+- channel list is empty even if I joined something
+- support ssl no verify
+- nick doesnt get updated
+- Channels dont get rejoined (auto join feature)
