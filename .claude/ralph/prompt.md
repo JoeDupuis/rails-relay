@@ -31,6 +31,8 @@ bin/rails test test/controllers/servers_controller_test.rb
 bin/rails test test/controllers/servers_controller_test.rb -n "test_name"
 ```
 
+DO NOT refix with RAILS_ENV, this is not needed.
+
 For now test need to be ran unsandboxed else you'll get an error about a websocket.
 
 ## IRC Test Server
