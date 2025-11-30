@@ -2,11 +2,20 @@
 
 ## Current State
 
-Feature `15-ui-channel-view` completed. Channel view page now has complete layout with header (name, topic, leave button), message list with different styling for message types, user list sidebar (grouped by mode: ops, voiced, regular), and message input form with Enter key submission.
+Feature `16-media-upload` completed. Users can now upload images (PNG, JPEG, GIF, WebP) which are stored via ActiveStorage. The upload URL is sent as a message to the IRC channel.
 
 ## Suggested Next Feature
 
-Continue with `16-media-upload.md` for image uploads via ActiveStorage.
+All planned features have been implemented! The application now has:
+- User authentication
+- Server management (CRUD)
+- IRC connections via internal API
+- Channels (join, leave, list)
+- Messages (send, receive, history)
+- Private messages
+- Notifications and highlights
+- Complete UI layout
+- Media uploads
 
 ---
 
@@ -456,3 +465,35 @@ Continue with `16-media-upload.md` for image uploads via ActiveStorage.
 - Own messages get -mine class, highlighted messages get -highlight class
 - User list groups users by mode (ops with @, voiced with +, regular)
 - CSS ::before pseudo-elements add the @ and + prefixes, not the HTML
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 16-media-upload
+**Status**: Completed
+
+**What was done**:
+- Created UploadsController with create action for file uploads
+- Implemented file type validation (PNG, JPEG, GIF, WebP only)
+- Implemented file size validation (max 10MB)
+- Files uploaded to ActiveStorage using Blob.create_and_upload!
+- URL generated for uploaded file via rails_blob_url
+- Message record created with URL as content
+- IRC command sent to channel with the URL
+- Added routes for uploads nested under channels
+- Updated message form with upload button (📎)
+- Updated message_form_controller.js Stimulus controller with upload handler
+- Added CSS for upload button in message-input.css
+- Created test fixture files (test.png, test.jpg, test.gif, test.webp, test.pdf)
+- Added ActiveStorage migration (create_active_storage_tables)
+- Added controller tests (11 tests)
+- Added integration tests (3 tests)
+- Passed QA review
+
+**Notes for next session**:
+- All planned features have been implemented!
+- ActiveStorage uses :local service in development, :test service in test
+- Upload URLs use rails_blob_url which redirects to the actual storage location
+- The JavaScript upload handler uses fetch() with FormData for file uploads
+- Error responses use JSON format (error message in json["error"])

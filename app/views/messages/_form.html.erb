@@ -1,11 +1,23 @@
 <% if channel.server.connected? %>
   <%= form_with url: channel_messages_path(channel),
       class: "message-input",
-      data: { controller: "message-form" } do |f| %>
+      data: {
+        controller: "message-form",
+        message_form_upload_url_value: channel_uploads_path(channel),
+        message_form_channel_name_value: channel.name
+      } do |f| %>
     <%= f.text_field :content,
         placeholder: "Message #{channel.name}",
         class: "field",
         data: { message_form_target: "input", action: "keydown.enter->message-form#submit" } %>
+    <label class="upload">
+      📎
+      <input type="file"
+             accept="image/png,image/jpeg,image/gif,image/webp"
+             data-action="change->message-form#upload"
+             data-message-form-target="fileInput"
+             hidden>
+    </label>
     <%= f.submit "Send", class: "submit" %>
   <% end %>
 <% else %>

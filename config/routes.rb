@@ -10,6 +10,7 @@ Rails.application.routes.draw do
 
   resources :channels, only: [ :show, :destroy ] do
     resources :messages, only: [ :create ]
+    resources :uploads, only: [ :create ]
   end
 
   resources :conversations, only: [ :show ] do
