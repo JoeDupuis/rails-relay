@@ -1,0 +1,244 @@
+require "test_helper"
+require "webmock/minitest"
+
+class MessagesControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @user = users(:joe)
+    post session_path, params: { email_address: @user.email_address, password: "password123" }
+    @test_id = SecureRandom.hex(4)
+
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: "", headers: {})
+  end
+
+  def unique_address(base = "irc.example")
+    "#{base}-#{@test_id}.chat"
+  end
+
+  def create_server(address: nil)
+    address ||= unique_address
+    @user.servers.create!(address: address, nickname: "testnick", connected_at: Time.current)
+  end
+
+  def create_channel(server, name: "#ruby", joined: true)
+    Channel.create!(server: server, name: name, joined: joined)
+  end
+
+  test "POST /channels/:channel_id/messages creates message record" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "Hello world" }
+    end
+
+    message = Message.last
+    assert_equal server, message.server
+    assert_equal channel, message.channel
+    assert_equal "testnick", message.sender
+    assert_equal "Hello world", message.content
+    assert_equal "privmsg", message.message_type
+  end
+
+  test "POST /channels/:channel_id/messages calls InternalApiClient.send_command" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "Hello world" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "privmsg" &&
+        body["params"]["target"] == "#ruby" &&
+        body["params"]["message"] == "Hello world"
+    end
+  end
+
+  test "POST /channels/:channel_id/messages returns turbo stream" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "Hello world" }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :ok
+  end
+
+  test "POST with /me command creates message with type action" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "/me waves" }
+    end
+
+    message = Message.last
+    assert_equal "action", message.message_type
+    assert_equal "waves", message.content
+  end
+
+  test "POST with /me command sends action command" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "/me waves" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "action" &&
+        body["params"]["target"] == "#ruby" &&
+        body["params"]["message"] == "waves"
+    end
+  end
+
+  test "POST with /msg command creates message with target set" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "/msg othernick hello there" }
+    end
+
+    message = Message.last
+    assert_equal "privmsg", message.message_type
+    assert_equal "hello there", message.content
+    assert_equal "othernick", message.target
+    assert_nil message.channel
+  end
+
+  test "POST with /msg command sends to correct nick" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "/msg othernick hello there" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "privmsg" &&
+        body["params"]["target"] == "othernick" &&
+        body["params"]["message"] == "hello there"
+    end
+  end
+
+  test "POST with /notice command sends notice" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "/notice someone hello" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "notice" &&
+        body["params"]["target"] == "someone" &&
+        body["params"]["message"] == "hello"
+    end
+  end
+
+  test "POST with /nick command sends nick change" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "/nick newnick" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "nick" && body["params"]["nickname"] == "newnick"
+    end
+  end
+
+  test "POST with /topic command sends topic change" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "/topic New channel topic" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "topic" &&
+        body["params"]["channel"] == "#ruby" &&
+        body["params"]["topic"] == "New channel topic"
+    end
+  end
+
+  test "POST with /part command sends part and redirects to server" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "/part" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "part" && body["params"]["channel"] == "#ruby"
+    end
+
+    assert_redirected_to server_path(server)
+  end
+
+  test "POST with unknown command shows error" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_no_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "/unknown something" }
+    end
+
+    assert_redirected_to channel_path(channel)
+    follow_redirect!
+    assert_match "Unknown command", response.body
+  end
+
+  test "POST when server not connected shows error but creates message" do
+    server = create_server
+    channel = create_channel(server)
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 404, body: "", headers: {})
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "Hello world" }
+    end
+
+    follow_redirect!
+    assert_match "not connected", response.body
+  end
+
+  test "POST when IRC service unavailable shows error but creates message" do
+    server = create_server
+    channel = create_channel(server)
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_raise(Errno::ECONNREFUSED)
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "Hello world" }
+    end
+
+    follow_redirect!
+    assert_match "service unavailable", response.body
+  end
+
+  test "user can only send messages to their own channels" do
+    server = create_server
+    channel = create_channel(server)
+
+    delete session_path
+    other_user = users(:jane)
+    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+
+    post channel_messages_path(channel), params: { content: "Hello" }
+    assert_response :not_found
+  end
+
+  test "POST /servers/:server_id/messages creates message for PM" do
+    server = create_server
+
+    assert_difference -> { Message.count } do
+      post server_messages_path(server), params: { content: "Hello", target: "somenick" }
+    end
+
+    message = Message.last
+    assert_equal server, message.server
+    assert_nil message.channel
+    assert_equal "somenick", message.target
+    assert_equal "Hello", message.content
+  end
+end

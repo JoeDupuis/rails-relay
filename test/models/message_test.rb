@@ -69,4 +69,27 @@ class MessageTest < ActiveSupport::TestCase
     assert_nil message.channel
     assert_nil message.target
   end
+
+  test "from_me? returns true when sender matches nickname" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "testnick", content: "hello", message_type: "privmsg")
+
+    assert message.from_me?("testnick")
+  end
+
+  test "from_me? returns true case-insensitively" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "TestNick", content: "hello", message_type: "privmsg")
+
+    assert message.from_me?("testnick")
+    assert message.from_me?("TESTNICK")
+    assert message.from_me?("TestNick")
+  end
+
+  test "from_me? returns false when sender is different" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "othernick", content: "hello", message_type: "privmsg")
+
+    assert_not message.from_me?("testnick")
+  end
 end

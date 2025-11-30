@@ -1,3 +1,5 @@
+<%= turbo_stream_from @channel %>
+
 <div class="channel-view">
   <header class="channel-header">
     <h1><%= @channel.name %></h1>
@@ -7,16 +9,9 @@
   </header>
 
   <div class="channel-content">
-    <div class="message-list">
-      <% if @channel.messages.any? %>
-        <% @channel.messages.order(:created_at).each do |message| %>
-          <div class="message">
-            <span class="message-nick"><%= message.sender %></span>
-            <span class="message-content"><%= message.content %></span>
-          </div>
-        <% end %>
-      <% else %>
-        <p>No messages yet.</p>
+    <div class="message-list" id="messages">
+      <% @channel.messages.order(:created_at).each do |message| %>
+        <%= render message %>
       <% end %>
     </div>
 
@@ -43,7 +38,14 @@
   </div>
 
   <div class="message-input">
-    <p>Message input coming in future feature.</p>
+    <% if @channel.server.connected? %>
+      <%= form_with url: channel_messages_path(@channel), method: :post do |form| %>
+        <%= form.text_field :content, placeholder: "Message #{@channel.name}", autofocus: true, id: "content" %>
+        <%= form.submit "Send" %>
+      <% end %>
+    <% else %>
+      <p>Connect to server to send messages.</p>
+    <% end %>
   </div>
 
   <div class="channel-actions">

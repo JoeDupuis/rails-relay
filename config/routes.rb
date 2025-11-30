@@ -4,9 +4,12 @@ Rails.application.routes.draw do
   resources :servers do
     resource :connection, only: [ :create, :destroy ]
     resources :channels, only: [ :create ]
+    resources :messages, only: [ :create ]
   end
 
-  resources :channels, only: [ :show, :destroy ]
+  resources :channels, only: [ :show, :destroy ] do
+    resources :messages, only: [ :create ]
+  end
 
   namespace :internal do
     namespace :irc do

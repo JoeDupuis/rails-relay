@@ -8,6 +8,10 @@ class Message < ApplicationRecord
 
   after_create_commit :broadcast_message
 
+  def from_me?(current_nickname)
+    sender.downcase == current_nickname.downcase
+  end
+
   private
 
   def broadcast_message

@@ -13,6 +13,10 @@ class Server < ApplicationRecord
 
   before_validation :set_defaults
 
+  def connected?
+    connected_at.present?
+  end
+
   private
 
   def set_defaults
