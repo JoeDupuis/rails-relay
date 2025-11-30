@@ -11,6 +11,10 @@ Rails.application.routes.draw do
     resources :messages, only: [ :create ]
   end
 
+  resources :conversations, only: [ :show ] do
+    resources :messages, only: [ :create ], controller: "conversation/messages"
+  end
+
   namespace :internal do
     namespace :irc do
       resources :connections, only: [ :create, :destroy ]

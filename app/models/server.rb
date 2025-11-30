@@ -3,6 +3,7 @@ class Server < ApplicationRecord
   encrypts :auth_password
 
   has_many :channels, dependent: :destroy
+  has_many :conversations, dependent: :destroy
   has_many :messages, dependent: :destroy
 
   validates :address, presence: true, uniqueness: { scope: [ :user_id, :port ] }

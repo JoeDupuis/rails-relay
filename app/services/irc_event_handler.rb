@@ -81,6 +81,12 @@ class IrcEventHandler
 
       check_highlight(message)
     else
+      conversation = Conversation.find_or_create_by!(
+        server: @server,
+        target_nick: source_nick
+      )
+      conversation.touch(:last_message_at)
+
       message = Message.create!(
         server: @server,
         channel: nil,

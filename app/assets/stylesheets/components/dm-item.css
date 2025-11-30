@@ -1,0 +1,38 @@
+.dm-item {
+  & > .link {
+    display: flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-lg);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  & > .link:hover {
+    background: var(--color-surface-raised);
+  }
+
+  & > .link > .badge {
+    margin-left: auto;
+    background: var(--color-primary);
+    color: white;
+    font-size: var(--font-sm);
+    padding: 0 var(--space-sm);
+    border-radius: var(--radius-full);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  &.-unread > .link {
+    font-weight: 600;
+  }
+
+  &.-active > .link {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  &.-active > .link > .badge {
+    background: white;
+    color: var(--color-primary);
+  }
+}

@@ -1,0 +1,8 @@
+<li id="conversation_<%= conversation.id %>_sidebar" class="dm-item <%= '-unread' if conversation.unread? %> <%= '-active' if current_conversation == conversation %>" data-qa="dm-item">
+  <%= link_to conversation_path(conversation), class: "link", data: { qa: "dm-link" } do %>
+    <%= conversation.target_nick %>
+    <% if conversation.unread_count > 0 %>
+      <span class="badge"><%= conversation.unread_count %></span>
+    <% end %>
+  <% end %>
+</li>

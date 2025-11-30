@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "content" do %>
+  <%= text_field_tag :content, "", placeholder: "Message #{@conversation.target_nick}", autofocus: true %>
+<% end %>

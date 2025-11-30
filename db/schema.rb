@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_30_060000) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_30_211742) do
   create_table "channel_users", force: :cascade do |t|
     t.integer "channel_id", null: false
     t.datetime "created_at", null: false
@@ -31,6 +31,17 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_060000) do
     t.datetime "updated_at", null: false
     t.index ["server_id", "name"], name: "index_channels_on_server_id_and_name", unique: true
     t.index ["server_id"], name: "index_channels_on_server_id"
+  end
+
+  create_table "conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "last_message_at"
+    t.integer "last_read_message_id"
+    t.integer "server_id", null: false
+    t.string "target_nick", null: false
+    t.datetime "updated_at", null: false
+    t.index ["server_id", "target_nick"], name: "index_conversations_on_server_id_and_target_nick", unique: true
+    t.index ["server_id"], name: "index_conversations_on_server_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -91,6 +102,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_060000) do
 
   add_foreign_key "channel_users", "channels"
   add_foreign_key "channels", "servers"
+  add_foreign_key "conversations", "servers"
   add_foreign_key "messages", "channels", on_delete: :nullify
   add_foreign_key "messages", "servers"
   add_foreign_key "notifications", "messages"

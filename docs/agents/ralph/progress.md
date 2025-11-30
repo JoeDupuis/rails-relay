@@ -2,7 +2,11 @@
 
 ## Current State
 
-Feature `13-ui-layout` completed. Main application layout with sidebar, header, and responsive behavior.
+Feature `10-pm-view` completed. Private messages (DMs) now appear in the sidebar alongside channels, with conversation views and message sending.
+
+## Suggested Next Feature
+
+Continue with `12-notifications-highlights.md` for browser notifications and highlight detection, or `14-ui-server-view.md` for the server details page.
 
 ---
 
@@ -264,12 +268,6 @@ Feature `13-ui-layout` completed. Main application layout with sidebar, header, 
 
 ---
 
-## Suggested Next Feature
-
-Continue with `10-pm-view.md` for private message conversations (dependencies satisfied by `13-ui-layout`), or `12-notifications-highlights.md` for browser notifications.
-
----
-
 ### Session 2025-11-30 (continued)
 
 **Feature**: 09-messages-history
@@ -341,3 +339,34 @@ Continue with `10-pm-view.md` for private message conversations (dependencies sa
 - System tests use Cuprite driver with Capybara
 - Each CSS component is in its own file per RSCSS conventions
 - content_for?(:userlist) controls whether user list column is shown
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 10-pm-view
+**Status**: Completed
+
+**What was done**:
+- Created Conversation model with migration (target_nick, last_read_message_id, last_message_at)
+- Added validations for target_nick presence and uniqueness per server
+- Implemented messages method to return PM messages for conversation (both sent and received)
+- Implemented unread_count, unread?, mark_as_read! methods
+- Updated IrcEventHandler to create/update Conversation when PM is received
+- Created ConversationsController with show action
+- Created Conversation::MessagesController for sending PMs
+- Added routes for conversations with nested messages
+- Updated sidebar to show DMs section above Channels section
+- Created conversation_sidebar_item partial with unread badges
+- Created conversation show view (reuses channel-view styling)
+- Added CSS for dm-item and section-label components
+- Added model tests (14 tests)
+- Added controller tests (14 tests)
+- Added integration tests (12 tests)
+- Passed QA review
+
+**Notes for next session**:
+- Conversation.messages uses OR query for both sent/received messages
+- DMs are sorted by last_message_at desc in sidebar
+- unread? method correctly handles nil last_read_message_id (new conversations)
+- Broadcast sidebar updates for new PM messages not implemented (could be added later)

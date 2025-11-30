@@ -5,6 +5,19 @@
       <span class="connection-indicator <%= server.connected? ? '-connected' : '-disconnected' %>"></span>
       <%= link_to server.address, server_path(server), class: "link", data: { qa: "server-link" } %>
     </div>
+
+    <% if server.conversations.any? %>
+      <div class="section-label">DMs</div>
+      <ul class="dm-list">
+        <% server.conversations.order(last_message_at: :desc).each do |convo| %>
+          <%= render "shared/conversation_sidebar_item", conversation: convo %>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <% if server.channels.joined.any? %>
+      <div class="section-label">Channels</div>
+    <% end %>
     <ul class="channels">
       <% server.channels.joined.each do |channel| %>
         <%= render "shared/channel_sidebar_item", channel: channel %>
