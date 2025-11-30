@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `03-server-crud` completed. Full CRUD operations for IRC server management.
+Feature `04-internal-api` completed. Internal API for IRC service communication.
 
 ---
 
@@ -120,6 +120,37 @@ Feature `03-server-crud` completed. Full CRUD operations for IRC server manageme
 
 ---
 
+### Session 2025-11-30
+
+**Feature**: 04-internal-api
+**Status**: Completed
+
+**What was done**:
+- Created Internal::BaseController as common base for internal API controllers
+- Implemented InternalApiAuthentication concern with Bearer token auth using secure_compare
+- Added user_id attribute to Current for use in model callbacks
+- Created ConnectionsController for starting/stopping IRC connections
+- Created CommandsController for sending IRC commands
+- Created StatusController for health checks and connection listing
+- Created EventsController for receiving IRC events with tenant switching
+- Created InternalApiClient service using Net::HTTP for HTTP communication
+- Created IrcConnectionManager stub (singleton, thread-safe with mutex)
+- Created IrcEventHandler stub (handles connected/disconnected events)
+- Added routes namespaced under /internal/irc/
+- Added service URL configs to all environment files
+- Added webmock gem for HTTP stubbing in tests
+- Added comprehensive controller tests (13 tests)
+- Added InternalApiClient unit tests (8 tests)
+- Passed QA review
+
+**Notes for next session**:
+- Internal API uses Bearer token from INTERNAL_API_SECRET env var
+- Controllers inherit from Internal::BaseController (not ApplicationController) for clean separation
+- IrcConnectionManager and IrcEventHandler are stubs - will be fully implemented in later features
+- Use PARALLEL_WORKERS=1 when running tests in sandbox mode (DRB socket issue)
+
+---
+
 ## Suggested Next Feature
 
-Continue with `04-internal-api.md` or next available feature in Phase 3.
+Continue with `05-irc-connections.md` for IRC connection management.
