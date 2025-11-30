@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `01-auth-signin` completed. Basic authentication implemented with User and Session models.
+Feature `02-auth-multitenant` completed. Per-user database isolation implemented using activerecord-tenanted gem.
 
 ---
 
@@ -66,6 +66,31 @@ Feature `01-auth-signin` completed. Basic authentication implemented with User a
 
 ---
 
+### Session 2025-11-29 (continued)
+
+**Feature**: 02-auth-multitenant
+**Status**: Completed
+
+**What was done**:
+- Added activerecord-tenanted gem from Basecamp
+- Configured database.yml with tenant database at storage/tenants/{env}/{user_id}/main.sqlite3
+- Created TenantRecord base class for tenant models
+- Created Server model in tenant database with validation
+- Added after_create callback to User model to create tenant database
+- Configured tenant resolver to use session user_id for automatic tenant switching
+- Created Tenant.switch(user) convenience method as documented in spec
+- Added unit tests for tenant isolation (User A cannot see User B's servers)
+- Added integration test for web request scoping
+- Created ServersController with views for testing
+
+**Notes for next session**:
+- activerecord-tenanted gem handles tenant switching via middleware automatically
+- TenantRecord.with_tenant(tenant_id) for explicit tenant switching
+- Tenant.switch(user) is a convenience wrapper
+- Fixture users need tenant databases created in test setup
+
+---
+
 ## Suggested Next Feature
 
-Continue with `02-auth-multitenant.md` - adds per-user database isolation to ensure data separation between users.
+Continue with `03-server-crud.md` - implements full CRUD operations for IRC servers.

@@ -1,0 +1,55 @@
+<%= form_with model: server do |form| %>
+  <% if server.errors.any? %>
+    <div id="error_explanation">
+      <ul>
+        <% server.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :address %>
+    <%= form.text_field :address %>
+  </div>
+
+  <div>
+    <%= form.label :port %>
+    <%= form.number_field :port, value: server.port || 6697 %>
+  </div>
+
+  <div>
+    <%= form.label :ssl %>
+    <%= form.check_box :ssl, checked: server.ssl.nil? ? true : server.ssl %>
+  </div>
+
+  <div>
+    <%= form.label :nickname %>
+    <%= form.text_field :nickname %>
+  </div>
+
+  <div>
+    <%= form.label :username %>
+    <%= form.text_field :username, placeholder: "Defaults to nickname" %>
+  </div>
+
+  <div>
+    <%= form.label :realname, "Real Name" %>
+    <%= form.text_field :realname, placeholder: "Defaults to nickname" %>
+  </div>
+
+  <div data-controller="auth-method">
+    <%= form.label :auth_method, "Auth Method" %>
+    <%= form.select :auth_method, [["None", "none"], ["NickServ", "nickserv"], ["SASL", "sasl"]], { selected: server.auth_method || "none" }, { data: { action: "change->auth-method#toggle" } } %>
+
+    <div data-auth-method-target="passwordField">
+      <%= form.label :auth_password, "Auth Password" %>
+      <%= form.password_field :auth_password %>
+    </div>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>

@@ -2,7 +2,10 @@
 
 <ul>
   <% @servers.each do |server| %>
-    <li data-address="<%= server.address %>"><%= server.address %></li>
+    <li data-address="<%= server.address %>">
+      <%= link_to server.address, server %>
+      (<%= server.connected_at ? "Connected" : "Disconnected" %>)
+    </li>
   <% end %>
 </ul>
 
