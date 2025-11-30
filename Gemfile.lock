@@ -1,3 +1,8 @@
+PATH
+  remote: ../yaic
+  specs:
+    yaic (0.2.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -434,6 +439,7 @@ DEPENDENCIES
   tzinfo-data
   web-console
   webmock
+  yaic!
 
 BUNDLED WITH
    2.7.2

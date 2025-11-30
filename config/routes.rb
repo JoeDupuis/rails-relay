@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
-  resources :servers
+  resources :servers do
+    resource :connection, only: [ :create, :destroy ]
+  end
 
   namespace :internal do
     namespace :irc do

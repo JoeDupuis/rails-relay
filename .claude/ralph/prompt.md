@@ -227,3 +227,8 @@ When updating progress.md, use this format:
 **Notes for next session**:
 - [anything important to know]
 ```
+
+
+## Gems
+If you need a to investigate a gem. Either look at the installation directory or make a copy in the ./tmp directory so that you can have access to it as reference without asking for auth on every file operation.
+Assume the gem is installed or in ./tmp first. Dont assume you need to download it. If you can't find it in the gem dir or in the ./tmp dir then try to copy it or install it.

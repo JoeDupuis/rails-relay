@@ -1,6 +1,8 @@
 ENV["RAILS_ENV"] ||= "test"
+ENV["INTERNAL_API_SECRET"] ||= "test_internal_api_secret"
 require_relative "../config/environment"
 require "rails/test_help"
+require "minitest/mock"
 
 module ActiveSupport
   class TestCase

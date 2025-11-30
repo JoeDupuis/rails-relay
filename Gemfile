@@ -22,6 +22,8 @@ gem "bcrypt", "~> 3.1.7"
 
 gem "activerecord-tenanted"
 
+gem "yaic", path: "~/workspace/yaic"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
