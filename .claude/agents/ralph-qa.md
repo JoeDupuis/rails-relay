@@ -22,6 +22,8 @@ Think of the end user. It needs to be simple to use and solid (not buggy).
    bin/ci
    ```
 
+For now test need to be ran unsandboxed else you'll get an error about a websocket.
+
 3. Check against conventions:
    - Read `docs/agents/conventions/rails.md` for Rails patterns
    - **Only if CSS or view files were modified**: Read `docs/agents/conventions/rscss.md` for CSS patterns
