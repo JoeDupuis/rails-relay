@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `09-messages-history` completed. Message history is displayed in channels (all messages, no pagination).
+Feature `11-notifications-unread` completed. Channels track unread messages with sidebar updates.
 
 ---
 
@@ -266,7 +266,7 @@ Feature `09-messages-history` completed. Message history is displayed in channel
 
 ## Suggested Next Feature
 
-Continue with `10-pm-view.md` for private message conversations.
+Continue with `13-ui-layout.md` for the main application layout (required by `10-pm-view.md`).
 
 ---
 
@@ -290,3 +290,28 @@ Continue with `10-pm-view.md` for private message conversations.
 - System tests not set up yet - JS behavior tests (like new message indicator) would need those
 - Date separators between days not implemented - could add later
 - CSS for message list, timestamps, and new-messages indicator not styled yet
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 11-notifications-unread
+**Status**: Completed
+
+**What was done**:
+- Renamed Channel#has_unread? to Channel#unread? for consistency with spec
+- Renamed Channel#mark_as_read to Channel#mark_as_read! (uses update!)
+- Added unread? logic to handle nil last_read_message_id (all messages unread)
+- Updated ChannelsController#show to call mark_as_read! when viewing channel
+- Added broadcast_sidebar_update to Message model for real-time sidebar updates
+- Created shared/_channel_sidebar_item.html.erb partial for Turbo Stream broadcasts
+- Fixed servers/show.html.erb to use unread? instead of has_unread?
+- Added model tests for unread_count, unread?, mark_as_read!
+- Added controller tests for marking channel as read
+- Added integration tests for unread indicators
+- Passed QA review
+
+**Notes for next session**:
+- Sidebar broadcasts use Current.user_id to target the correct user's sidebar
+- The sidebar partial uses RSCSS-compliant class names (channel-item, -unread, badge)
+- unread_count returns 0 when last_read_message_id is nil (per spec decision to mark as read on join)
