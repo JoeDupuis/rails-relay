@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `08-messages-send` completed. Users can now send messages to channels and via PM.
+Feature `09-messages-history` completed. Message history is displayed in channels (all messages, no pagination).
 
 ---
 
@@ -266,4 +266,27 @@ Feature `08-messages-send` completed. Users can now send messages to channels an
 
 ## Suggested Next Feature
 
-Continue with `09-messages-history.md` for message history and scrollback.
+Continue with `10-pm-view.md` for private message conversations.
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 09-messages-history
+**Status**: Completed
+
+**What was done**:
+- Updated ChannelsController#show to load all messages ordered by created_at
+- Updated channel show view to display messages with timestamps
+- Added timestamp display to message partial (time for today, date+time otherwise)
+- Created Stimulus message-list controller for scroll-to-bottom behavior
+- Added new-messages indicator (hidden by default, shown when scrolled up)
+- Added controller tests for message loading and ordering
+- Added integration tests for message history display
+- Simplified implementation per user request: loads all messages, no pagination/infinite scroll
+
+**Notes for next session**:
+- Pagination/infinite scroll deferred to later - user requested simplicity
+- System tests not set up yet - JS behavior tests (like new message indicator) would need those
+- Date separators between days not implemented - could add later
+- CSS for message list, timestamps, and new-messages indicator not styled yet
