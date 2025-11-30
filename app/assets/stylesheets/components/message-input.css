@@ -1,0 +1,36 @@
+.message-input {
+  display: flex;
+  gap: 8px;
+
+  & > .field {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-base);
+  }
+
+  & > .field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  & > .submit {
+    padding: 8px 16px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+
+  & > .submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  & > .disabled {
+    color: var(--color-text-muted);
+    padding: 8px 0;
+  }
+}

@@ -2,11 +2,11 @@
 
 ## Current State
 
-Feature `14-ui-server-view` completed. Server view page now has complete layout with header (address, port, SSL, nickname, connection status), action buttons, join channel form, channel list with user counts, and collapsible server messages section.
+Feature `15-ui-channel-view` completed. Channel view page now has complete layout with header (name, topic, leave button), message list with different styling for message types, user list sidebar (grouped by mode: ops, voiced, regular), and message input form with Enter key submission.
 
 ## Suggested Next Feature
 
-Continue with `15-ui-channel-view.md` for the channel message view, or `16-media-upload.md` for image uploads.
+Continue with `16-media-upload.md` for image uploads via ActiveStorage.
 
 ---
 
@@ -429,3 +429,30 @@ Continue with `15-ui-channel-view.md` for the channel message view, or `16-media
 - All elements in server-view.css use single-word element names nested under .server-view component
 - .button, .link, .badge, .empty are styled as elements within the component using `& .button` syntax
 - Uses .size instead of .count for channel_users to use the eager-loaded association
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 15-ui-channel-view
+**Status**: Completed
+
+**What was done**:
+- Created RSCSS-compliant CSS components: channel-view.css, message-item.css, message-input.css, user-list.css
+- Updated channels/show.html.erb with new layout structure and content_for :userlist
+- Updated messages/_message.html.erb partial with RSCSS classes and format_message helper
+- Created messages/_form.html.erb partial for message input form
+- Created channels/_user_list.html.erb partial for user list sidebar
+- Created MessagesHelper with format_message and current_nickname methods
+- Added highlight? method to Message model for nickname mention detection
+- Created message_form_controller.js Stimulus controller for Enter key submission
+- Added system tests for channel view (7 tests)
+- Added unit tests for highlight? method (10 tests)
+- Updated existing tests to use new CSS class names (.message-item instead of .message, etc.)
+- Passed QA review
+
+**Notes for next session**:
+- Message types have different styling via CSS variants (-privmsg, -action, -notice, -join, -part, -quit, -kick, -topic, -nick)
+- Own messages get -mine class, highlighted messages get -highlight class
+- User list groups users by mode (ops with @, voiced with +, regular)
+- CSS ::before pseudo-elements add the @ and + prefixes, not the HTML

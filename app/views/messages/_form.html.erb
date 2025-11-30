@@ -1,0 +1,15 @@
+<% if channel.server.connected? %>
+  <%= form_with url: channel_messages_path(channel),
+      class: "message-input",
+      data: { controller: "message-form" } do |f| %>
+    <%= f.text_field :content,
+        placeholder: "Message #{channel.name}",
+        class: "field",
+        data: { message_form_target: "input", action: "keydown.enter->message-form#submit" } %>
+    <%= f.submit "Send", class: "submit" %>
+  <% end %>
+<% else %>
+  <div class="message-input">
+    <span class="disabled">Connect to server to send messages.</span>
+  </div>
+<% end %>

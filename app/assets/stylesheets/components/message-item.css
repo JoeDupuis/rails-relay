@@ -1,0 +1,65 @@
+.message-item {
+  --avatar-size: 0;
+  --gap: 8px;
+  --timestamp-width: 48px;
+
+  display: flex;
+  gap: var(--gap);
+  padding: 2px 0;
+
+  & > .timestamp {
+    width: var(--timestamp-width);
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+  }
+
+  & > .sender {
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  & > .content {
+    flex: 1;
+    word-break: break-word;
+  }
+
+  &.-action {
+    font-style: italic;
+
+    & > .sender::before { content: "* "; }
+  }
+
+  &.-notice {
+    color: var(--color-text-muted);
+
+    & > .sender::before { content: "[notice] "; }
+  }
+
+  &.-join,
+  &.-part,
+  &.-quit,
+  &.-kick,
+  &.-nick,
+  &.-topic {
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+
+    & > .sender { font-weight: normal; }
+  }
+
+  &.-join > .content::before { content: "→ "; }
+  &.-part > .content::before { content: "← "; }
+  &.-quit > .content::before { content: "← "; }
+
+  &.-mine {
+    & > .sender { color: var(--color-primary); }
+  }
+
+  &.-highlight {
+    background: var(--color-surface-raised);
+    padding: 4px;
+    margin: -4px;
+    border-radius: var(--radius-sm);
+  }
+}

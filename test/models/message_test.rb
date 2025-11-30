@@ -92,4 +92,78 @@ class MessageTest < ActiveSupport::TestCase
 
     assert_not message.from_me?("testnick")
   end
+
+  test "from_me? returns false when nickname is blank" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "nick", content: "hello", message_type: "privmsg")
+
+    assert_not message.from_me?(nil)
+    assert_not message.from_me?("")
+  end
+
+  test "highlight? returns true when nickname mentioned in privmsg" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: "Hey testnick, how are you?", message_type: "privmsg")
+
+    assert message.highlight?("testnick")
+  end
+
+  test "highlight? returns true when nickname mentioned in action" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: "waves at testnick", message_type: "action")
+
+    assert message.highlight?("testnick")
+  end
+
+  test "highlight? returns false for own messages" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "testnick", content: "Mentioning testnick", message_type: "privmsg")
+
+    assert_not message.highlight?("testnick")
+  end
+
+  test "highlight? returns false for non-privmsg/action types" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: "testnick", message_type: "join")
+
+    assert_not message.highlight?("testnick")
+  end
+
+  test "highlight? returns false when nickname not mentioned" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: "Hello everyone!", message_type: "privmsg")
+
+    assert_not message.highlight?("testnick")
+  end
+
+  test "highlight? uses word boundary matching" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "joe")
+    message = Message.create!(server: server, sender: "alice", content: "joey is here", message_type: "privmsg")
+
+    assert_not message.highlight?("joe")
+  end
+
+  test "highlight? is case insensitive" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: "Hey TESTNICK!", message_type: "privmsg")
+
+    assert message.highlight?("testnick")
+    assert message.highlight?("TESTNICK")
+    assert message.highlight?("TestNick")
+  end
+
+  test "highlight? returns false when nickname is blank" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: "Hello", message_type: "privmsg")
+
+    assert_not message.highlight?(nil)
+    assert_not message.highlight?("")
+  end
+
+  test "highlight? returns false when content is blank" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    message = Message.create!(server: server, sender: "alice", content: nil, message_type: "privmsg")
+
+    assert_not message.highlight?("testnick")
+  end
 end

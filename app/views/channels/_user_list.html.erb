@@ -1,0 +1,33 @@
+<div class="user-list">
+  <div class="header"><%= channel.channel_users.size %> users</div>
+
+  <% if channel.channel_users.ops.any? %>
+    <div class="group">
+      <div class="grouptitle">Operators</div>
+      <ul class="users">
+        <% channel.channel_users.ops.order(:nickname).each do |u| %>
+          <li class="user-item -op"><span class="nick"><%= u.nickname %></span></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if channel.channel_users.voiced.any? %>
+    <div class="group">
+      <div class="grouptitle">Voiced</div>
+      <ul class="users">
+        <% channel.channel_users.voiced.order(:nickname).each do |u| %>
+          <li class="user-item -voice"><span class="nick"><%= u.nickname %></span></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="group">
+    <ul class="users">
+      <% channel.channel_users.regular.order(:nickname).each do |u| %>
+        <li class="user-item"><span class="nick"><%= u.nickname %></span></li>
+      <% end %>
+    </ul>
+  </div>
+</div>

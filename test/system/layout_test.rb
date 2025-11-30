@@ -46,7 +46,7 @@ class LayoutTest < ApplicationSystemTestCase
     sign_in_user
 
     find("[data-qa='channel-link']", text: "#test").click
-    assert_selector "h1", text: "#test"
+    assert_selector ".channel-view .name", text: "#test"
     assert_current_path channel_path(channel)
   end
 

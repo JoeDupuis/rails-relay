@@ -1,59 +1,29 @@
 <%= turbo_stream_from @channel %>
 
-<div class="channel-view">
-  <header class="channel-header">
-    <h1><%= @channel.name %></h1>
-    <% if @channel.topic.present? %>
-      <p class="channel-topic"><%= @channel.topic %></p>
-    <% end %>
+<div class="channel-view" data-controller="channel">
+  <header class="header">
+    <span class="name"><%= @channel.name %></span>
+    <span class="topic"><%= @channel.topic %></span>
+    <%= button_to "Leave", channel_path(@channel), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{@channel.name}?" } %>
   </header>
 
-  <div class="channel-content">
-    <div class="message-list-container" data-controller="message-list" data-message-list-channel-id-value="<%= @channel.id %>">
-      <div id="messages" class="message-list" data-message-list-target="messages">
-        <%= render partial: "messages/message", collection: @messages %>
-      </div>
-
-      <div class="new-messages-indicator hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
-        New messages below
-      </div>
+  <div class="messages"
+       data-controller="message-list"
+       data-channel-target="messages"
+       data-message-list-channel-id-value="<%= @channel.id %>">
+    <div id="messages">
+      <%= render partial: "messages/message", collection: @messages %>
     </div>
-
-    <turbo-frame id="channel-users" src="" loading="lazy">
-      <div class="user-list">
-        <h3>Users</h3>
-        <% if @channel.channel_users.any? %>
-          <ul>
-            <% @channel.channel_users.ops.order(:nickname).each do |user| %>
-              <li>@<%= user.nickname %></li>
-            <% end %>
-            <% @channel.channel_users.voiced.order(:nickname).each do |user| %>
-              <li>+<%= user.nickname %></li>
-            <% end %>
-            <% @channel.channel_users.regular.order(:nickname).each do |user| %>
-              <li><%= user.nickname %></li>
-            <% end %>
-          </ul>
-        <% else %>
-          <p>No users.</p>
-        <% end %>
-      </div>
-    </turbo-frame>
+    <div class="new-messages-indicator hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
+      New messages below
+    </div>
   </div>
 
-  <div class="message-input">
-    <% if @channel.server.connected? %>
-      <%= form_with url: channel_messages_path(@channel), method: :post do |form| %>
-        <%= form.text_field :content, placeholder: "Message #{@channel.name}", autofocus: true, id: "content" %>
-        <%= form.submit "Send" %>
-      <% end %>
-    <% else %>
-      <p>Connect to server to send messages.</p>
-    <% end %>
-  </div>
-
-  <div class="channel-actions">
-    <%= button_to "Leave", channel_path(@channel), method: :delete, data: { turbo_confirm: "Leave #{@channel.name}?" } %>
-    <%= link_to "Back to Server", @channel.server %>
+  <div class="input">
+    <%= render "messages/form", channel: @channel %>
   </div>
 </div>
+
+<% content_for :userlist do %>
+  <%= render "channels/user_list", channel: @channel %>
+<% end %>

@@ -210,7 +210,7 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
 
     get channel_path(channel)
     assert_response :ok
-    assert_select ".message-timestamp"
+    assert_select ".message-item .timestamp"
   end
 
   test "GET /channels/:id marks channel as read" do

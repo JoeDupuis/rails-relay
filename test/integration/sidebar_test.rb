@@ -80,7 +80,7 @@ class SidebarTest < ActionDispatch::IntegrationTest
 
     get channel_path(channel)
     assert_response :ok
-    assert_select "h1", text: "#ruby"
+    assert_select ".channel-view .name", text: "#ruby"
   end
 
   test "sidebar only shows joined channels" do

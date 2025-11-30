@@ -84,12 +84,12 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     get channel_path(channel)
     assert_response :ok
 
-    assert_match "@op_user", response.body
-    assert_match "+voiced_user", response.body
-    assert_match "regular_user", response.body
+    assert_select ".user-item.-op .nick", text: "op_user"
+    assert_select ".user-item.-voice .nick", text: "voiced_user"
+    assert_select ".user-item .nick", text: "regular_user"
 
-    op_position = response.body.index("@op_user")
-    voiced_position = response.body.index("+voiced_user")
+    op_position = response.body.index("op_user")
+    voiced_position = response.body.index("voiced_user")
     regular_position = response.body.index("regular_user")
 
     assert op_position < voiced_position, "Ops should appear before voiced users"

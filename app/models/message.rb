@@ -9,7 +9,15 @@ class Message < ApplicationRecord
   after_create_commit :broadcast_message, :broadcast_sidebar_update
 
   def from_me?(current_nickname)
+    return false if current_nickname.blank?
     sender.downcase == current_nickname.downcase
+  end
+
+  def highlight?(current_nickname)
+    return false if current_nickname.blank?
+    return false if from_me?(current_nickname)
+    return false unless %w[privmsg action].include?(message_type)
+    content.present? && content.match?(/\b#{Regexp.escape(current_nickname)}\b/i)
   end
 
   private
