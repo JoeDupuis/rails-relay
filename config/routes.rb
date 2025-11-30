@@ -3,7 +3,10 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :servers do
     resource :connection, only: [ :create, :destroy ]
+    resources :channels, only: [ :create ]
   end
+
+  resources :channels, only: [ :show, :destroy ]
 
   namespace :internal do
     namespace :irc do

@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `04-internal-api` completed. Internal API for IRC service communication.
+Feature `05-irc-connections` completed. IRC connection management with yaic gem.
 
 ---
 
@@ -151,6 +151,34 @@ Feature `04-internal-api` completed. Internal API for IRC service communication.
 
 ---
 
+### Session 2025-11-30 (continued)
+
+**Feature**: 05-irc-connections
+**Status**: Completed
+
+**What was done**:
+- Added yaic gem for IRC client library
+- Implemented IrcConnection wrapper around yaic with thread management
+- Implemented IrcConnectionManager singleton with start/stop/send_command/connected?
+- Added user-facing ConnectionsController for connect/disconnect via internal API
+- Added routes for `resource :connection` nested under servers
+- Created production setup with bin/irc_service and config/puma/irc_service.rb
+- Added unit tests for IrcConnectionManager (9 tests)
+- Added unit tests for IrcConnection (5 tests)
+- Added controller tests for ConnectionsController (4 tests)
+- Added integration tests for connect/disconnect flow (2 tests)
+- Updated internal API tests to mock IrcConnection
+- Added ENV["INTERNAL_API_SECRET"] to test_helper.rb
+- Passed QA review
+
+**Notes for next session**:
+- IrcConnection exposes `running?` and `alive?` public methods for testability
+- Tests use mock classes instead of instance_variable_get (per conventions)
+- yaic gem is referenced via path: "~/workspace/yaic" in Gemfile
+- IrcConnectionManager.instance.reset! cleans up connections for test isolation
+
+---
+
 ## Suggested Next Feature
 
-Continue with `05-irc-connections.md` for IRC connection management.
+Continue with `06-channels.md` for channel management (join, leave, list).

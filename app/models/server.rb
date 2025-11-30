@@ -1,6 +1,8 @@
 class Server < TenantRecord
   encrypts :auth_password
 
+  has_many :channels, dependent: :destroy
+
   validates :address, presence: true, uniqueness: { scope: :port }
   validates :port, presence: true, numericality: { only_integer: true, in: 1..65535 }
   validates :nickname, presence: true, format: { with: /\A[a-zA-Z][a-zA-Z0-9_\-\[\]\\`^{}]{0,8}\z/ }

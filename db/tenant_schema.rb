@@ -10,7 +10,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_29_000001) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_30_000003) do
+  create_table "channel_users", force: :cascade do |t|
+    t.integer "channel_id", null: false
+    t.datetime "created_at", null: false
+    t.string "modes"
+    t.string "nickname", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel_id", "nickname"], name: "index_channel_users_on_channel_id_and_nickname", unique: true
+    t.index ["channel_id"], name: "index_channel_users_on_channel_id"
+  end
+
+  create_table "channels", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "joined", default: false, null: false
+    t.integer "last_read_message_id"
+    t.string "name", null: false
+    t.integer "server_id", null: false
+    t.string "topic"
+    t.datetime "updated_at", null: false
+    t.index ["server_id", "name"], name: "index_channels_on_server_id_and_name", unique: true
+    t.index ["server_id"], name: "index_channels_on_server_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.integer "channel_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.string "nickname", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel_id"], name: "index_messages_on_channel_id"
+  end
+
   create_table "servers", force: :cascade do |t|
     t.string "address", null: false
     t.string "auth_method", default: "none"
@@ -25,4 +56,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_000001) do
     t.datetime "updated_at", null: false
     t.string "username"
   end
+
+  add_foreign_key "channel_users", "channels"
+  add_foreign_key "channels", "servers"
+  add_foreign_key "messages", "channels"
 end

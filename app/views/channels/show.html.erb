@@ -1,0 +1,53 @@
+<div class="channel-view">
+  <header class="channel-header">
+    <h1><%= @channel.name %></h1>
+    <% if @channel.topic.present? %>
+      <p class="channel-topic"><%= @channel.topic %></p>
+    <% end %>
+  </header>
+
+  <div class="channel-content">
+    <div class="message-list">
+      <% if @channel.messages.any? %>
+        <% @channel.messages.order(:created_at).each do |message| %>
+          <div class="message">
+            <span class="message-nick"><%= message.nickname %></span>
+            <span class="message-content"><%= message.content %></span>
+          </div>
+        <% end %>
+      <% else %>
+        <p>No messages yet.</p>
+      <% end %>
+    </div>
+
+    <turbo-frame id="channel-users" src="" loading="lazy">
+      <div class="user-list">
+        <h3>Users</h3>
+        <% if @channel.channel_users.any? %>
+          <ul>
+            <% @channel.channel_users.ops.order(:nickname).each do |user| %>
+              <li>@<%= user.nickname %></li>
+            <% end %>
+            <% @channel.channel_users.voiced.order(:nickname).each do |user| %>
+              <li>+<%= user.nickname %></li>
+            <% end %>
+            <% @channel.channel_users.regular.order(:nickname).each do |user| %>
+              <li><%= user.nickname %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p>No users.</p>
+        <% end %>
+      </div>
+    </turbo-frame>
+  </div>
+
+  <div class="message-input">
+    <p>Message input coming in future feature.</p>
+  </div>
+
+  <div class="channel-actions">
+    <%= button_to "Leave", channel_path(@channel), method: :delete, data: { turbo_confirm: "Leave #{@channel.name}?" } %>
+    <%= link_to "Back to Server", @channel.server %>
+  </div>
+</div>

@@ -24,7 +24,32 @@
 </dl>
 
 <h2>Channels</h2>
-<p>No channels joined yet.</p>
+<% joined_channels = @server.channels.joined %>
+<% if joined_channels.any? %>
+  <ul>
+    <% joined_channels.each do |channel| %>
+      <li>
+        <%= link_to channel.name, channel_path(channel) %>
+        <% if channel.has_unread? %>
+          <span class="unread-badge"><%= channel.unread_count %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No channels joined yet.</p>
+<% end %>
+
+<% if @server.connected_at %>
+  <h3>Join Channel</h3>
+  <%= form_with model: Channel.new, url: server_channels_path(@server) do |form| %>
+    <div>
+      <%= form.label :name, "Channel Name" %>
+      <%= form.text_field :name, placeholder: "#channel" %>
+    </div>
+    <%= form.submit "Join" %>
+  <% end %>
+<% end %>
 
 <div>
   <%= link_to "Edit", edit_server_path(@server) %>
