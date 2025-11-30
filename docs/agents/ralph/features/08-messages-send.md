@@ -2,7 +2,7 @@
 
 ## Description
 
-Users send messages through the web UI. The message is sent to the IRC process, which forwards it to the IRC server. The message is also stored locally.
+Users send messages through the web UI. The message is sent via the internal API to the IRC connection, which forwards it to the IRC server. The message is also stored locally for immediate display.
 
 ## Behavior
 
@@ -11,10 +11,10 @@ Users send messages through the web UI. The message is sent to the IRC process, 
 1. User types message in input field
 2. User presses Enter or clicks Send
 3. Form submits to MessagesController#create
-4. Controller sends command to IRC process via Unix socket
-5. Controller creates Message record (our own message)
-6. IRC process receives command, sends PRIVMSG to IRC server
-7. Message appears in UI via Turbo Stream
+4. Controller creates Message record (our own message, for immediate UI feedback)
+5. Controller sends command via `InternalApiClient.send_command`
+6. IRC connection receives command, sends PRIVMSG to IRC server
+7. Message appears in UI via Turbo Stream (from model callback)
 
 ### Message Input
 
@@ -51,7 +51,7 @@ Support basic IRC commands in the input:
 ### Error Handling
 
 - If server not connected: show error, don't send
-- If IRC process not responding: show error, message not sent
+- If IRC service unavailable: show error, message still created locally (for history)
 - If message too long (IRC limit ~512 chars including protocol): truncate or warn
 
 ## Models
@@ -60,7 +60,6 @@ Message model already exists. For sending, we're creating messages where sender 
 
 ```ruby
 class Message < ApplicationRecord
-  # For displaying "sent" vs "received" styling
   def from_me?(current_nickname)
     sender.downcase == current_nickname.downcase
   end
@@ -75,10 +74,9 @@ class MessagesController < ApplicationController
   def create
     @channel = Channel.find(params[:channel_id]) if params[:channel_id]
     @server = @channel&.server || Server.find(params[:server_id])
-    
+
     content = params[:content]
-    
-    # Parse commands
+
     case content
     when /\A\/me (.+)/
       send_action(@channel || params[:target], $1)
@@ -93,27 +91,24 @@ class MessagesController < ApplicationController
     when /\A\/part/
       part_channel
     when /\A\//
-      # Unknown command
       flash[:error] = "Unknown command"
       redirect_back fallback_location: @channel || @server
       return
     else
       send_message(@channel || params[:target], content)
     end
-    
+
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_back fallback_location: @channel || @server }
     end
   end
-  
+
   private
-  
+
   def send_message(target, content)
     target_name = target.is_a?(Channel) ? target.name : target
-    
-    IrcCommandSender.new(@server).privmsg(target_name, content)
-    
+
     @message = Message.create!(
       server: @server,
       channel: target.is_a?(Channel) ? target : nil,
@@ -122,14 +117,13 @@ class MessagesController < ApplicationController
       content: content,
       message_type: "privmsg"
     )
+
+    send_irc_command("privmsg", target: target_name, message: content)
   end
-  
+
   def send_action(target, action_text)
     target_name = target.is_a?(Channel) ? target.name : target
-    
-    # IRC ACTION is sent as PRIVMSG with CTCP wrapper
-    IrcCommandSender.new(@server).privmsg(target_name, "\x01ACTION #{action_text}\x01")
-    
+
     @message = Message.create!(
       server: @server,
       channel: target.is_a?(Channel) ? target : nil,
@@ -138,11 +132,11 @@ class MessagesController < ApplicationController
       content: action_text,
       message_type: "action"
     )
+
+    send_irc_command("action", target: target_name, message: action_text)
   end
-  
+
   def send_pm(nick, content)
-    IrcCommandSender.new(@server).privmsg(nick, content)
-    
     @message = Message.create!(
       server: @server,
       channel: nil,
@@ -151,9 +145,44 @@ class MessagesController < ApplicationController
       content: content,
       message_type: "privmsg"
     )
+
+    send_irc_command("privmsg", target: nick, message: content)
   end
-  
-  # etc for other commands
+
+  def send_notice(target, content)
+    send_irc_command("notice", target: target, message: content)
+  end
+
+  def change_nick(new_nick)
+    send_irc_command("nick", nickname: new_nick)
+  end
+
+  def set_topic(topic)
+    return unless @channel
+    send_irc_command("topic", channel: @channel.name, topic: topic)
+  end
+
+  def part_channel
+    return unless @channel
+    InternalApiClient.send_command(
+      server_id: @server.id,
+      command: "part",
+      params: { channel: @channel.name }
+    )
+    redirect_to @server
+  end
+
+  def send_irc_command(command, **params)
+    InternalApiClient.send_command(
+      server_id: @server.id,
+      command: command,
+      params: params
+    )
+  rescue InternalApiClient::ConnectionNotFound
+    flash[:alert] = "Server not connected"
+  rescue InternalApiClient::ServiceUnavailable
+    flash[:alert] = "IRC service unavailable"
+  end
 end
 ```
 
@@ -164,7 +193,6 @@ resources :channels do
   resources :messages, only: [:create]
 end
 
-# For PMs (no channel)
 resources :servers do
   resources :messages, only: [:create]
 end
@@ -176,12 +204,13 @@ end
 
 **POST /channels/:id/messages with content**
 - Creates Message record
-- Sends command to IRC process
-- Returns Turbo Stream (or redirects)
+- Calls InternalApiClient.send_command
+- Returns Turbo Stream
 
 **POST with /me command**
 - Creates Message with type "action"
 - Content has /me stripped
+- Sends action command
 
 **POST with /msg command**
 - Creates Message with target set, no channel
@@ -192,8 +221,14 @@ end
 - Does not create message
 
 **POST when server not connected**
-- Returns error
-- Does not create message
+- Stub InternalApiClient to raise ConnectionNotFound
+- Creates message locally (for history)
+- Shows error flash
+
+**POST when IRC service unavailable**
+- Stub InternalApiClient to raise ServiceUnavailable
+- Creates message locally
+- Shows error flash
 
 ### Integration: Send Message Flow
 
@@ -201,8 +236,9 @@ end
 - View channel page
 - Type message in input
 - Submit
-- Message appears in message list
+- Message appears in message list (via Turbo)
 - Input is cleared
+- POST to /internal/irc/commands was made (can verify via stub)
 
 **User sends /me action**
 - Type "/me waves"
@@ -222,14 +258,15 @@ end
 
 ## Implementation Notes
 
+- Message is created BEFORE sending to IRC (optimistic UI)
+- If IRC send fails, message still exists locally
 - Clear input after send (Turbo Stream can do this)
 - Disable input while sending to prevent double-submit
 - IRC has message length limits - consider validation
-- For /msg to new person, may need to create/show PM view
-- ACTION CTCP format: `\x01ACTION text\x01`
+- ACTION uses the "action" command, not CTCP wrapping (yaic handles that)
 
 ## Dependencies
 
-- Requires `process-ipc.md` (IrcCommandSender)
-- Requires `channels.md` (Channel model, channel view)
-- Requires `messages-receive.md` (Message model with broadcasts)
+- Requires `04-internal-api.md` (InternalApiClient)
+- Requires `06-channels.md` (Channel model)
+- Requires `07-messages-receive.md` (Message model with broadcasts)

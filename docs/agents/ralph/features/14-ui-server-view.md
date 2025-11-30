@@ -133,8 +133,8 @@ end
   <% if @server.connected? %>
     <section class="join-channel">
       <h2>Join Channel</h2>
-      <%= form_with url: server_channel_memberships_path(@server), class: "join-form" do |f| %>
-        <%= f.text_field :channel_name, placeholder: "#channel", class: "field" %>
+      <%= form_with url: server_channels_path(@server), class: "join-form" do |f| %>
+        <%= f.text_field :name, placeholder: "#channel", class: "field" %>
         <%= f.submit "Join", class: "button -primary" %>
       <% end %>
     </section>
@@ -150,7 +150,7 @@ end
             <span class="users"><%= channel.channel_users.count %> users</span>
             <span class="actions">
               <%= link_to "View", channel_path(channel), class: "link" %>
-              <%= button_to "Leave", channel_membership_path(channel), method: :delete, class: "link -danger" %>
+              <%= button_to "Leave", channel_path(channel), method: :delete, class: "link -danger" %>
             </span>
           </li>
         <% end %>
@@ -317,13 +317,13 @@ end
 
 ## Implementation Notes
 
-- Connect/disconnect actions handled by ServerConnectionsController (from process-spawn feature)
-- Join handled by ChannelMembershipsController (from channels feature)
+- Connect/disconnect actions handled by ConnectionsController (from `05-irc-connections.md`)
+- Join handled by ChannelsController (from `06-channels.md`)
 - Server messages section helps debug connection issues
-- Consider WebSocket updates for connection status changes
+- Consider Turbo Stream updates for connection status changes
 
 ## Dependencies
 
-- Requires `server-crud.md` (Server model and CRUD)
-- Requires `process-spawn.md` (connection actions)
-- Requires `channels.md` (channel list and joining)
+- Requires `03-server-crud.md` (Server model and CRUD)
+- Requires `05-irc-connections.md` (connection actions)
+- Requires `06-channels.md` (channel list and joining)

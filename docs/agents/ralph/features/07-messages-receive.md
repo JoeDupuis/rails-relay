@@ -2,37 +2,49 @@
 
 ## Description
 
-The IRC process receives messages from IRC servers and stores them in the database. The web UI updates in real-time via Solid Cable / Turbo Streams.
-
-This covers the flow from IRC server → IRC process → database → browser.
+IRC events arrive via the internal API at `/internal/irc/events`. The `IrcEventHandler` processes them, stores messages in the database, and Turbo Streams update the UI in real-time.
 
 ## Behavior
 
 ### Message Flow
 
-1. IRC server sends PRIVMSG (or other event) to our IRC process
-2. IRC process parses the message
-3. IRC process activates the correct tenant (user's DB)
-4. IRC process creates Message record
-5. Model callback broadcasts via Turbo Stream
+1. IRC thread receives event from yaic
+2. Thread POSTs to `/internal/irc/events` with event data
+3. `EventsController` activates correct tenant (user's DB)
+4. `IrcEventHandler` processes the event, creates records
+5. Model callbacks broadcast via Turbo Stream
 6. User's browser receives stream, DOM updates
-7. Message appears in channel view
 
-### Message Types Handled
+### Event Types Handled
 
-| IRC Event | message_type | content field |
-|-----------|--------------|---------------|
-| PRIVMSG | "privmsg" | Message text |
-| PRIVMSG with CTCP ACTION | "action" | Action text (stripped of CTCP markers) |
-| NOTICE | "notice" | Notice text |
-| JOIN | "join" | null |
-| PART | "part" | Part message (optional) |
-| QUIT | "quit" | Quit message (optional) |
-| KICK | "kick" | Kick reason |
-| NICK | "nick" | New nickname |
-| TOPIC | "topic" | New topic |
-| MODE | "mode" | Mode string |
-| Server messages (001, 002, MOTD, etc.) | "server" | Message text |
+| Event Type | message_type | Description |
+|------------|--------------|-------------|
+| message | "privmsg" | Regular channel/PM message |
+| action | "action" | /me action |
+| notice | "notice" | IRC NOTICE |
+| join | "join" | User joined channel |
+| part | "part" | User left channel |
+| quit | "quit" | User disconnected |
+| kick | "kick" | User was kicked |
+| nick | "nick" | User changed nickname |
+| topic | "topic" | Channel topic changed |
+
+### Event Payload Format
+
+```json
+{
+  "server_id": 1,
+  "user_id": 1,
+  "event": {
+    "type": "message",
+    "data": {
+      "source": "nick!user@host",
+      "target": "#channel",
+      "text": "Hello everyone"
+    }
+  }
+}
+```
 
 ### Private Messages
 
@@ -41,52 +53,6 @@ When someone sends us a private message (not to a channel):
 - `target` field contains the other party's nickname
 - Creates a Notification with reason "dm"
 
-### Handling Each Event Type
-
-**PRIVMSG to channel:**
-```
-:nick!user@host PRIVMSG #channel :Hello everyone
-```
-- Find or create Channel for #channel
-- Create Message(channel: channel, sender: "nick", content: "Hello everyone", message_type: "privmsg")
-
-**PRIVMSG to us (PM):**
-```
-:nick!user@host PRIVMSG ourmick :Hey there
-```
-- Create Message(channel: nil, target: "nick", sender: "nick", content: "Hey there", message_type: "privmsg")
-- Create Notification(message: message, reason: "dm")
-
-**ACTION:**
-```
-:nick!user@host PRIVMSG #channel :\x01ACTION waves\x01
-```
-- Detect CTCP ACTION wrapper
-- Create Message(message_type: "action", content: "waves")
-
-**JOIN:**
-```
-:nick!user@host JOIN #channel
-```
-- Find or create Channel
-- Add ChannelUser record
-- Create Message(message_type: "join", sender: "nick")
-
-**PART:**
-```
-:nick!user@host PART #channel :Goodbye
-```
-- Find Channel
-- Remove ChannelUser record
-- Create Message(message_type: "part", sender: "nick", content: "Goodbye")
-
-**TOPIC:**
-```
-:nick!user@host TOPIC #channel :New topic here
-```
-- Update Channel.topic
-- Create Message(message_type: "topic", sender: "nick", content: "New topic here")
-
 ### Real-time Updates
 
 Messages broadcast to Turbo Stream channels:
@@ -94,11 +60,261 @@ Messages broadcast to Turbo Stream channels:
 - PMs: broadcast to `server_#{server.id}_pms`
 - Server messages: broadcast to `server_#{server.id}_server`
 
+## IrcEventHandler
+
+Full implementation:
+
+```ruby
+# app/services/irc_event_handler.rb
+class IrcEventHandler
+  def self.handle(server, event)
+    new(server, event).handle
+  end
+
+  def initialize(server, event)
+    @server = server
+    @event = event.with_indifferent_access
+  end
+
+  def handle
+    case @event[:type]
+    when "connected"
+      handle_connected
+    when "disconnected"
+      handle_disconnected
+    when "message"
+      handle_message
+    when "action"
+      handle_action
+    when "notice"
+      handle_notice
+    when "join"
+      handle_join
+    when "part"
+      handle_part
+    when "quit"
+      handle_quit
+    when "kick"
+      handle_kick
+    when "nick"
+      handle_nick
+    when "topic"
+      handle_topic
+    when "names"
+      handle_names
+    end
+  end
+
+  private
+
+  def data
+    @event[:data]
+  end
+
+  def source_nick
+    data[:source]&.split("!")&.first || data[:source]
+  end
+
+  def handle_connected
+    @server.update!(connected_at: Time.current)
+  end
+
+  def handle_disconnected
+    @server.update!(connected_at: nil)
+  end
+
+  def handle_message
+    target = data[:target]
+
+    if channel_target?(target)
+      channel = Channel.find_or_create_by!(server: @server, name: target)
+      message = Message.create!(
+        server: @server,
+        channel: channel,
+        sender: source_nick,
+        content: data[:text],
+        message_type: "privmsg"
+      )
+
+      check_highlight(message)
+    else
+      message = Message.create!(
+        server: @server,
+        channel: nil,
+        target: source_nick,
+        sender: source_nick,
+        content: data[:text],
+        message_type: "privmsg"
+      )
+
+      Notification.create!(message: message, reason: "dm")
+    end
+  end
+
+  def handle_action
+    target = data[:target]
+    channel = Channel.find_or_create_by!(server: @server, name: target) if channel_target?(target)
+
+    message = Message.create!(
+      server: @server,
+      channel: channel,
+      target: channel ? nil : source_nick,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "action"
+    )
+
+    check_highlight(message) if channel
+  end
+
+  def handle_notice
+    target = data[:target]
+    channel = Channel.find_by(server: @server, name: target) if channel_target?(target)
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      target: channel ? nil : source_nick,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "notice"
+    )
+  end
+
+  def handle_join
+    channel = Channel.find_or_create_by!(server: @server, name: data[:target])
+
+    if source_nick == @server.nickname
+      channel.update!(joined: true)
+    else
+      channel.channel_users.find_or_create_by!(nickname: source_nick)
+    end
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      message_type: "join"
+    )
+  end
+
+  def handle_part
+    channel = Channel.find_by(server: @server, name: data[:target])
+    return unless channel
+
+    if source_nick == @server.nickname
+      channel.update!(joined: false)
+      channel.channel_users.destroy_all
+    else
+      channel.channel_users.find_by(nickname: source_nick)&.destroy
+    end
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "part"
+    )
+  end
+
+  def handle_quit
+    @server.channels.each do |channel|
+      channel.channel_users.find_by(nickname: source_nick)&.destroy
+    end
+
+    Message.create!(
+      server: @server,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "quit"
+    )
+  end
+
+  def handle_kick
+    channel = Channel.find_by(server: @server, name: data[:target])
+    return unless channel
+
+    kicked_nick = data[:kicked]
+    channel.channel_users.find_by(nickname: kicked_nick)&.destroy
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      content: "#{kicked_nick} was kicked: #{data[:text]}",
+      message_type: "kick"
+    )
+  end
+
+  def handle_nick
+    old_nick = source_nick
+    new_nick = data[:new_nick]
+
+    @server.channels.each do |channel|
+      user = channel.channel_users.find_by(nickname: old_nick)
+      user&.update!(nickname: new_nick)
+    end
+
+    Message.create!(
+      server: @server,
+      sender: old_nick,
+      content: new_nick,
+      message_type: "nick"
+    )
+  end
+
+  def handle_topic
+    channel = Channel.find_by(server: @server, name: data[:target])
+    return unless channel
+
+    channel.update!(topic: data[:text])
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "topic"
+    )
+  end
+
+  def handle_names
+    channel = Channel.find_by(server: @server, name: data[:channel])
+    return unless channel
+
+    channel.channel_users.destroy_all
+    data[:names].each do |name|
+      modes = ""
+      nick = name
+
+      if name.start_with?("@")
+        modes = "o"
+        nick = name[1..]
+      elsif name.start_with?("+")
+        modes = "v"
+        nick = name[1..]
+      end
+
+      channel.channel_users.create!(nickname: nick, modes: modes)
+    end
+  end
+
+  def channel_target?(target)
+    target&.start_with?("#", "&")
+  end
+
+  def check_highlight(message)
+    if message.content.downcase.include?(@server.nickname.downcase)
+      Notification.create!(message: message, reason: "highlight")
+    end
+  end
+end
+```
+
 ## Models
 
 ### Message
-
-See `docs/agents/data-model.md`. Key callbacks:
 
 ```ruby
 class Message < ApplicationRecord
@@ -114,73 +330,77 @@ class Message < ApplicationRecord
     if channel
       broadcast_append_to channel, target: "messages"
     elsif target.present?
-      # PM - broadcast to PMs stream
       broadcast_append_to [server, :pms], target: "pm_messages"
     else
-      # Server message
       broadcast_append_to [server, :server], target: "server_messages"
     end
   end
 end
 ```
 
-## IRC Process Implementation
-
-```ruby
-# In IrcProcess
-
-def setup_handlers
-  @client.on(:privmsg) { |event| handle_privmsg(event) }
-  @client.on(:notice) { |event| handle_notice(event) }
-  @client.on(:join) { |event| handle_join(event) }
-  @client.on(:part) { |event| handle_part(event) }
-  @client.on(:quit) { |event| handle_quit(event) }
-  @client.on(:kick) { |event| handle_kick(event) }
-  @client.on(:nick) { |event| handle_nick(event) }
-  @client.on(:topic) { |event| handle_topic(event) }
-  @client.on(:mode) { |event| handle_mode(event) }
-  @client.on(:raw) { |line| handle_raw(line) }
-end
-
-def handle_privmsg(event)
-  Tenant.switch(@server.user) do
-    if event.target.start_with?("#", "&")
-      # Channel message
-      channel = Channel.find_or_create_by!(server: @server, name: event.target)
-      
-      message_type = event.action? ? "action" : "privmsg"
-      content = event.action? ? event.action_text : event.message
-      
-      message = Message.create!(
-        server: @server,
-        channel: channel,
-        sender: event.nick,
-        content: content,
-        message_type: message_type
-      )
-      
-      # Check for highlight
-      if content.downcase.include?(@server.nickname.downcase)
-        Notification.create!(message: message, reason: "highlight")
-      end
-    else
-      # Private message to us
-      message = Message.create!(
-        server: @server,
-        channel: nil,
-        target: event.nick,
-        sender: event.nick,
-        content: event.message,
-        message_type: "privmsg"
-      )
-      
-      Notification.create!(message: message, reason: "dm")
-    end
-  end
-end
-```
-
 ## Tests
+
+### Controller: Internal::Irc::EventsController
+
+Testing via the internal API is the primary way to test message receiving. No need to mock IRC connections.
+
+**POST /internal/irc/events with message event**
+- POST with message event payload
+- Assert Message created with correct attributes
+- Assert Turbo broadcast sent
+
+**POST /internal/irc/events with PM creates notification**
+- POST with message event where target is not a channel
+- Assert Message created with target set
+- Assert Notification created with reason "dm"
+
+**POST /internal/irc/events with join event**
+- POST with join event payload
+- Assert ChannelUser created
+- Assert Message created with type "join"
+
+**POST /internal/irc/events with part event**
+- POST with part event payload
+- Assert ChannelUser destroyed
+- Assert Message created with type "part"
+
+**POST /internal/irc/events with topic event**
+- POST with topic event payload
+- Assert Channel.topic updated
+- Assert Message created with type "topic"
+
+**POST /internal/irc/events with names event**
+- POST with names event payload (list of nicks)
+- Assert ChannelUsers created with correct modes
+
+### Unit: IrcEventHandler
+
+**handle_message creates channel message**
+- Call with message event for #channel
+- Assert Message created with correct attributes
+
+**handle_message creates PM with notification**
+- Call with message event for non-channel target
+- Assert Message created with target set
+- Assert Notification created with reason "dm"
+
+**handle_message detects highlight**
+- Call with message containing server nickname
+- Assert Notification created with reason "highlight"
+
+**handle_join marks channel as joined when we join**
+- Call with join event where source is our nick
+- Assert channel.joined is true
+
+**handle_part marks channel as not joined when we part**
+- Call with part event where source is our nick
+- Assert channel.joined is false
+- Assert all channel_users destroyed
+
+**handle_quit removes user from all channels**
+- User is in multiple channels
+- Call with quit event
+- Assert user removed from all channels
 
 ### Model: Message
 
@@ -192,72 +412,23 @@ end
 - Create message with target, no channel
 - Assert broadcast sent to server pms stream
 
-**after_create broadcasts server message to server stream**
-- Create message with no channel, no target
-- Assert broadcast sent to server stream
-
-### Model: Message Associations
-
-**belongs_to server (required)**
-**belongs_to channel (optional)**
-**has_one notification**
-
-### Integration: Receive Channel Message
+### Integration: Receive Message
 
 **Message appears in real-time**
 - User viewing channel page
-- IRC process receives PRIVMSG for that channel
-- Message appears in UI without refresh
-
-(This is hard to test without simulating IRC. May need to test the model/broadcast layer separately and trust the IRC process calls it correctly.)
-
-### Unit: IRC Process Handlers
-
-**handle_privmsg creates channel message**
-- Simulate PRIVMSG event to #channel
-- Assert Message created with correct attributes
-- Assert channel found/created
-
-**handle_privmsg creates PM with notification**
-- Simulate PRIVMSG event to our nick
-- Assert Message created with target set
-- Assert Notification created with reason "dm"
-
-**handle_privmsg detects ACTION**
-- Simulate PRIVMSG with CTCP ACTION
-- Assert message_type is "action"
-- Assert content has ACTION markers stripped
-
-**handle_privmsg detects highlight**
-- Simulate PRIVMSG containing our nickname
-- Assert Notification created with reason "highlight"
-
-**handle_join creates message and channel_user**
-- Simulate JOIN event
-- Assert Message created with type "join"
-- Assert ChannelUser created
-
-**handle_part removes channel_user**
-- Have existing ChannelUser
-- Simulate PART event
-- Assert ChannelUser destroyed
-- Assert Message created with type "part"
-
-**handle_topic updates channel**
-- Simulate TOPIC event
-- Assert Channel.topic updated
-- Assert Message created with type "topic"
+- POST to internal events API with message
+- Assert message appears in UI via Turbo Stream
 
 ## Implementation Notes
 
-- IRC process must activate tenant before any DB operations
-- CTCP ACTION format: `\x01ACTION text\x01` - strip the markers
+- All event handling happens in tenant context (controller switches tenant before calling handler)
+- Source nick is extracted from IRC hostmask format (nick!user@host)
 - Highlight detection is case-insensitive
-- For QUIT events, the user quits all channels - need to remove from all ChannelUser records
-- Server messages (numeric replies) can be high volume during connect - consider batching or filtering
+- NAMES event replaces all channel users (full sync)
+- QUIT events affect all channels the user was in
 
 ## Dependencies
 
-- Requires `process-spawn.md` (IRC process exists)
-- Requires `process-ipc.md` (process can write to DB)
-- Requires `channels.md` (Channel model exists)
+- Requires `04-internal-api.md` (internal API)
+- Requires `06-channels.md` (Channel model)
+- Requires `02-auth-multitenant.md` (tenant switching)

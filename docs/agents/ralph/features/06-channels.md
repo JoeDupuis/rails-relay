@@ -4,7 +4,7 @@
 
 Users can join and leave IRC channels. The app tracks which channels the user is in and displays them in the sidebar.
 
-Joining/leaving happens via the IRC process - this feature covers the UI and data management.
+Joining/leaving happens via the internal API - this feature covers the UI and data management.
 
 ## Behavior
 
@@ -22,19 +22,19 @@ Joining/leaving happens via the IRC process - this feature covers the UI and dat
 
 - Input field on server page or in sidebar
 - User types channel name (e.g., "#ruby")
-- Submit sends join command to IRC process
-- On successful join (JOIN event from IRC):
-  - Channel record created
+- Submit sends join command via `InternalApiClient.send_command`
+- On successful join (join event via internal API):
+  - Channel record created with `joined: true`
   - Channel appears in sidebar
   - Navigate to channel view
 
 ### Leave Channel
 
 - "Leave" button or link on channel view
-- Sends part command to IRC process
-- On successful part (PART event from IRC):
-  - Channel record remains (for history)
-  - Channel removed from sidebar
+- Sends part command via `InternalApiClient.send_command`
+- On successful part (part event via internal API):
+  - Channel record updated with `joined: false`
+  - Channel removed from active sidebar (but kept for history)
   - Navigate to server view
 
 ### Channel View
@@ -105,59 +105,9 @@ class ChannelUser < ApplicationRecord
 end
 ```
 
-## IRC Process Handlers
+## Event Handling
 
-```ruby
-# When IRC sends NAMES reply (list of users in channel)
-def handle_names(channel_name, nicknames)
-  channel = find_or_create_channel(channel_name)
-  channel.channel_users.destroy_all
-  
-  nicknames.each do |nick_with_mode|
-    mode = nil
-    nick = nick_with_mode
-    
-    if nick.start_with?("@")
-      mode = "o"
-      nick = nick[1..]
-    elsif nick.start_with?("+")
-      mode = "v"
-      nick = nick[1..]
-    end
-    
-    channel.channel_users.create!(nickname: nick, modes: mode)
-  end
-end
-
-# When someone joins
-def handle_join(nick, channel_name)
-  channel = find_or_create_channel(channel_name)
-  channel.channel_users.find_or_create_by!(nickname: nick)
-  
-  Message.create!(
-    server: @server,
-    channel: channel,
-    sender: nick,
-    message_type: "join"
-  )
-end
-
-# When someone leaves
-def handle_part(nick, channel_name, message)
-  channel = find_channel(channel_name)
-  return unless channel
-  
-  channel.channel_users.find_by(nickname: nick)&.destroy
-  
-  Message.create!(
-    server: @server,
-    channel: channel,
-    sender: nick,
-    content: message,
-    message_type: "part"
-  )
-end
-```
+Channel events (join, part, names) are handled by `IrcEventHandler` - see `07-messages-receive.md` for full implementation.
 
 ## Tests
 
@@ -173,18 +123,17 @@ end
 - GET /channels/:id
 - Returns 404 or redirect (not found for this user)
 
-### Controller: ChannelMembershipsController
+### Controller: ChannelsController (create/destroy)
 
-For joining/leaving channels, create a separate resource:
-
-**POST /servers/:server_id/channel_memberships**
-- Params: { channel_name: "#ruby" }
-- Sends join command to IRC process
-- Creates channel record
+**POST /servers/:server_id/channels**
+- Params: { name: "#ruby" }
+- Sends join command via InternalApiClient
+- Creates/finds channel record
 - Redirects to channel show
 
-**DELETE /channel_memberships/:id**
-- Sends part command to IRC process
+**DELETE /channels/:id**
+- Sends part command via InternalApiClient
+- Updates channel.joined to false
 - Redirects to server show
 
 ### Model: Channel
@@ -210,6 +159,8 @@ For joining/leaving channels, create a separate resource:
 - Visit server page
 - Enter "#ruby" in join field
 - Submit
+- POST to internal API sends join command
+- Simulate join event via POST to /internal/irc/events
 - See channel in sidebar
 - See channel view with message list
 
@@ -217,6 +168,8 @@ For joining/leaving channels, create a separate resource:
 - Have joined channel
 - Visit channel page
 - Click "Leave"
+- POST to internal API sends part command
+- Simulate part event via POST to /internal/irc/events
 - Channel removed from sidebar
 - Redirected to server page
 
@@ -224,7 +177,7 @@ For joining/leaving channels, create a separate resource:
 
 **Channel shows users**
 - Have joined channel
-- IRC process receives NAMES
+- POST names event via /internal/irc/events
 - Visit channel page
 - See list of users
 - Ops shown first (with @)
@@ -234,11 +187,10 @@ For joining/leaving channels, create a separate resource:
 
 ```ruby
 resources :servers do
-  resources :channel_memberships, only: [:create]
+  resources :channels, only: [:create]
 end
 
-resources :channel_memberships, only: [:destroy]
-resources :channels, only: [:show]
+resources :channels, only: [:show, :destroy]
 ```
 
 ## Implementation Notes
@@ -250,5 +202,6 @@ resources :channels, only: [:show]
 
 ## Dependencies
 
-- Requires `server-crud.md` (Server model)
-- Requires `process-ipc.md` (sending join/part commands)
+- Requires `03-server-crud.md` (Server model)
+- Requires `04-internal-api.md` (InternalApiClient)
+- Requires `05-irc-connections.md` (connection management)

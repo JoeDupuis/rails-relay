@@ -105,25 +105,36 @@ end
 
 ### Broadcasting Sidebar Updates
 
-When a message is created, broadcast sidebar update:
+When a message is created, broadcast sidebar update. Since we're in a per-user tenant database, there's no `user` association on Server. The user_id must be passed in from the request context when handling IRC events.
 
 ```ruby
 class Message < ApplicationRecord
   after_create_commit :broadcast_message, :broadcast_sidebar_update
-  
+
   private
-  
+
   def broadcast_sidebar_update
     return unless channel
-    
-    # Broadcast to user's sidebar stream
+
+    # user_id is available via Current.user_id, set by the controller/event handler
+    # before processing events in the tenant context
     broadcast_replace_to(
-      [server.user, :sidebar],
+      "user_#{Current.user_id}_sidebar",
       target: "channel_#{channel.id}_sidebar",
       partial: "shared/channel_sidebar_item",
       locals: { channel: channel }
     )
   end
+end
+```
+
+The `IrcEventHandler` sets `Current.user_id` before processing:
+
+```ruby
+# In Internal::Irc::EventsController#create
+Current.user_id = params[:user_id]
+Tenant.switch(user) do
+  IrcEventHandler.handle(server, event)
 end
 ```
 

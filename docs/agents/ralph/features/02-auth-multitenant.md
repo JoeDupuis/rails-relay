@@ -29,7 +29,7 @@ When a user is created, their tenant database is automatically created and migra
 
 ### Accessing Tenant Models Without Auth
 
-Background jobs and IRC processes need to access tenant data without a web session. They activate the tenant explicitly:
+The internal API (e.g., `EventsController`) needs to access tenant data without a web session. It activates the tenant explicitly:
 
 ```ruby
 Tenant.switch(user) do

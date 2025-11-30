@@ -105,34 +105,27 @@ end
 
 ### Creating Conversations
 
-When a PM is received (in IRC process):
+When a PM is received (via internal API event):
+
+The `IrcEventHandler` (in `07-messages-receive.md`) handles PM creation. Add Conversation handling:
+
 ```ruby
-def handle_privmsg(event)
-  # ... existing channel message handling ...
-  
-  if !channel && event.target.downcase == @server.nickname.downcase
-    # This is a PM to us
+def handle_message
+  # ... existing implementation ...
+
+  # For PMs, also create/update conversation
+  unless channel_target?(target)
     conversation = Conversation.find_or_create_by!(
       server: @server,
-      target_nick: event.nick
+      target_nick: source_nick
     )
     conversation.touch(:last_message_at)
-    
-    message = Message.create!(
-      server: @server,
-      channel: nil,
-      target: event.nick,
-      sender: event.nick,
-      content: event.message,
-      message_type: "privmsg"
-    )
-    
-    Notification.create!(message: message, reason: "dm")
   end
 end
 ```
 
-When sending a PM:
+When sending a PM (in MessagesController, see `08-messages-send.md`):
+
 ```ruby
 def send_pm(nick, content)
   conversation = Conversation.find_or_create_by!(
@@ -140,10 +133,8 @@ def send_pm(nick, content)
     target_nick: nick
   )
   conversation.touch(:last_message_at)
-  
-  IrcCommandSender.new(@server).privmsg(nick, content)
-  
-  Message.create!(
+
+  @message = Message.create!(
     server: @server,
     channel: nil,
     target: nick,
@@ -151,6 +142,8 @@ def send_pm(nick, content)
     content: content,
     message_type: "privmsg"
   )
+
+  send_irc_command("privmsg", target: nick, message: content)
 end
 ```
 
@@ -249,8 +242,6 @@ class Conversation::MessagesController < ApplicationController
     
     content = params[:content]
     
-    IrcCommandSender.new(@server).privmsg(@conversation.target_nick, content)
-    
     @message = Message.create!(
       server: @server,
       channel: nil,
@@ -259,13 +250,25 @@ class Conversation::MessagesController < ApplicationController
       content: content,
       message_type: "privmsg"
     )
-    
+
+    InternalApiClient.send_command(
+      server_id: @server.id,
+      command: "privmsg",
+      params: { target: @conversation.target_nick, message: content }
+    )
+
     @conversation.touch(:last_message_at)
-    
+
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to @conversation }
     end
+  rescue InternalApiClient::ConnectionNotFound
+    flash[:alert] = "Server not connected"
+    redirect_to @conversation
+  rescue InternalApiClient::ServiceUnavailable
+    flash[:alert] = "IRC service unavailable"
+    redirect_to @conversation
   end
 end
 ```
@@ -350,7 +353,7 @@ end
 
 **Receiving a PM creates conversation**
 - No existing conversation with alice
-- IRC process receives PM from alice
+- POST to /internal/irc/events with PM from alice
 - Conversation created
 - Appears in sidebar
 

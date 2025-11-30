@@ -130,10 +130,7 @@ class UploadsController < ApplicationController
     
     # Generate URL
     url = rails_blob_url(blob, host: request.base_url)
-    
-    # Send as message to channel
-    IrcCommandSender.new(@server).privmsg(@channel.name, url)
-    
+
     # Create local message record
     @message = Message.create!(
       server: @server,
@@ -142,11 +139,20 @@ class UploadsController < ApplicationController
       content: url,
       message_type: "privmsg"
     )
-    
+
+    # Send as message to channel via internal API
+    InternalApiClient.send_command(
+      server_id: @server.id,
+      command: "privmsg",
+      params: { target: @channel.name, message: url }
+    )
+
     respond_to do |format|
       format.turbo_stream
       format.json { render json: { url: url, message_id: @message.id } }
     end
+  rescue InternalApiClient::ConnectionNotFound, InternalApiClient::ServiceUnavailable => e
+    render json: { error: e.message }, status: :service_unavailable
   end
   
   private
@@ -333,6 +339,6 @@ export default class extends Controller {
 
 ## Dependencies
 
-- Requires `channels.md` (channel context)
-- Requires `messages-send.md` (sending the URL message)
-- Requires `process-ipc.md` (IrcCommandSender)
+- Requires `06-channels.md` (channel context)
+- Requires `08-messages-send.md` (sending the URL message)
+- Requires `04-internal-api.md` (InternalApiClient)

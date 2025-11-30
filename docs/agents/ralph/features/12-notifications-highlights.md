@@ -107,24 +107,22 @@ end
 
 ## Creating Notifications
 
-In IRC process (from messages-receive feature):
+In `IrcEventHandler` (from `07-messages-receive.md`):
 
 ```ruby
-def handle_privmsg(event)
-  Tenant.switch(@server.user) do
-    # ... create message ...
-    
-    # Check for highlight (channel message containing our nick)
-    if channel && content.downcase.include?(@server.nickname.downcase)
-      notification = Notification.create!(message: message, reason: "highlight")
-      send_browser_notification(notification)
-    end
-    
-    # DM creates notification (already in messages-receive)
-    if !channel && event.target.downcase == @server.nickname.downcase
-      notification = Notification.create!(message: message, reason: "dm")
-      send_browser_notification(notification)
-    end
+def handle_message
+  # ... create message ...
+
+  # Check for highlight (channel message containing our nick)
+  if channel && message.content.downcase.include?(@server.nickname.downcase)
+    notification = Notification.create!(message: message, reason: "highlight")
+    send_browser_notification(notification)
+  end
+
+  # DM creates notification
+  unless channel_target?(target)
+    notification = Notification.create!(message: message, reason: "dm")
+    send_browser_notification(notification)
   end
 end
 
