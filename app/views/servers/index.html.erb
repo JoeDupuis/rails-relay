@@ -1,0 +1,9 @@
+<h1>Servers</h1>
+
+<ul>
+  <% @servers.each do |server| %>
+    <li data-address="<%= server.address %>"><%= server.address %></li>
+  <% end %>
+</ul>
+
+<%= link_to "Add Server", new_server_path %>

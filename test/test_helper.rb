@@ -10,6 +10,10 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    setup do
+      User.find_each do |user|
+        TenantRecord.create_tenant(user.id.to_s, if_not_exists: true)
+      end
+    end
   end
 end
