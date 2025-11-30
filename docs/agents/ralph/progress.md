@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `11-notifications-unread` completed. Channels track unread messages with sidebar updates.
+Feature `13-ui-layout` completed. Main application layout with sidebar, header, and responsive behavior.
 
 ---
 
@@ -266,7 +266,7 @@ Feature `11-notifications-unread` completed. Channels track unread messages with
 
 ## Suggested Next Feature
 
-Continue with `13-ui-layout.md` for the main application layout (required by `10-pm-view.md`).
+Continue with `10-pm-view.md` for private message conversations (dependencies satisfied by `13-ui-layout`), or `12-notifications-highlights.md` for browser notifications.
 
 ---
 
@@ -315,3 +315,29 @@ Continue with `13-ui-layout.md` for the main application layout (required by `10
 - Sidebar broadcasts use Current.user_id to target the correct user's sidebar
 - The sidebar partial uses RSCSS-compliant class names (channel-item, -unread, badge)
 - unread_count returns 0 when last_read_message_id is nil (per spec decision to mark as read on join)
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 13-ui-layout
+**Status**: Completed
+
+**What was done**:
+- Created CSS variables file with design tokens (colors, spacing, typography)
+- Created RSCSS-compliant CSS components: app-layout, app-header, channel-sidebar, channel-item, connection-indicator
+- Updated application layout with CSS Grid (header, sidebar, main, optional userlist)
+- Created shared/_header partial with logo, notifications, and user menu
+- Created shared/_sidebar partial showing servers grouped with channels
+- Added ApplicationHelper methods: current_user_servers, current_channel, unread_notification_count
+- Created sidebar Stimulus controller for mobile hamburger menu toggle
+- Added responsive behavior (sidebar hides on tablet/mobile with hamburger toggle)
+- Added integration tests for sidebar display (7 tests)
+- Added system tests for layout structure and navigation (6 tests)
+- Passed QA review
+
+**Notes for next session**:
+- unread_notification_count returns 0 (placeholder until 12-notifications-highlights implements it)
+- System tests use Cuprite driver with Capybara
+- Each CSS component is in its own file per RSCSS conventions
+- content_for?(:userlist) controls whether user list column is shown
