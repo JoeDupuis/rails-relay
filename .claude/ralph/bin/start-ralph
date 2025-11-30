@@ -2,8 +2,9 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-LOOP_CONTROL="$PROJECT_DIR/.claude/ralph/loop-control"
+RALPH_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$RALPH_DIR")")"
+LOOP_CONTROL="$RALPH_DIR/loop-control"
 
 echo "Starting Ralph Wiggum loop..."
 echo "Run 'scripts/stop-ralph' from another terminal to stop after current session."
