@@ -6,10 +6,6 @@ This document describes the database schema for the IRC client application.
 
 - **yaic gem**: IRC client library. Handles IRC protocol, connection management, event handling. Source at `~/workspace/yaic` (can be modified if needed).
 
-## Multi-tenancy
-
-This application uses per-user database isolation. Each user has their own SQLite database. The `Tenant` module handles switching between databases.
-
 ## Models
 
 ### User
@@ -28,6 +24,7 @@ IRC server configuration.
 | Field | Type | Notes |
 |-------|------|-------|
 | id | integer | Primary key |
+| user_id | integer | FK to users |
 | address | string | Required, e.g. "irc.libera.chat" |
 | port | integer | Required, default 6697, range 1-65535 |
 | ssl | boolean | Default true |
@@ -48,6 +45,7 @@ IRC server configuration.
 - auth_password: present if auth_method != "none"
 
 **Associations:**
+- belongs_to :user
 - has_many :channels
 - has_many :messages
 
@@ -148,19 +146,17 @@ Tracks highlights and DM notifications.
 ## Entity Relationship Diagram
 
 ```
-User (shared DB)
+User
   |
   +-- Session
-
-Per-User Database:
-  Server
-    |
-    +-- Channel
-    |     |
-    |     +-- ChannelUser
-    |     +-- Message
-    |
-    +-- Message (PMs/server messages, channel_id null)
-          |
-          +-- Notification
+  +-- Server
+        |
+        +-- Channel
+        |     |
+        |     +-- ChannelUser
+        |     +-- Message
+        |
+        +-- Message (PMs/server messages, channel_id null)
+              |
+              +-- Notification
 ```

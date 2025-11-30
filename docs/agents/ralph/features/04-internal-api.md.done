@@ -250,7 +250,6 @@ module Internal
       skip_before_action :verify_authenticity_token
 
       def create
-        # User.find queries the main (shared) database, not the tenant DB
         user = User.find(params[:user_id])
         server_id = params[:server_id]
         event = params[:event]
@@ -258,12 +257,9 @@ module Internal
         # Set Current.user_id for use in model callbacks (e.g., Turbo broadcasts)
         Current.user_id = user.id
 
-        Tenant.switch(user) do
-          # Inside this block, all tenant model queries (Server, Channel, etc.)
-          # are scoped to this user's database
-          server = Server.find(server_id)
-          IrcEventHandler.handle(server, event)
-        end
+        # Find the server scoped to this user
+        server = user.servers.find(server_id)
+        IrcEventHandler.handle(server, event)
 
         head :ok
       end
@@ -435,10 +431,10 @@ end
 - Assert ChannelUser destroyed
 - Assert Message created with type "part"
 
-**POST /internal/irc/events switches tenant correctly**
+**POST /internal/irc/events with different users**
 - Have two users with servers
 - POST event for user 1's server
-- Assert changes in user 1's database only
+- Assert changes only affect user 1's server data
 
 ### Controller: Internal::Irc::StatusController
 
@@ -473,11 +469,10 @@ end
 
 - Use `http` gem for HTTP client (add to Gemfile)
 - All internal controllers skip CSRF verification
-- Tenant context is switched in EventsController before handling
-- IrcEventHandler is called within tenant context (see 07-messages-receive.md)
+- EventsController finds the server scoped to the user via `user.servers.find(server_id)`
+- IrcEventHandler processes events with normal ActiveRecord queries (see 07-messages-receive.md)
 - In tests, POST directly to these endpoints to simulate IRC events
 
 ## Dependencies
 
-- Requires `02-auth-multitenant.md` (tenant switching)
 - Requires `03-server-crud.md` (Server model)

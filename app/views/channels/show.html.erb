@@ -11,7 +11,7 @@
       <% if @channel.messages.any? %>
         <% @channel.messages.order(:created_at).each do |message| %>
           <div class="message">
-            <span class="message-nick"><%= message.nickname %></span>
+            <span class="message-nick"><%= message.sender %></span>
             <span class="message-content"><%= message.content %></span>
           </div>
         <% end %>

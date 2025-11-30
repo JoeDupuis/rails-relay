@@ -21,22 +21,20 @@ class ServerCrudFlowTest < ActionDispatch::IntegrationTest
       server: { address: address, nickname: "testnick" }
     }
 
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
     assert_redirected_to server_path(server)
 
     follow_redirect!
     assert_response :ok
     assert_match address, response.body
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert Server.find_by(address: address).present?
-    end
+    assert @user.servers.find_by(address: address).present?
   end
 
   test "User edits a server" do
     address = unique_address("efnet")
     post servers_path, params: { server: { address: address, nickname: "oldnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     get edit_server_path(server)
     assert_response :ok
@@ -48,15 +46,13 @@ class ServerCrudFlowTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_match "newnick", response.body
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert_equal "newnick", server.reload.nickname
-    end
+    assert_equal "newnick", server.reload.nickname
   end
 
   test "User deletes a server" do
     address = unique_address("freenode")
     post servers_path, params: { server: { address: address, nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     get server_path(server)
     assert_response :ok
@@ -68,8 +64,6 @@ class ServerCrudFlowTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_no_match address, response.body
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert_nil Server.find_by(address: address)
-    end
+    assert_nil @user.servers.find_by(address: address)
   end
 end

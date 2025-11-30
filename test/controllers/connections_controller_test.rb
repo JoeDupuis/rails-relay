@@ -7,14 +7,12 @@ class ConnectionsControllerTest < ActionDispatch::IntegrationTest
     post session_path, params: { email_address: @user.email_address, password: "password123" }
     @test_id = SecureRandom.hex(4)
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      @server = Server.create!(
-        address: "irc-#{@test_id}.example.com",
-        port: 6697,
-        ssl: true,
-        nickname: "testnick"
-      )
-    end
+    @server = @user.servers.create!(
+      address: "irc-#{@test_id}.example.com",
+      port: 6697,
+      ssl: true,
+      nickname: "testnick"
+    )
   end
 
   test "POST /servers/:id/connection calls InternalApiClient with correct params" do

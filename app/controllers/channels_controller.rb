@@ -40,11 +40,11 @@ class ChannelsController < ApplicationController
   private
 
   def set_server
-    @server = Server.find(params[:server_id])
+    @server = Current.user.servers.find(params[:server_id])
   end
 
   def set_channel
-    @channel = Channel.find(params[:id])
+    @channel = Channel.joins(:server).where(servers: { user_id: Current.user.id }).find(params[:id])
   end
 
   def channel_params

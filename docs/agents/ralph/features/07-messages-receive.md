@@ -10,7 +10,7 @@ IRC events arrive via the internal API at `/internal/irc/events`. The `IrcEventH
 
 1. IRC thread receives event from yaic
 2. Thread POSTs to `/internal/irc/events` with event data
-3. `EventsController` activates correct tenant (user's DB)
+3. `EventsController` finds the server and user
 4. `IrcEventHandler` processes the event, creates records
 5. Model callbacks broadcast via Turbo Stream
 6. User's browser receives stream, DOM updates
@@ -421,7 +421,7 @@ Testing via the internal API is the primary way to test message receiving. No ne
 
 ## Implementation Notes
 
-- All event handling happens in tenant context (controller switches tenant before calling handler)
+- All event handling happens with normal ActiveRecord queries scoped by server relationships
 - Source nick is extracted from IRC hostmask format (nick!user@host)
 - Highlight detection is case-insensitive
 - NAMES event replaces all channel users (full sync)
@@ -431,4 +431,3 @@ Testing via the internal API is the primary way to test message receiving. No ne
 
 - Requires `04-internal-api.md` (internal API)
 - Requires `06-channels.md` (Channel model)
-- Requires `02-auth-multitenant.md` (tenant switching)

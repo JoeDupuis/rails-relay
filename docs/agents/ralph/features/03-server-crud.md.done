@@ -130,7 +130,7 @@ Uses Server model. See `docs/agents/data-model.md`.
 **Validates port in range 1-65535**
 **Validates presence of nickname**
 **Validates nickname format**
-**Validates uniqueness of address+port per user**
+**Validates uniqueness of [address, port] scoped to user_id**
 **Validates auth_password present when auth_method is nickserv**
 **Validates auth_password present when auth_method is sasl**
 **Defaults port to 6697**
@@ -166,8 +166,8 @@ Uses Server model. See `docs/agents/data-model.md`.
 - Password should be encrypted at rest (use Rails encrypted attributes or similar)
 - Connection status shown but not functional until process-lifecycle feature
 - Root path (`/`) should redirect to `/servers`
+- Server belongs_to :user for data isolation
 
 ## Dependencies
 
 - Requires `auth-signin.md` (authentication)
-- Requires `auth-multitenant.md` (tenant isolation)

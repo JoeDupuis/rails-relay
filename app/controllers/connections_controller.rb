@@ -29,6 +29,6 @@ class ConnectionsController < ApplicationController
   private
 
   def set_server
-    @server = Server.find(params[:server_id])
+    @server = Current.user.servers.find(params[:server_id])
   end
 end

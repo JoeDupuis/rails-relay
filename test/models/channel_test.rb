@@ -2,156 +2,123 @@ require "test_helper"
 
 class ChannelTest < ActiveSupport::TestCase
   setup do
-    @tenant_id = "channel-test-#{SecureRandom.hex(4)}"
-    TenantRecord.create_tenant(@tenant_id)
-  end
-
-  teardown do
-    TenantRecord.destroy_tenant(@tenant_id)
+    @user = users(:joe)
   end
 
   test "validates name presence" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.new(server: server, name: "")
-      assert_not channel.valid?
-      assert_includes channel.errors[:name], "can't be blank"
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.new(server: server, name: "")
+    assert_not channel.valid?
+    assert_includes channel.errors[:name], "can't be blank"
   end
 
   test "validates name starts with #" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.new(server: server, name: "#ruby")
-      channel.valid?
-      assert_empty channel.errors[:name]
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.new(server: server, name: "#ruby")
+    channel.valid?
+    assert_empty channel.errors[:name]
   end
 
   test "validates name starts with &" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.new(server: server, name: "&local")
-      channel.valid?
-      assert_empty channel.errors[:name]
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.new(server: server, name: "&local")
+    channel.valid?
+    assert_empty channel.errors[:name]
   end
 
   test "validates name format rejects names without # or &" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.new(server: server, name: "ruby")
-      assert_not channel.valid?
-      assert channel.errors[:name].any? { |e| e.include?("invalid") }
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.new(server: server, name: "ruby")
+    assert_not channel.valid?
+    assert channel.errors[:name].any? { |e| e.include?("invalid") }
   end
 
   test "validates uniqueness of name per server" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      Channel.create!(server: server, name: "#ruby")
-      channel = Channel.new(server: server, name: "#ruby")
-      assert_not channel.valid?
-      assert_includes channel.errors[:name], "has already been taken"
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    Channel.create!(server: server, name: "#ruby")
+    channel = Channel.new(server: server, name: "#ruby")
+    assert_not channel.valid?
+    assert_includes channel.errors[:name], "has already been taken"
   end
 
   test "allows same channel name on different servers" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server1 = Server.create!(address: "irc.example.com", nickname: "testnick")
-      server2 = Server.create!(address: "irc.other.com", nickname: "testnick")
-      Channel.create!(server: server1, name: "#ruby")
-      channel = Channel.new(server: server2, name: "#ruby")
-      assert channel.valid?
-    end
+    server1 = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    server2 = @user.servers.create!(address: "irc.other.com", nickname: "testnick")
+    Channel.create!(server: server1, name: "#ruby")
+    channel = Channel.new(server: server2, name: "#ruby")
+    assert channel.valid?
   end
 
   test "unread_count returns 0 when no last_read_message_id" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.create!(server: server, name: "#ruby")
-      assert_equal 0, channel.unread_count
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    assert_equal 0, channel.unread_count
   end
 
   test "unread_count returns count of messages after last_read_message_id" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.create!(server: server, name: "#ruby")
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
 
-      msg1 = channel.messages.create!(nickname: "user1", content: "Hello")
-      msg2 = channel.messages.create!(nickname: "user2", content: "World")
-      msg3 = channel.messages.create!(nickname: "user3", content: "!")
+    msg1 = channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+    msg2 = channel.messages.create!(server: server, sender: "user2", content: "World", message_type: "privmsg")
+    msg3 = channel.messages.create!(server: server, sender: "user3", content: "!", message_type: "privmsg")
 
-      channel.update!(last_read_message_id: msg1.id)
+    channel.update!(last_read_message_id: msg1.id)
 
-      assert_equal 2, channel.unread_count
-    end
+    assert_equal 2, channel.unread_count
   end
 
   test "mark_as_read updates last_read_message_id" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.create!(server: server, name: "#ruby")
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
 
-      channel.messages.create!(nickname: "user1", content: "Hello")
-      channel.messages.create!(nickname: "user2", content: "World")
-      last_msg = channel.messages.create!(nickname: "user3", content: "!")
+    channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+    channel.messages.create!(server: server, sender: "user2", content: "World", message_type: "privmsg")
+    last_msg = channel.messages.create!(server: server, sender: "user3", content: "!", message_type: "privmsg")
 
-      assert_nil channel.last_read_message_id
-      channel.mark_as_read
-      assert_equal last_msg.id, channel.reload.last_read_message_id
-    end
+    assert_nil channel.last_read_message_id
+    channel.mark_as_read
+    assert_equal last_msg.id, channel.reload.last_read_message_id
   end
 
   test "has_unread? returns false when no unread messages" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.create!(server: server, name: "#ruby")
-      assert_not channel.has_unread?
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    assert_not channel.has_unread?
   end
 
   test "joined scope returns only joined channels" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      joined_channel = Channel.create!(server: server, name: "#ruby", joined: true)
-      left_channel = Channel.create!(server: server, name: "#python", joined: false)
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    joined_channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    left_channel = Channel.create!(server: server, name: "#python", joined: false)
 
-      joined = Channel.joined
-      assert_includes joined, joined_channel
-      assert_not_includes joined, left_channel
-    end
+    joined = Channel.joined
+    assert_includes joined, joined_channel
+    assert_not_includes joined, left_channel
   end
 
   test "belongs to server" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.create!(server: server, name: "#ruby")
-      assert_equal server, channel.server
-    end
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    assert_equal server, channel.server
   end
 
   test "has many channel_users with dependent destroy" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      channel = Channel.create!(server: server, name: "#ruby")
-      channel.channel_users.create!(nickname: "user1")
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    channel.channel_users.create!(nickname: "user1")
 
-      assert_difference "ChannelUser.count", -1 do
-        channel.destroy
-      end
+    assert_difference "ChannelUser.count", -1 do
+      channel.destroy
     end
   end
 
   test "server has many channels with dependent destroy" do
-    TenantRecord.with_tenant(@tenant_id) do
-      server = Server.create!(address: "irc.example.com", nickname: "testnick")
-      Channel.create!(server: server, name: "#ruby")
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    Channel.create!(server: server, name: "#ruby")
 
-      assert_difference "Channel.count", -1 do
-        server.destroy
-      end
+    assert_difference "Channel.count", -1 do
+      server.destroy
     end
   end
 end

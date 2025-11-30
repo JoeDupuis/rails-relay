@@ -10,10 +10,10 @@ Feature `06-channels` completed. Channel management with join, leave, list funct
 
 ### Phase 1: Authentication & Foundation
 1. `01-auth-signin.md` - User login via Rails auth generator
-2. `02-auth-multitenant.md` - Per-user database isolation
+2. ~~`02-auth-multitenant.md` - Per-user database isolation~~ (Removed - now using standard Rails associations)
 
 ### Phase 2: Server Management
-3. `03-server-crud.md` - Add, edit, delete IRC servers
+3. `03-server-crud.md` - Add, edit, delete IRC servers (Server belongs_to :user)
 
 ### Phase 3: IRC Process
 4. `04-process-spawn.md` - Spawning and managing IRC processes

@@ -16,9 +16,7 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
   end
 
   def create_connected_server
-    TenantRecord.with_tenant(@user.id.to_s) do
-      Server.create!(address: unique_address, nickname: "testnick", connected_at: Time.current)
-    end
+    @user.servers.create!(address: unique_address, nickname: "testnick", connected_at: Time.current)
   end
 
   test "user joins a channel" do
@@ -30,19 +28,17 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
 
     post server_channels_path(server), params: { channel: { name: "#ruby" } }
 
-    channel = TenantRecord.with_tenant(@user.id.to_s) { Channel.find_by(name: "#ruby") }
+    channel = Channel.find_by(name: "#ruby")
     assert channel, "Channel should be created"
     assert_redirected_to channel_path(channel)
 
     post internal_irc_events_path, params: {
       server_id: server.id,
       user_id: @user.id,
-      event: { type: "join", data: { channel: "#ruby" } }
+      event: { type: "join", data: { source: "testnick!user@host", target: "#ruby" } }
     }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert channel.reload.joined
-    end
+    assert channel.reload.joined
 
     get server_path(server)
     assert_response :ok
@@ -56,9 +52,7 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
 
   test "user leaves a channel" do
     server = create_connected_server
-    channel = TenantRecord.with_tenant(@user.id.to_s) do
-      Channel.create!(server: server, name: "#ruby", joined: true)
-    end
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
 
     get channel_path(channel)
     assert_response :ok
@@ -70,12 +64,10 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     post internal_irc_events_path, params: {
       server_id: server.id,
       user_id: @user.id,
-      event: { type: "part", data: { channel: "#ruby" } }
+      event: { type: "part", data: { source: "testnick!user@host", target: "#ruby", text: "Leaving" } }
     }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert_not channel.reload.joined
-    end
+    assert_not channel.reload.joined
 
     get server_path(server)
     assert_response :ok
@@ -84,13 +76,10 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
 
   test "channel shows users with proper ordering" do
     server = create_connected_server
-    channel = TenantRecord.with_tenant(@user.id.to_s) do
-      ch = Channel.create!(server: server, name: "#ruby", joined: true)
-      ch.channel_users.create!(nickname: "regular_user")
-      ch.channel_users.create!(nickname: "voiced_user", modes: "v")
-      ch.channel_users.create!(nickname: "op_user", modes: "o")
-      ch
-    end
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "regular_user")
+    channel.channel_users.create!(nickname: "voiced_user", modes: "v")
+    channel.channel_users.create!(nickname: "op_user", modes: "o")
 
     get channel_path(channel)
     assert_response :ok
@@ -109,9 +98,7 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
 
   test "server page shows join form only when connected" do
     connected_server = create_connected_server
-    disconnected_server = TenantRecord.with_tenant(@user.id.to_s) do
-      Server.create!(address: unique_address("disconnected"), nickname: "testnick")
-    end
+    disconnected_server = @user.servers.create!(address: unique_address("disconnected"), nickname: "testnick")
 
     get server_path(connected_server)
     assert_response :ok

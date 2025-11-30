@@ -2,18 +2,18 @@ class ServersController < ApplicationController
   before_action :set_server, only: %i[show edit update destroy]
 
   def index
-    @servers = Server.all
+    @servers = Current.user.servers
   end
 
   def show
   end
 
   def new
-    @server = Server.new
+    @server = Current.user.servers.build
   end
 
   def create
-    @server = Server.new(server_params)
+    @server = Current.user.servers.build(server_params)
     if @server.save
       redirect_to @server
     else
@@ -40,7 +40,7 @@ class ServersController < ApplicationController
   private
 
   def set_server
-    @server = Server.find(params[:id])
+    @server = Current.user.servers.find(params[:id])
   end
 
   def server_params

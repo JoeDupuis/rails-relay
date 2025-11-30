@@ -17,15 +17,11 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
 
   def create_server(address: nil)
     address ||= unique_address
-    TenantRecord.with_tenant(@user.id.to_s) do
-      Server.create!(address: address, nickname: "testnick", connected_at: Time.current)
-    end
+    @user.servers.create!(address: address, nickname: "testnick", connected_at: Time.current)
   end
 
   def create_channel(server, name: "#ruby", joined: true)
-    TenantRecord.with_tenant(@user.id.to_s) do
-      Channel.create!(server: server, name: name, joined: joined)
-    end
+    Channel.create!(server: server, name: name, joined: joined)
   end
 
   test "GET /channels/:id returns 200" do
@@ -73,7 +69,7 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
   test "POST /servers/:server_id/channels creates channel record" do
     server = create_server
 
-    assert_difference -> { TenantRecord.with_tenant(@user.id.to_s) { Channel.count } } do
+    assert_difference -> { Channel.count } do
       post server_channels_path(server), params: { channel: { name: "#newchannel" } }
     end
   end
@@ -83,7 +79,7 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
 
     post server_channels_path(server), params: { channel: { name: "#newchannel" } }
 
-    channel = TenantRecord.with_tenant(@user.id.to_s) { Channel.last }
+    channel = Channel.last
     assert_redirected_to channel_path(channel)
   end
 
@@ -91,7 +87,7 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
     server = create_server
     existing_channel = create_channel(server, name: "#existing", joined: false)
 
-    assert_no_difference -> { TenantRecord.with_tenant(@user.id.to_s) { Channel.count } } do
+    assert_no_difference -> { Channel.count } do
       post server_channels_path(server), params: { channel: { name: "#existing" } }
     end
 
@@ -142,9 +138,7 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
 
     delete channel_path(channel)
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert_not channel.reload.joined
-    end
+    assert_not channel.reload.joined
   end
 
   test "DELETE /channels/:id redirects to server show" do

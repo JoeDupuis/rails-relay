@@ -1,4 +1,4 @@
-class ChannelUser < TenantRecord
+class ChannelUser < ApplicationRecord
   belongs_to :channel
 
   validates :nickname, presence: true

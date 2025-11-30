@@ -1,45 +1,255 @@
 class IrcEventHandler
-  class << self
-    def handle(server, event)
-      event_type = event[:type] || event["type"]
-      event_data = event[:data] || event["data"] || {}
+  def self.handle(server, event)
+    new(server, event).handle
+  end
 
-      case event_type
-      when "connected"
-        handle_connected(server)
-      when "disconnected"
-        handle_disconnected(server)
-      when "join"
-        handle_join(server, event_data)
-      when "part"
-        handle_part(server, event_data)
-      end
+  def initialize(server, event)
+    @server = server
+    @event = normalize_event(event)
+  end
+
+  def normalize_event(event)
+    case event
+    when ActionController::Parameters
+      event.permit!.to_h.with_indifferent_access
+    when Hash
+      event.with_indifferent_access
+    else
+      event.to_h.with_indifferent_access
     end
+  end
 
-    private
-
-    def handle_connected(server)
-      server.update!(connected_at: Time.current)
+  def handle
+    case @event[:type]
+    when "connected"
+      handle_connected
+    when "disconnected"
+      handle_disconnected
+    when "message"
+      handle_message
+    when "action"
+      handle_action
+    when "notice"
+      handle_notice
+    when "join"
+      handle_join
+    when "part"
+      handle_part
+    when "quit"
+      handle_quit
+    when "kick"
+      handle_kick
+    when "nick"
+      handle_nick
+    when "topic"
+      handle_topic
+    when "names"
+      handle_names
     end
+  end
 
-    def handle_disconnected(server)
-      server.update!(connected_at: nil)
+  private
+
+  def data
+    @event[:data]
+  end
+
+  def source_nick
+    data[:source]&.split("!")&.first || data[:source]
+  end
+
+  def handle_connected
+    @server.update!(connected_at: Time.current)
+  end
+
+  def handle_disconnected
+    @server.update!(connected_at: nil)
+  end
+
+  def handle_message
+    target = data[:target]
+
+    if channel_target?(target)
+      channel = Channel.find_or_create_by!(server: @server, name: target)
+      message = Message.create!(
+        server: @server,
+        channel: channel,
+        sender: source_nick,
+        content: data[:text],
+        message_type: "privmsg"
+      )
+
+      check_highlight(message)
+    else
+      message = Message.create!(
+        server: @server,
+        channel: nil,
+        target: source_nick,
+        sender: source_nick,
+        content: data[:text],
+        message_type: "privmsg"
+      )
+
+      Notification.create!(message: message, reason: "dm")
     end
+  end
 
-    def handle_join(server, data)
-      channel_name = data[:channel] || data["channel"]
-      return unless channel_name
+  def handle_action
+    target = data[:target]
+    channel = Channel.find_or_create_by!(server: @server, name: target) if channel_target?(target)
 
-      channel = server.channels.find_or_create_by!(name: channel_name)
+    message = Message.create!(
+      server: @server,
+      channel: channel,
+      target: channel ? nil : source_nick,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "action"
+    )
+
+    check_highlight(message) if channel
+  end
+
+  def handle_notice
+    target = data[:target]
+    channel = Channel.find_by(server: @server, name: target) if channel_target?(target)
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      target: channel ? nil : source_nick,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "notice"
+    )
+  end
+
+  def handle_join
+    channel = Channel.find_or_create_by!(server: @server, name: data[:target])
+
+    if source_nick == @server.nickname
       channel.update!(joined: true)
+    else
+      channel.channel_users.find_or_create_by!(nickname: source_nick)
     end
 
-    def handle_part(server, data)
-      channel_name = data[:channel] || data["channel"]
-      return unless channel_name
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      message_type: "join"
+    )
+  end
 
-      channel = server.channels.find_by(name: channel_name)
-      channel&.update!(joined: false)
+  def handle_part
+    channel = Channel.find_by(server: @server, name: data[:target])
+    return unless channel
+
+    if source_nick == @server.nickname
+      channel.update!(joined: false)
+      channel.channel_users.destroy_all
+    else
+      channel.channel_users.find_by(nickname: source_nick)&.destroy
+    end
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "part"
+    )
+  end
+
+  def handle_quit
+    @server.channels.each do |channel|
+      channel.channel_users.find_by(nickname: source_nick)&.destroy
+    end
+
+    Message.create!(
+      server: @server,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "quit"
+    )
+  end
+
+  def handle_kick
+    channel = Channel.find_by(server: @server, name: data[:target])
+    return unless channel
+
+    kicked_nick = data[:kicked]
+    channel.channel_users.find_by(nickname: kicked_nick)&.destroy
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      content: "#{kicked_nick} was kicked: #{data[:text]}",
+      message_type: "kick"
+    )
+  end
+
+  def handle_nick
+    old_nick = source_nick
+    new_nick = data[:new_nick]
+
+    @server.channels.each do |channel|
+      user = channel.channel_users.find_by(nickname: old_nick)
+      user&.update!(nickname: new_nick)
+    end
+
+    Message.create!(
+      server: @server,
+      sender: old_nick,
+      content: new_nick,
+      message_type: "nick"
+    )
+  end
+
+  def handle_topic
+    channel = Channel.find_by(server: @server, name: data[:target])
+    return unless channel
+
+    channel.update!(topic: data[:text])
+
+    Message.create!(
+      server: @server,
+      channel: channel,
+      sender: source_nick,
+      content: data[:text],
+      message_type: "topic"
+    )
+  end
+
+  def handle_names
+    channel = Channel.find_by(server: @server, name: data[:channel])
+    return unless channel
+
+    channel.channel_users.destroy_all
+    data[:names].each do |name|
+      modes = ""
+      nick = name
+
+      if name.start_with?("@")
+        modes = "o"
+        nick = name[1..]
+      elsif name.start_with?("+")
+        modes = "v"
+        nick = name[1..]
+      end
+
+      channel.channel_users.create!(nickname: nick, modes: modes)
+    end
+  end
+
+  def channel_target?(target)
+    target&.start_with?("#", "&")
+  end
+
+  def check_highlight(message)
+    if message.content.downcase.include?(@server.nickname.downcase)
+      Notification.create!(message: message, reason: "highlight")
     end
   end
 end

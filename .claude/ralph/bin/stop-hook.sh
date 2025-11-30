@@ -1,17 +1,9 @@
 #!/usr/bin/env bash
-CONTROL_FILE=".claude/ralph/loop-control"
-PID_FILE=".claude/ralph/pid"
-
-if [ ! -f "$CONTROL_FILE" ]; then
-    echo "No running loop found."
-    exit 1
-fi
-
-rm "$CONTROL_FILE"
-
-if [ -f "$PID_FILE" ]; then
-    kill $(cat "$PID_FILE") 2>/dev/null
-    rm -f "$PID_FILE"
-fi
-
-echo "Loop stopped."
+[ "$RALPH_WIGGUM_LOOP" != "true" ] && exit 0
+cat << 'JSON'
+{
+  "decision": "block",
+  "continue": true,
+  "reason": "If you are blocked, confused, or need clarification, DO NOT EXIT OR STOP WORKING - use the AskUserQuestion tool and wait for a response. You cannot exit or stop until you have COMPLETED a feature or the user quit for you. If you have completed a feature (tests pass, QA passed, feature marked .done), exit by calling .claude/ralph/bin/kill-claude."
+}
+JSON

@@ -8,10 +8,8 @@ module Internal
 
         Current.user_id = user.id
 
-        Tenant.switch(user) do
-          server = Server.find(server_id)
-          IrcEventHandler.handle(server, event)
-        end
+        server = user.servers.find(server_id)
+        IrcEventHandler.handle(server, event)
 
         head :ok
       end

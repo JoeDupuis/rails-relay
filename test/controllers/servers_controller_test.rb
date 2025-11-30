@@ -18,9 +18,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
 
   test "GET /servers renders server list" do
     address = unique_address("libera")
-    TenantRecord.with_tenant(@user.id.to_s) do
-      Server.create!(address: address, nickname: "testnick")
-    end
+    @user.servers.create!(address: address, nickname: "testnick")
 
     get servers_path
     assert_response :ok
@@ -40,14 +38,14 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /servers with valid params creates server" do
-    assert_difference -> { TenantRecord.with_tenant(@user.id.to_s) { Server.count } } do
+    assert_difference -> { @user.servers.count } do
       post servers_path, params: { server: { address: unique_address, nickname: "testnick" } }
     end
   end
 
   test "POST /servers with valid params redirects to server show page" do
     post servers_path, params: { server: { address: unique_address, nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
     assert_redirected_to server_path(server)
   end
 
@@ -99,7 +97,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
   test "GET /servers/:id returns 200" do
     address = unique_address("show")
     post servers_path, params: { server: { address: address, nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     get server_path(server)
     assert_response :ok
@@ -108,7 +106,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
   test "GET /servers/:id renders server details" do
     address = unique_address("show")
     post servers_path, params: { server: { address: address, nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     get server_path(server)
     assert_match address, response.body
@@ -118,7 +116,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
   test "GET /servers/:id/edit returns 200" do
     address = unique_address("edit")
     post servers_path, params: { server: { address: address, nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     get edit_server_path(server)
     assert_response :ok
@@ -127,7 +125,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
   test "GET /servers/:id/edit renders edit form" do
     address = unique_address("edit")
     post servers_path, params: { server: { address: address, nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     get edit_server_path(server)
     assert_select "input[name='server[address]'][value='#{address}']"
@@ -135,18 +133,16 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
 
   test "PATCH /servers/:id with valid params updates server" do
     post servers_path, params: { server: { address: unique_address("patch"), nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     patch server_path(server), params: { server: { nickname: "newnick" } }
 
-    TenantRecord.with_tenant(@user.id.to_s) do
-      assert_equal "newnick", server.reload.nickname
-    end
+    assert_equal "newnick", server.reload.nickname
   end
 
   test "PATCH /servers/:id with valid params redirects to server show page" do
     post servers_path, params: { server: { address: unique_address("patch"), nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     patch server_path(server), params: { server: { nickname: "newnick" } }
     assert_redirected_to server_path(server)
@@ -154,7 +150,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
 
   test "PATCH /servers/:id with invalid params returns 422" do
     post servers_path, params: { server: { address: unique_address("patch"), nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     patch server_path(server), params: { server: { nickname: "123invalid" } }
     assert_response :unprocessable_entity
@@ -162,7 +158,7 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
 
   test "PATCH /servers/:id with invalid params re-renders form with error" do
     post servers_path, params: { server: { address: unique_address("patch"), nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     patch server_path(server), params: { server: { nickname: "123invalid" } }
     assert_select "input[name='server[nickname]']"
@@ -170,16 +166,16 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
 
   test "DELETE /servers/:id destroys server" do
     post servers_path, params: { server: { address: unique_address("delete"), nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
-    assert_difference -> { TenantRecord.with_tenant(@user.id.to_s) { Server.count } }, -1 do
+    assert_difference -> { @user.servers.count }, -1 do
       delete server_path(server)
     end
   end
 
   test "DELETE /servers/:id redirects to servers index" do
     post servers_path, params: { server: { address: unique_address("delete"), nickname: "testnick" } }
-    server = TenantRecord.with_tenant(@user.id.to_s) { Server.last }
+    server = @user.servers.last
 
     delete server_path(server)
     assert_redirected_to servers_path
