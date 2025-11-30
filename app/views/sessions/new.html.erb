@@ -5,6 +5,13 @@
   <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
   <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
   <%= form.submit "Sign in" %>
+
+  <% if Rails.env.development? %>
+    <div class="dev-signin" data-controller="dev-signin" data-dev-signin-email-value="dev@example.com" data-dev-signin-password-value="Xk9#mP7$qR2@">
+      <h3>Development Sign In</h3>
+      <%= button_tag "Dev User", class: "dev-user-button", data: { action: "click->dev-signin#signIn" } %>
+    </div>
+  <% end %>
 <% end %>
 <br>
 
