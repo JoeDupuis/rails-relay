@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `06-channels` completed. Channel management with join, leave, list functionality.
+Feature `07-messages-receive` completed. Message receiving, notifications, and removed tenancy gem.
 
 ---
 
@@ -209,6 +209,35 @@ Feature `06-channels` completed. Channel management with join, leave, list funct
 
 ---
 
+### Session 2025-11-30 (continued)
+
+**Feature**: 07-messages-receive
+**Status**: Completed
+
+**What was done**:
+- Implemented IrcEventHandler for all event types (message, action, notice, join, part, quit, kick, nick, topic, names, connected, disconnected)
+- Updated Message model with server/channel associations, sender field, message_type, and Turbo broadcasts
+- Created Notification model for DMs and highlights (validates reason: dm or highlight)
+- Added highlight detection (case-insensitive nickname matching in message content)
+- Created _message partial for Turbo Stream broadcasts
+- MAJOR CHANGE: Removed activerecord-tenanted gem entirely
+- Migrated from separate tenant databases to standard Rails associations
+- Server now belongs_to :user for data isolation
+- Updated all models, controllers, and tests for new architecture
+- Updated all documentation (data-model.md, feature specs) for new architecture
+- Added IrcEventHandler tests (19 tests)
+- Added Message model tests (9 tests)
+- Added EventsController tests (11 tests)
+- Passed QA review
+
+**Notes for next session**:
+- No more TenantRecord - all models inherit from ApplicationRecord
+- Data isolation via user -> servers -> channels -> messages associations
+- Controllers use current_user.servers.find(id) for scoped queries
+- IrcEventHandler.handle(server, event) is the main entry point
+
+---
+
 ## Suggested Next Feature
 
-Continue with `07-messages-receive.md` for receiving messages from IRC.
+Continue with `08-messages-send.md` for sending messages to IRC.
