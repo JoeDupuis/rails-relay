@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `02-auth-multitenant` completed. Per-user database isolation implemented using activerecord-tenanted gem.
+Feature `03-server-crud` completed. Full CRUD operations for IRC server management.
 
 ---
 
@@ -91,6 +91,35 @@ Feature `02-auth-multitenant` completed. Per-user database isolation implemented
 
 ---
 
+### Session 2025-11-29 (continued)
+
+**Feature**: 03-server-crud
+**Status**: Completed
+
+**What was done**:
+- Completed Server model with all validations (address, port, nickname format, auth_method, auth_password)
+- Added encrypted auth_password using Rails ActiveRecord encryption
+- Implemented defaults via before_validation (port: 6697, ssl: true, auth_method: none, username/realname default to nickname)
+- Added uniqueness constraint on address+port per tenant
+- Completed ServersController with all 7 RESTful actions
+- Created form partial with all fields (address, port, ssl, nickname, username, realname, auth_method, auth_password)
+- Added Stimulus controller for conditional auth_password visibility
+- Created show page with server details and channels placeholder
+- Created edit page using shared form partial
+- Updated index to show connection status and link to server
+- Updated routes to set root path to servers#index
+- Added comprehensive model tests (15 tests)
+- Added controller tests (24 tests)
+- Added integration tests (3 tests)
+- Passed QA review
+
+**Notes for next session**:
+- ActiveRecord encryption requires keys in credentials file (active_record_encryption.primary_key, deterministic_key, key_derivation_salt)
+- Channels section on show page is a placeholder until channels feature is implemented
+- auth_method_controller.js handles showing/hiding password field based on auth method selection
+
+---
+
 ## Suggested Next Feature
 
-Continue with `03-server-crud.md` - implements full CRUD operations for IRC servers.
+Continue with `04-internal-api.md` or next available feature in Phase 3.
