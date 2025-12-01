@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `18-fix-channels-list` completed. Channels now appear correctly on server pages after joining.
+Feature `19-ssl-no-verify` completed. SSL certificate verification toggle added to servers.
 
 ## Suggested Next Feature
 
-Start with `19-ssl-no-verify.md` - Add SSL certificate verification toggle.
+Start with `20-nick-change-sync.md` - Sync nickname changes to Server model.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
-19. `19-ssl-no-verify.md` - Add SSL certificate verification toggle
 20. `20-nick-change-sync.md` - Sync nickname changes to Server model
 
 ---
@@ -554,3 +553,28 @@ The application now has:
 - IrcConnection serializers now use consistent keys: `source:`, `target:`, `text:` (matching message events)
 - The `serialize_names_event` uses `channel:` which is correct since `handle_names` expects `data[:channel]`
 - Same pattern as 17-fix-user-list - mismatch between serializer output and handler expectations
+
+---
+
+### Session 2025-12-01
+
+**Feature**: 19-ssl-no-verify
+**Status**: Completed
+
+**What was done**:
+- Added migration for ssl_verify boolean column with default true
+- Updated Server model to set ssl_verify default in set_defaults method
+- Updated ServersController to permit :ssl_verify param
+- Updated server form with ssl_verify checkbox and Stimulus controller for toggle
+- Created ssl_controller.js to show/hide ssl_verify checkbox based on SSL checkbox state
+- Updated ConnectionsController to pass ssl_verify in config to InternalApiClient
+- Updated IrcConnection to pass verify_ssl to Yaic::Client
+- Added model tests (ssl_verify defaults to true, ssl_verify can be set to false)
+- Added controller tests (create/update with ssl_verify)
+- Added integration tests (form shows option, checkbox checked by default)
+- Added system tests for JS toggle behavior (visible/hidden/re-appears)
+- Passed QA review
+
+**Notes for next session**:
+- The yaic gem supports verify_ssl parameter (Yaic::Client.new(..., verify_ssl: false))
+- System tests need to wait for login to complete before navigating (assert_no_selector for password field)

@@ -9,6 +9,7 @@ class ConnectionsController < ApplicationController
         address: @server.address,
         port: @server.port,
         ssl: @server.ssl,
+        ssl_verify: @server.ssl_verify,
         nickname: @server.nickname,
         username: @server.username,
         realname: @server.realname

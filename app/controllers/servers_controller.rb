@@ -49,6 +49,6 @@ class ServersController < ApplicationController
   end
 
   def server_params
-    params.require(:server).permit(:address, :port, :ssl, :nickname, :username, :realname, :auth_method, :auth_password)
+    params.require(:server).permit(:address, :port, :ssl, :ssl_verify, :nickname, :username, :realname, :auth_method, :auth_password)
   end
 end

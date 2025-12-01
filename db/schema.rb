@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_30_221342) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_01_030644) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -105,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_30_221342) do
     t.integer "process_pid"
     t.string "realname"
     t.boolean "ssl", default: true, null: false
+    t.boolean "ssl_verify", default: true
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.string "username"

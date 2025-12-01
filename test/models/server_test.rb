@@ -132,4 +132,21 @@ class ServerTest < ActiveSupport::TestCase
     server.reload
     assert_equal "secretpassword", server.auth_password
   end
+
+  test "ssl_verify defaults to true" do
+    server = @user.servers.build(address: "irc.example.com", nickname: "testnick")
+    server.valid?
+    assert_equal true, server.ssl_verify
+  end
+
+  test "ssl_verify can be set to false" do
+    server = @user.servers.create!(
+      address: "irc.example.com",
+      nickname: "testnick",
+      ssl: true,
+      ssl_verify: false
+    )
+    server.reload
+    assert_equal false, server.ssl_verify
+  end
 end

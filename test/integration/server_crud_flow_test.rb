@@ -66,4 +66,17 @@ class ServerCrudFlowTest < ActionDispatch::IntegrationTest
 
     assert_nil @user.servers.find_by(address: address)
   end
+
+  test "Server form shows SSL verify option" do
+    get new_server_path
+    assert_response :ok
+    assert_select "input[name='server[ssl_verify]']"
+    assert_select "input[name='server[ssl_verify]'][type='checkbox']"
+  end
+
+  test "Server form SSL verify checkbox is checked by default" do
+    get new_server_path
+    assert_response :ok
+    assert_select "input[name='server[ssl_verify]'][checked]"
+  end
 end

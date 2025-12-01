@@ -19,9 +19,16 @@
     <%= form.number_field :port, value: server.port || 6697 %>
   </div>
 
-  <div>
-    <%= form.label :ssl %>
-    <%= form.check_box :ssl, checked: server.ssl.nil? ? true : server.ssl %>
+  <div data-controller="ssl">
+    <div>
+      <%= form.label :ssl %>
+      <%= form.check_box :ssl, checked: server.ssl.nil? ? true : server.ssl, data: { action: "change->ssl#toggle" } %>
+    </div>
+
+    <div data-ssl-target="verifyField">
+      <%= form.label :ssl_verify, "Verify SSL certificate" %>
+      <%= form.check_box :ssl_verify, checked: server.ssl_verify.nil? ? true : server.ssl_verify %>
+    </div>
   </div>
 
   <div>

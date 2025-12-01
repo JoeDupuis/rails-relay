@@ -51,6 +51,7 @@ class IrcConnection
       server: @config[:address],
       port: @config[:port],
       ssl: @config[:ssl],
+      verify_ssl: @config.fetch(:ssl_verify, true),
       nickname: @config[:nickname],
       username: @config[:username] || @config[:nickname],
       realname: @config[:realname] || @config[:nickname]

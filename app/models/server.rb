@@ -23,6 +23,7 @@ class Server < ApplicationRecord
   def set_defaults
     self.port = 6697 if port.blank?
     self.ssl = true if ssl.nil?
+    self.ssl_verify = true if ssl_verify.nil?
     self.auth_method ||= "none"
     self.username = nickname if username.blank?
     self.realname = nickname if realname.blank?

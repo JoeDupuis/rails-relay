@@ -238,4 +238,18 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_match "Welcome to IRC", response.body
   end
+
+  test "POST /servers with ssl_verify false creates server with ssl_verify false" do
+    post servers_path, params: { server: { address: unique_address("ssl-verify"), nickname: "testnick", ssl: true, ssl_verify: false } }
+    server = @user.servers.last
+    assert_equal false, server.ssl_verify
+  end
+
+  test "PATCH /servers/:id with ssl_verify false updates ssl_verify" do
+    server = @user.servers.create!(address: unique_address("ssl-verify-update"), nickname: "testnick")
+    assert_equal true, server.ssl_verify
+
+    patch server_path(server), params: { server: { ssl_verify: false } }
+    assert_equal false, server.reload.ssl_verify
+  end
 end
