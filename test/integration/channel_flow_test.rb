@@ -108,4 +108,92 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "input[name='channel[name]']", false
   end
+
+  test "channel page shows correct user count" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "user1", modes: "o")
+    channel.channel_users.create!(nickname: "user2", modes: "v")
+    channel.channel_users.create!(nickname: "user3")
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_select ".user-list .header", text: /3 users/
+  end
+
+  test "names event populates user list" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: {
+        type: "names",
+        data: {
+          channel: "#ruby",
+          names: [ "@op_user", "+voiced_user", "regular_user" ]
+        }
+      }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    channel.reload
+    assert_equal 3, channel.channel_users.count
+    assert channel.channel_users.exists?(nickname: "op_user", modes: "o")
+    assert channel.channel_users.exists?(nickname: "voiced_user", modes: "v")
+    assert channel.channel_users.exists?(nickname: "regular_user")
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_select ".user-item.-op .nick", text: "op_user"
+    assert_select ".user-item.-voice .nick", text: "voiced_user"
+    assert_select ".user-item .nick", text: "regular_user"
+  end
+
+  test "user list updates when user joins" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "existing_user")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: {
+        type: "join",
+        data: {
+          source: "newuser!user@host",
+          target: "#ruby"
+        }
+      }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    channel.reload
+    assert_equal 2, channel.channel_users.count
+    assert channel.channel_users.exists?(nickname: "newuser")
+  end
+
+  test "user list updates when user parts" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "user1")
+    channel.channel_users.create!(nickname: "user2")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: {
+        type: "part",
+        data: {
+          source: "user1!user@host",
+          target: "#ruby",
+          text: "Leaving"
+        }
+      }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    channel.reload
+    assert_equal 1, channel.channel_users.count
+    assert_not channel.channel_users.exists?(nickname: "user1")
+    assert channel.channel_users.exists?(nickname: "user2")
+  end
 end

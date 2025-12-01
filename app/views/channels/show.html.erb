@@ -1,4 +1,5 @@
 <%= turbo_stream_from @channel %>
+<%= turbo_stream_from @channel, :users %>
 
 <div class="channel-view" data-controller="channel">
   <header class="header">
@@ -25,5 +26,7 @@
 </div>
 
 <% content_for :userlist do %>
-  <%= render "channels/user_list", channel: @channel %>
+  <div id="channel_<%= @channel.id %>_user_list">
+    <%= render "channels/user_list", channel: @channel %>
+  </div>
 <% end %>

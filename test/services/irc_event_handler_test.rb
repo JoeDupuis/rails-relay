@@ -317,6 +317,29 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert_equal "", regular_user.modes
   end
 
+  test "handle_names clears existing users first" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "olduser1")
+    channel.channel_users.create!(nickname: "olduser2")
+
+    event = {
+      type: "names",
+      data: {
+        channel: "#ruby",
+        names: [ "newuser1", "newuser2" ]
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    assert_equal 2, channel.channel_users.count
+    assert_not channel.channel_users.exists?(nickname: "olduser1")
+    assert_not channel.channel_users.exists?(nickname: "olduser2")
+    assert channel.channel_users.exists?(nickname: "newuser1")
+    assert channel.channel_users.exists?(nickname: "newuser2")
+  end
+
   test "handle_connected sets connected_at" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
 

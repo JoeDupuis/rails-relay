@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `16-media-upload` completed. New bug fix and feature specs have been added.
+Feature `17-fix-user-list` completed. User list now loads correctly and updates in real-time.
 
 ## Suggested Next Feature
 
-Start with `17-fix-user-list.md` - This is a bug fix that needs investigation. The user list on channel pages shows "0 users". There's a suspected data key mismatch between `serialize_names_event` (uses `users:`) and `handle_names` (expects `data[:names]`).
+Start with `18-fix-channels-list.md` - Fix channels not showing on server pages.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
-17. `17-fix-user-list.md` - Fix user list not loading/updating on channel pages
 18. `18-fix-channels-list.md` - Fix channels not showing on server pages
 19. `19-ssl-no-verify.md` - Add SSL certificate verification toggle
 20. `20-nick-change-sync.md` - Sync nickname changes to Server model
@@ -511,3 +510,25 @@ The application now has:
 - Upload URLs use rails_blob_url which redirects to the actual storage location
 - The JavaScript upload handler uses fetch() with FormData for file uploads
 - Error responses use JSON format (error message in json["error"])
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 17-fix-user-list
+**Status**: Completed
+
+**What was done**:
+- Fixed data key mismatch in `serialize_names_event` - changed `users:` to `names:` to match `handle_names` expectation
+- Added Turbo Stream broadcasts to ChannelUser model for real-time user list updates
+- Added `after_create_commit`, `after_destroy_commit`, and `after_update_commit` (for mode changes) callbacks
+- Added stream subscription in channel view (`turbo_stream_from @channel, :users`)
+- Wrapped user list partial with target ID for Turbo Stream replacement
+- Added unit test "handle_names clears existing users first"
+- Added integration tests for user count display, names event, join/part events
+- Passed QA review
+
+**Notes for next session**:
+- ChannelUser broadcasts to `[channel, :users]` stream
+- The target ID is `channel_#{channel.id}_user_list`
+- Mode changes also trigger user list updates (for user moving between op/voiced/regular groups)

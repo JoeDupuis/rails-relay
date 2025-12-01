@@ -169,7 +169,7 @@ class IrcConnection
   def serialize_names_event(event)
     {
       channel: event.channel,
-      users: event.users
+      names: event.users
     }
   end
 end
