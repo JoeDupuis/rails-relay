@@ -69,4 +69,52 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert channel, "Channel should be created"
     assert_redirected_to channel_path(channel)
   end
+
+  test "server page shows joined channels" do
+    server = @user.servers.create!(address: unique_address("channels"), nickname: "testnick", connected_at: Time.current)
+    channel1 = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel2 = Channel.create!(server: server, name: "#python", joined: true)
+    channel1.channel_users.create!(nickname: "user1")
+    channel1.channel_users.create!(nickname: "user2")
+    channel2.channel_users.create!(nickname: "user1")
+
+    get server_path(server)
+    assert_response :ok
+
+    assert_select ".server-view .channels .list .row" do
+      assert_select ".name", text: "#python"
+      assert_select ".name", text: "#ruby"
+    end
+    assert_select ".row .users", text: /2/
+    assert_select ".row .users", text: /1/
+  end
+
+  test "server page hides parted channels" do
+    server = @user.servers.create!(address: unique_address("parted"), nickname: "testnick", connected_at: Time.current)
+    Channel.create!(server: server, name: "#active", joined: true)
+    Channel.create!(server: server, name: "#inactive", joined: false)
+
+    get server_path(server)
+    assert_response :ok
+
+    assert_select ".channels .row .name", text: "#active"
+    assert_select ".channels .row .name", text: "#inactive", count: 0
+  end
+
+  test "channel list updates after join event" do
+    server = @user.servers.create!(address: unique_address("joinevent"), nickname: "testnick", connected_at: Time.current)
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".channels .row .name", count: 0
+
+    IrcEventHandler.handle(server, {
+      type: "join",
+      data: { source: "testnick!user@host", target: "#newchannel" }
+    })
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".channels .row .name", text: "#newchannel"
+  end
 end

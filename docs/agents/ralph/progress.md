@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `17-fix-user-list` completed. User list now loads correctly and updates in real-time.
+Feature `18-fix-channels-list` completed. Channels now appear correctly on server pages after joining.
 
 ## Suggested Next Feature
 
-Start with `18-fix-channels-list.md` - Fix channels not showing on server pages.
+Start with `19-ssl-no-verify.md` - Add SSL certificate verification toggle.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
-18. `18-fix-channels-list.md` - Fix channels not showing on server pages
 19. `19-ssl-no-verify.md` - Add SSL certificate verification toggle
 20. `20-nick-change-sync.md` - Sync nickname changes to Server model
 
@@ -532,3 +531,26 @@ The application now has:
 - ChannelUser broadcasts to `[channel, :users]` stream
 - The target ID is `channel_#{channel.id}_user_list`
 - Mode changes also trigger user list updates (for user moving between op/voiced/regular groups)
+
+---
+
+### Session 2025-11-30 (continued)
+
+**Feature**: 18-fix-channels-list
+**Status**: Completed
+
+**What was done**:
+- Fixed data key mismatch in IrcConnection serializers to match IrcEventHandler expectations
+- `serialize_join_event`: Changed `channel:` to `target:`
+- `serialize_part_event`: Changed `channel:` to `target:`, `reason:` to `text:`
+- `serialize_quit_event`: Changed `reason:` to `text:`
+- `serialize_topic_event`: Changed `channel:` to `target:`, `topic:` to `text:`, added `source:` from `setter`
+- `serialize_nick_event`: Changed to use `source:` for old_nick (works with source_nick method)
+- `serialize_kick_event`: Changed `channel:` to `target:`, `reason:` to `text:`, `by:` to `source:`
+- Added 3 integration tests for channel list display on server pages
+- Passed QA review
+
+**Notes for next session**:
+- IrcConnection serializers now use consistent keys: `source:`, `target:`, `text:` (matching message events)
+- The `serialize_names_event` uses `channel:` which is correct since `handle_names` expects `data[:channel]`
+- Same pattern as 17-fix-user-list - mismatch between serializer output and handler expectations

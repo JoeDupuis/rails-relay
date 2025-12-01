@@ -123,46 +123,46 @@ class IrcConnection
   def serialize_join_event(event)
     {
       source: event.user&.raw,
-      channel: event.channel
+      target: event.channel
     }
   end
 
   def serialize_part_event(event)
     {
       source: event.user&.raw,
-      channel: event.channel,
-      reason: event.reason
+      target: event.channel,
+      text: event.reason
     }
   end
 
   def serialize_quit_event(event)
     {
       source: event.user&.raw,
-      reason: event.reason
+      text: event.reason
     }
   end
 
   def serialize_topic_event(event)
     {
-      channel: event.channel,
-      topic: event.topic,
-      setter: event.setter&.raw
+      source: event.setter&.raw,
+      target: event.channel,
+      text: event.topic
     }
   end
 
   def serialize_nick_event(event)
     {
-      old_nick: event.old_nick,
+      source: event.old_nick,
       new_nick: event.new_nick
     }
   end
 
   def serialize_kick_event(event)
     {
-      channel: event.channel,
+      source: event.by&.raw,
+      target: event.channel,
       kicked: event.user,
-      by: event.by&.raw,
-      reason: event.reason
+      text: event.reason
     }
   end
 
