@@ -1,4 +1,6 @@
 class Server < ApplicationRecord
+  include Turbo::Broadcastable
+
   belongs_to :user
   encrypts :auth_password
 
@@ -13,6 +15,7 @@ class Server < ApplicationRecord
   validates :auth_password, presence: true, if: -> { auth_method.present? && auth_method != "none" }
 
   before_validation :set_defaults
+  after_update_commit :broadcast_nickname_change, if: :saved_change_to_nickname?
 
   def connected?
     connected_at.present?
@@ -27,5 +30,13 @@ class Server < ApplicationRecord
     self.auth_method ||= "none"
     self.username = nickname if username.blank?
     self.realname = nickname if realname.blank?
+  end
+
+  def broadcast_nickname_change
+    broadcast_replace_to(
+      self,
+      target: "nickname_server_#{id}",
+      html: "<p class=\"nickname\" id=\"nickname_server_#{id}\">as <strong>#{nickname}</strong></p>"
+    )
   end
 end

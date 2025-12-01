@@ -269,6 +269,76 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert_equal "johnny", message.content
   end
 
+  test "handle_nick updates server nickname when own nick changes" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "joe")
+
+    event = {
+      type: "nick",
+      data: {
+        source: "joe!joe@example.com",
+        new_nick: "joe_"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    assert_equal "joe_", server.reload.nickname
+  end
+
+  test "handle_nick updates server nickname case-insensitively" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "Joe")
+
+    event = {
+      type: "nick",
+      data: {
+        source: "joe!joe@example.com",
+        new_nick: "joe_"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    assert_equal "joe_", server.reload.nickname
+  end
+
+  test "handle_nick does not update server nickname for other users" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "joe")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "bob")
+
+    event = {
+      type: "nick",
+      data: {
+        source: "bob!bob@example.com",
+        new_nick: "bobby"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    assert_equal "joe", server.reload.nickname
+  end
+
+  test "handle_nick still updates channel_users for own nick" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "joe")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "joe")
+
+    event = {
+      type: "nick",
+      data: {
+        source: "joe!joe@example.com",
+        new_nick: "joe_"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    assert_equal "joe_", server.reload.nickname
+    assert channel.channel_users.exists?(nickname: "joe_")
+    assert_not channel.channel_users.exists?(nickname: "joe")
+  end
+
   test "handle_topic updates channel topic" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby", joined: true)

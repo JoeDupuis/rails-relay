@@ -201,6 +201,10 @@ class IrcEventHandler
     old_nick = source_nick
     new_nick = data[:new_nick]
 
+    if old_nick.casecmp?(@server.nickname)
+      @server.update!(nickname: new_nick)
+    end
+
     @server.channels.each do |channel|
       user = channel.channel_users.find_by(nickname: old_nick)
       user&.update!(nickname: new_nick)

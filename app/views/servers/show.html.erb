@@ -1,3 +1,4 @@
+<%= turbo_stream_from @server %>
 <div class="server-view">
   <header class="header">
     <div class="info">
@@ -5,7 +6,7 @@
       <% if @server.ssl %>
         <span class="badge">SSL</span>
       <% end %>
-      <p class="nickname">as <strong><%= @server.nickname %></strong></p>
+      <p class="nickname" id="<%= dom_id(@server, :nickname) %>">as <strong><%= @server.nickname %></strong></p>
     </div>
     <div class="status">
       <% if @server.connected? %>

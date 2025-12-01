@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `19-ssl-no-verify` completed. SSL certificate verification toggle added to servers.
+Feature `20-nick-change-sync` completed. Nickname changes (via /nick command or server-forced) now sync to Server.nickname with real-time UI updates.
 
 ## Suggested Next Feature
 
-Start with `20-nick-change-sync.md` - Sync nickname changes to Server model.
+All planned features have been completed! Check for any new feature specs in `docs/agents/ralph/features/`.
 
 ## Pending Features
 
-### Phase 8: Bug Fixes & Enhancements
-20. `20-nick-change-sync.md` - Sync nickname changes to Server model
+None - all features implemented.
 
 ---
 
@@ -27,6 +26,7 @@ The application now has:
 - Notifications and highlights
 - Complete UI layout
 - Media uploads
+- Nickname change sync
 
 ---
 
@@ -578,3 +578,26 @@ The application now has:
 **Notes for next session**:
 - The yaic gem supports verify_ssl parameter (Yaic::Client.new(..., verify_ssl: false))
 - System tests need to wait for login to complete before navigating (assert_no_selector for password field)
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 20-nick-change-sync
+**Status**: Completed
+
+**What was done**:
+- Updated IrcEventHandler#handle_nick to sync Server.nickname when own nick changes
+- Added case-insensitive comparison using `casecmp?` method
+- Added Turbo Stream broadcast for real-time UI updates when nickname changes
+- Added `after_update_commit :broadcast_nickname_change` callback to Server model
+- Added `turbo_stream_from @server` subscription in server show view
+- Added target ID on nickname element for Turbo Stream replacement
+- Added 4 unit tests for nick sync functionality
+- Added 2 integration tests for nick change UI updates
+- Passed QA review
+
+**Notes for next session**:
+- All planned features are now complete
+- Server model broadcasts nickname changes directly using html: parameter (simple inline HTML)
+- Turbo::Broadcastable is included explicitly in Server model for clarity

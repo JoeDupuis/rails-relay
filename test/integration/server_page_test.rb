@@ -117,4 +117,34 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select ".channels .row .name", text: "#newchannel"
   end
+
+  test "server page shows updated nickname after nick change" do
+    server = @user.servers.create!(address: unique_address("nickchange"), nickname: "joe", connected_at: Time.current)
+
+    get server_path(server)
+    assert_response :ok
+    assert_match /as.*<strong>joe<\/strong>/, response.body
+
+    IrcEventHandler.handle(server, {
+      type: "nick",
+      data: { source: "joe!joe@host", new_nick: "joe_" }
+    })
+
+    get server_path(server)
+    assert_response :ok
+    assert_match /as.*<strong>joe_<\/strong>/, response.body
+  end
+
+  test "server nickname updates from server-forced nick change" do
+    server = @user.servers.create!(address: unique_address("forcenick"), nickname: "joe", connected_at: Time.current)
+
+    IrcEventHandler.handle(server, {
+      type: "nick",
+      data: { source: "joe!joe@host", new_nick: "joe_123" }
+    })
+
+    get server_path(server)
+    assert_response :ok
+    assert_match /as.*<strong>joe_123<\/strong>/, response.body
+  end
 end
