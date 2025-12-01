@@ -4,3 +4,4 @@
 - support ssl no verify
 - nick doesnt get updated
 - Channels dont get rejoined (auto join feature)
+- make INTERNAL_API_SECRET optional in dev

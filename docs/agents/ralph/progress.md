@@ -2,11 +2,25 @@
 
 ## Current State
 
-Feature `16-media-upload` completed. Users can now upload images (PNG, JPEG, GIF, WebP) which are stored via ActiveStorage. The upload URL is sent as a message to the IRC channel.
+Feature `16-media-upload` completed. New bug fix and feature specs have been added.
 
 ## Suggested Next Feature
 
-All planned features have been implemented! The application now has:
+Start with `17-fix-user-list.md` - This is a bug fix that needs investigation. The user list on channel pages shows "0 users". There's a suspected data key mismatch between `serialize_names_event` (uses `users:`) and `handle_names` (expects `data[:names]`).
+
+## Pending Features
+
+### Phase 8: Bug Fixes & Enhancements
+17. `17-fix-user-list.md` - Fix user list not loading/updating on channel pages
+18. `18-fix-channels-list.md` - Fix channels not showing on server pages
+19. `19-ssl-no-verify.md` - Add SSL certificate verification toggle
+20. `20-nick-change-sync.md` - Sync nickname changes to Server model
+
+---
+
+## Completed Features
+
+The application now has:
 - User authentication
 - Server management (CRUD)
 - IRC connections via internal API
