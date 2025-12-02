@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `24-auto-join-channels` completed. Channels can now be marked for auto-join on reconnect.
+Feature `25-connection-health-check` completed. Background job now detects and cleans up stale connections.
 
 ## Suggested Next Feature
 
-Start with `25-connection-health-check.md` - Background job to detect stale connections.
+Start with `26-message-send-failure-handling.md` - Handle message send failures gracefully.
 
 ## Pending Features
 
 ### Phase 8: Connection Reliability
-25. `25-connection-health-check.md` - Background job to detect stale connections
 26. `26-message-send-failure-handling.md` - Handle message send failures gracefully
 
 ---
@@ -32,6 +31,7 @@ The application now has:
 - Nickname change sync
 - Channel joined state reset on disconnect
 - Auto-join channels on reconnect
+- Connection health check (detects stale connections)
 
 ---
 
@@ -707,3 +707,28 @@ The application now has:
 - Uses find_each for memory efficiency when iterating channels
 - Checkbox uses onchange="this.form.requestSubmit()" for immediate toggle
 - System tests have pre-existing Ferrum::DeadBrowserError flakiness (environmental, not related to this feature)
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 25-connection-health-check
+**Status**: Completed
+
+**What was done**:
+- Created ConnectionHealthCheckJob with perform method to detect stale connections
+- Job queries servers with connected_at set, then checks against IRC service status endpoint
+- Stale connections (in DB but not in IRC service) are marked disconnected with proper cleanup
+- Handles ServiceUnavailable by marking all servers disconnected (returns empty array)
+- Added recurring schedule in config/recurring.yml (every 30 seconds for production/development)
+- Added initializer that enqueues job on Rails boot (skipped in test environment)
+- Status endpoint already returns connected server IDs in correct format
+- Added 4 job tests (marks stale, keeps valid, handles unavailable, does nothing when none)
+- Added 1 controller test for status endpoint returning server IDs
+- Added 1 integration test for complete flow
+- Passed QA review
+
+**Notes for next session**:
+- Use `stub` method instead of `instance_variable_get` for testing (per conventions)
+- The job uses `find_each` for memory efficiency when iterating servers
+- ServiceUnavailable is caught and results in empty connections list (marks all as stale)
