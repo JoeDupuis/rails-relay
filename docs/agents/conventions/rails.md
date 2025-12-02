@@ -11,6 +11,10 @@
 
 ## Models
 
+### No Services Folder
+
+DO NOT create a `services` folder or service objects. The `app/models/` folder is for business modelization, not just ActiveRecord models. Non-ActiveRecord classes (plain Ruby objects, domain concepts, etc.) belong in `app/models/`.
+
 ### Business Logic Lives Here
 
 Models contain all business logic. Controllers should be thin - they only handle HTTP concerns.

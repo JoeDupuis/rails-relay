@@ -2,15 +2,32 @@
 
 ## Current State
 
-Feature `26-message-send-failure-handling` completed. Message send failures are now handled gracefully.
+Feature `26-message-send-failure-handling` completed. New bug fix and enhancement features added.
 
 ## Suggested Next Feature
 
-All planned features have been completed! The application is feature-complete.
+Start with `27-fix-kick-updates-joined-state.md` - Critical bug fix where getting kicked doesn't update channel joined status.
 
 ## Pending Features
 
-None - all features completed.
+### Phase 8: Bug Fixes & Enhancements
+
+27. `27-fix-kick-updates-joined-state.md` - Fix: kicked user's channel joined status not updated
+28. `28-realtime-channel-joined-status.md` - Real-time UI updates when channel joined status changes
+29. `29-dismiss-flash-on-status-change.md` - Clear "Connecting..."/"Disconnecting..." flash on status change
+31. `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live
+32. `32-channel-name-links-to-show.md` - Make channel names clickable links to show page
+33. `33-list-public-channels.md` - Browse and join public channels via IRC LIST command
+34. `34-connection-timeouts.md` - Verify timeout handling works correctly
+35. `35-fix-kick-message-format.md` - Fix kick message display format
+36. `36-nick-change-live-update.md` - Verify nickname changes update UI in real-time
+
+### Dependencies
+
+- 28 depends on 27 (kick must update joined status first)
+- 31 may require yaic changes (use AskUserQuestion if so)
+- 33 may require yaic changes (use AskUserQuestion if so)
+- 36 depends on 31 (may share Turbo Stream fixes)
 
 ---
 
