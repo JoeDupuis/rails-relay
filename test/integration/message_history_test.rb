@@ -59,4 +59,20 @@ class MessageHistoryTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_match "Welcome to Ruby channel!", response.body
   end
+
+  test "kick message displays correctly" do
+    server = create_server
+    channel = create_channel(server)
+    Message.create!(
+      server: server,
+      channel: channel,
+      sender: "lol",
+      content: "was kicked by admin (bad behavior)",
+      message_type: "kick"
+    )
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_match "lol was kicked by admin (bad behavior)", response.body
+  end
 end

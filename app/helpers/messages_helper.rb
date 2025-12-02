@@ -8,7 +8,7 @@ module MessagesHelper
     when "quit"
       "#{message.sender} quit" + (message.content.present? ? " (#{message.content})" : "")
     when "kick"
-      "#{message.sender} was kicked (#{message.content})"
+      "#{message.sender} #{message.content}"
     when "topic"
       "#{message.sender} changed topic to: #{message.content}"
     when "nick"

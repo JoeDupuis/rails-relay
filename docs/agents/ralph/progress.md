@@ -2,11 +2,12 @@
 
 ## Current State
 
-Feature `33-list-public-channels` deferred - yaic gem doesn't support LIST command events (322/323 numerics).
+Feature `35-fix-kick-message-format` completed. Kick messages now display correctly.
 
 ## Suggested Next Feature
 
-Start with `34-connection-timeouts.md` or `35-fix-kick-message-format.md` or `36-nick-change-live-update.md`.
+Start with `34-connection-timeouts.md` or `36-nick-change-live-update.md`.
+Note: Feature 34 has a dependency on `30-handle-connection-errors` which doesn't exist, but the spec indicates it may just be verification that existing timeouts work.
 
 ## Pending Features
 
@@ -14,7 +15,7 @@ Start with `34-connection-timeouts.md` or `35-fix-kick-message-format.md` or `36
 
 33. `33-list-public-channels.md.deferred` - DEFERRED (requires yaic LIST support)
 34. `34-connection-timeouts.md` - Verify timeout handling works correctly
-35. `35-fix-kick-message-format.md` - Fix kick message display format
+35. `35-fix-kick-message-format.md.done` - COMPLETED
 36. `36-nick-change-live-update.md` - Verify nickname changes update UI in real-time
 
 ---
@@ -77,6 +78,26 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 35-fix-kick-message-format
+**Status**: Completed
+
+**What was done**:
+- Fixed IrcEventHandler#handle_kick to store kicked user as sender (instead of kicker)
+- Changed content format to "was kicked by {kicker} ({reason})"
+- Updated format_message helper to concatenate sender + content for kick messages
+- Added test for empty/nil reason handling
+- Added integration test for kick message display
+- All tests pass (404 unit tests, 19 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- Kick messages now display as "{kicked_nick} was kicked by {kicker} ({reason})"
+- Empty reasons result in no parentheses: "{kicked_nick} was kicked by {kicker}"
+
+---
 
 ### Session 2025-12-02 (continued)
 

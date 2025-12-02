@@ -207,11 +207,12 @@ class IrcEventHandler
       channel.channel_users.find_by(nickname: kicked_nick)&.destroy
     end
 
+    reason_text = data[:text].present? ? " (#{data[:text]})" : ""
     Message.create!(
       server: @server,
       channel: channel,
-      sender: source_nick,
-      content: "#{kicked_nick} was kicked: #{data[:text]}",
+      sender: kicked_nick,
+      content: "was kicked by #{source_nick}#{reason_text}",
       message_type: "kick"
     )
   end

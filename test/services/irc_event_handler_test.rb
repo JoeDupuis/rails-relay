@@ -219,7 +219,7 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert_equal channel, message.channel
   end
 
-  test "handle_kick removes user and creates kick message" do
+  test "handle_kick removes user and creates kick message with correct format" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby", joined: true)
     channel.channel_users.create!(nickname: "baduser")
@@ -227,10 +227,10 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     event = {
       type: "kick",
       data: {
-        source: "op!op@host",
+        source: "admin!admin@host",
         target: "#ruby",
         kicked: "baduser",
-        text: "Bye"
+        text: "bad behavior"
       }
     }
 
@@ -239,7 +239,31 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert_not channel.channel_users.exists?(nickname: "baduser")
     message = Message.last
     assert_equal "kick", message.message_type
-    assert_includes message.content, "baduser was kicked"
+    assert_equal "baduser", message.sender
+    assert_equal "was kicked by admin (bad behavior)", message.content
+  end
+
+  test "handle_kick handles empty reason" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "baduser")
+
+    event = {
+      type: "kick",
+      data: {
+        source: "admin!admin@host",
+        target: "#ruby",
+        kicked: "baduser",
+        text: nil
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    message = Message.last
+    assert_equal "kick", message.message_type
+    assert_equal "baduser", message.sender
+    assert_equal "was kicked by admin", message.content
   end
 
   test "handle_kick marks channel as not joined when we are kicked" do
