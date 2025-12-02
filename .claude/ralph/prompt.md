@@ -234,6 +234,6 @@ When updating progress.md, use this format:
 ```
 
 
-## Gems
-If you need a to investigate a gem. Either look at the installation directory or make a copy in the ./tmp directory so that you can have access to it as reference without asking for auth on every file operation.
-Assume the gem is installed or in ./tmp first. Dont assume you need to download it. If you can't find it in the gem dir or in the ./tmp dir then try to copy it or install it.
+## yaic
+Never search for stuff outside of the project dir. If you have to look at something in yaic or another dependency. Check ./tmp to see if we already copied it first. Then if it's not there copy it there so that you can search it without prompting me for auth.
+Anything outside the project directory requires auth.

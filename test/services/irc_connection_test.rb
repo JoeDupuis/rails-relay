@@ -3,11 +3,12 @@ require "test_helper"
 class MockYaicClient
   attr_reader :join_calls, :quit_calls, :connected
 
-  def initialize
+  def initialize(raise_on_connect: nil)
     @handlers = {}
     @join_calls = []
     @quit_calls = []
     @connected = false
+    @raise_on_connect = raise_on_connect
   end
 
   def on(event_type, &block)
@@ -16,6 +17,7 @@ class MockYaicClient
   end
 
   def connect
+    raise @raise_on_connect if @raise_on_connect
     @connected = true
   end
 
@@ -153,6 +155,31 @@ class IrcConnectionTest < ActiveSupport::TestCase
       connection.stop
 
       assert_includes @events.map { |e| e[:type] }, "disconnected"
+    end
+  end
+
+  test "connect timeout triggers error and disconnect events" do
+    timeout_error = Yaic::TimeoutError.new("Operation timed out after 30 seconds")
+    timeout_client = MockYaicClient.new(raise_on_connect: timeout_error)
+
+    Yaic::Client.stub :new, timeout_client do
+      connection = IrcConnection.new(
+        server_id: 1,
+        user_id: 1,
+        config: @config,
+        on_event: @on_event
+      )
+
+      connection.start
+      sleep 0.1
+
+      error_event = @events.find { |e| e[:type] == "error" }
+      assert_not_nil error_event, "Expected an error event"
+      assert_includes error_event[:message], "timed out"
+
+      assert_includes @events.map { |e| e[:type] }, "disconnected"
+
+      assert_not connection.alive?, "Thread should have exited after error"
     end
   end
 end

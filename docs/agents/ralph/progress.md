@@ -2,19 +2,18 @@
 
 ## Current State
 
-Feature `35-fix-kick-message-format` completed. Kick messages now display correctly.
+Feature `34-connection-timeouts` completed. Connection timeout handling verified with tests.
 
 ## Suggested Next Feature
 
-Start with `34-connection-timeouts.md` or `36-nick-change-live-update.md`.
-Note: Feature 34 has a dependency on `30-handle-connection-errors` which doesn't exist, but the spec indicates it may just be verification that existing timeouts work.
+Start with `36-nick-change-live-update.md` - verify nickname changes update UI in real-time.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
 
 33. `33-list-public-channels.md.deferred` - DEFERRED (requires yaic LIST support)
-34. `34-connection-timeouts.md` - Verify timeout handling works correctly
+34. `34-connection-timeouts.md.done` - COMPLETED
 35. `35-fix-kick-message-format.md.done` - COMPLETED
 36. `36-nick-change-live-update.md` - Verify nickname changes update UI in real-time
 
@@ -40,6 +39,7 @@ The application now has:
 - Message send failure handling (graceful error recovery)
 - Kick event updates channel joined status
 - Real-time channel joined status updates (broadcasts UI changes)
+- Connection timeout handling (graceful recovery on connect timeout)
 
 ---
 
@@ -78,6 +78,26 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 34-connection-timeouts
+**Status**: Completed
+
+**What was done**:
+- Verified existing timeout handling in IrcConnection works correctly
+- When yaic raises TimeoutError, it's caught and sends "error" + "disconnected" events
+- Added unit test for connect timeout triggering error and disconnect events
+- Added integration test for full timeout flow marking server disconnected
+- All tests pass (406 unit tests, 19 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- yaic already handles timeouts via Yaic::TimeoutError
+- No code changes needed - this was verification + tests
+- Only feature 36 remains in Phase 8
+
+---
 
 ### Session 2025-12-02 (continued)
 

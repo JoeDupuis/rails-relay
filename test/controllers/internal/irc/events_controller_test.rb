@@ -224,4 +224,37 @@ class Internal::Irc::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_not regular.op?
     assert_not regular.voiced?
   end
+
+  test "connection timeout flow marks server disconnected" do
+    server = @user.servers.create!(
+      address: "irc-#{@test_id}.example.com",
+      nickname: "testnick",
+      connected_at: Time.current
+    )
+    channel = Channel.create!(server: server, name: "#channel", joined: true)
+    channel.channel_users.create!(nickname: "someuser")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: { type: "error", message: "Operation timed out after 30 seconds" }
+    }, headers: { "Authorization" => "Bearer #{@secret}" }, as: :json
+
+    assert_response :ok
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: { type: "disconnected" }
+    }, headers: { "Authorization" => "Bearer #{@secret}" }, as: :json
+
+    assert_response :ok
+
+    server.reload
+    channel.reload
+
+    assert_nil server.connected_at
+    assert_not channel.joined
+    assert_equal 0, channel.channel_users.count
+  end
 end
