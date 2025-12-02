@@ -2,15 +2,21 @@
 
 ## Current State
 
-Feature `20-nick-change-sync` completed. Nickname changes (via /nick command or server-forced) now sync to Server.nickname with real-time UI updates.
+Feature `20-nick-change-sync` completed. New features 21-26 have been added for connection reliability improvements.
 
 ## Suggested Next Feature
 
-All planned features have been completed! Check for any new feature specs in `docs/agents/ralph/features/`.
+Start with `21-realtime-connection-status.md` - Foundation for other connection features.
 
 ## Pending Features
 
-None - all features implemented.
+### Phase 8: Connection Reliability
+21. `21-realtime-connection-status.md` - Real-time UI updates when connecting/disconnecting
+22. `22-channel-join-prefix.md` - Handle channel names with or without # prefix
+23. `23-channel-joined-state-reset.md` - Reset channel joined state on disconnect
+24. `24-auto-join-channels.md` - Auto-rejoin channels on reconnect
+25. `25-connection-health-check.md` - Background job to detect stale connections
+26. `26-message-send-failure-handling.md` - Handle message send failures gracefully
 
 ---
 
