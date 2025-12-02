@@ -23,6 +23,7 @@ class ChannelUser < ApplicationRecord
   private
 
   def broadcast_user_list
+    channel.reload
     broadcast_replace_to(
       [ channel, :users ],
       target: "channel_#{channel.id}_user_list",
