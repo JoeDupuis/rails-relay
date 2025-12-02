@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `20-nick-change-sync` completed. New features 21-26 have been added for connection reliability improvements.
+Feature `21-realtime-connection-status` completed. Connection reliability improvements continue.
 
 ## Suggested Next Feature
 
-Start with `21-realtime-connection-status.md` - Foundation for other connection features.
+Start with `22-channel-join-prefix.md` - Handle channel names with or without # prefix.
 
 ## Pending Features
 
 ### Phase 8: Connection Reliability
-21. `21-realtime-connection-status.md` - Real-time UI updates when connecting/disconnecting
 22. `22-channel-join-prefix.md` - Handle channel names with or without # prefix
 23. `23-channel-joined-state-reset.md` - Reset channel joined state on disconnect
 24. `24-auto-join-channels.md` - Auto-rejoin channels on reconnect
@@ -28,6 +27,7 @@ The application now has:
 - IRC connections via internal API
 - Channels (join, leave, list)
 - Messages (send, receive, history)
+- Real-time connection status updates
 - Private messages
 - Notifications and highlights
 - Complete UI layout
@@ -607,3 +607,25 @@ The application now has:
 - All planned features are now complete
 - Server model broadcasts nickname changes directly using html: parameter (simple inline HTML)
 - Turbo::Broadcastable is included explicitly in Server model for clarity
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 21-realtime-connection-status
+**Status**: Completed
+
+**What was done**:
+- Added `after_update_commit :broadcast_connection_status, if: :saved_change_to_connected_at?` callback to Server model
+- Created three partials for Turbo Stream broadcasts: `_status.html.erb`, `_actions.html.erb`, `_join.html.erb`
+- Each partial has a target ID using `dom_id(server, :status/actions/join)` for Turbo Stream replacement
+- Updated server show view to use the new partials
+- Added Turbo::Broadcastable::TestHelper to test_helper.rb for broadcast assertion support
+- Added 3 model tests for broadcast behavior (connect, disconnect, unchanged)
+- Added 2 integration tests for server page updates via IrcEventHandler
+- Passed QA review
+
+**Notes for next session**:
+- The server show view already had `turbo_stream_from @server` subscription
+- Partials use `dom_id(server, :prefix)` helper for consistent target IDs
+- The `broadcast_replace_to` method broadcasts to `self` (server) stream with partials

@@ -1,0 +1,12 @@
+<section class="actions" id="<%= dom_id(server, :actions) %>">
+  <% if server.connected? %>
+    <%= button_to "Disconnect", server_connection_path(server), method: :delete, class: "button -danger" %>
+  <% else %>
+    <%= button_to "Connect", server_connection_path(server), method: :post, class: "button -primary" %>
+  <% end %>
+
+  <%= link_to "Edit", edit_server_path(server), class: "button" %>
+  <%= button_to "Delete", server_path(server), method: :delete,
+      data: { turbo_confirm: "Delete this server and all its history?" },
+      class: "button -danger" %>
+</section>

@@ -149,4 +149,28 @@ class ServerTest < ActiveSupport::TestCase
     server.reload
     assert_equal false, server.ssl_verify
   end
+
+  test "broadcasts connection status when connected_at is set" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: nil)
+
+    assert_turbo_stream_broadcasts server do
+      server.update!(connected_at: Time.current)
+    end
+  end
+
+  test "broadcasts connection status when connected_at is cleared" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+
+    assert_turbo_stream_broadcasts server do
+      server.update!(connected_at: nil)
+    end
+  end
+
+  test "does not broadcast connection status when connected_at unchanged" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+
+    assert_no_turbo_stream_broadcasts server do
+      server.update!(address: "other.example.com")
+    end
+  end
 end

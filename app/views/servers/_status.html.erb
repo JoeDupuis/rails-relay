@@ -1,0 +1,8 @@
+<div class="status" id="<%= dom_id(server, :status) %>">
+  <% if server.connected? %>
+    <span class="indicator -connected">● Connected</span>
+    <span class="since">since <%= server.connected_at.strftime("%b %d %H:%M") %></span>
+  <% else %>
+    <span class="indicator -disconnected">○ Disconnected</span>
+  <% end %>
+</div>

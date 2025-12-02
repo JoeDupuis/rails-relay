@@ -1,0 +1,11 @@
+<div id="<%= dom_id(server, :join) %>">
+  <% if server.connected? %>
+    <section class="join">
+      <h2>Join Channel</h2>
+      <%= form_with url: server_channels_path(server), class: "form" do |f| %>
+        <%= f.text_field :name, name: "channel[name]", placeholder: "#channel", class: "field" %>
+        <%= f.submit "Join", class: "button -primary" %>
+      <% end %>
+    </section>
+  <% end %>
+</div>

@@ -147,4 +147,40 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_match /as.*<strong>joe_123<\/strong>/, response.body
   end
+
+  test "server page updates on connect event" do
+    server = @user.servers.create!(address: unique_address("connectevent"), nickname: "testnick", connected_at: nil)
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".indicator.-disconnected", text: /Disconnected/
+    assert_match /Connect/, response.body
+    refute_match /Join Channel/, response.body
+
+    IrcEventHandler.handle(server, { type: "connected", data: {} })
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".indicator.-connected", text: /Connected/
+    assert_match /Disconnect/, response.body
+    assert_match /Join Channel/, response.body
+  end
+
+  test "server page updates on disconnect event" do
+    server = @user.servers.create!(address: unique_address("disconnectevent"), nickname: "testnick", connected_at: Time.current)
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".indicator.-connected", text: /Connected/
+    assert_match /Disconnect/, response.body
+    assert_match /Join Channel/, response.body
+
+    IrcEventHandler.handle(server, { type: "disconnected", data: {} })
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".indicator.-disconnected", text: /Disconnected/
+    assert_match /Connect/, response.body
+    refute_match /Join Channel/, response.body
+  end
 end
