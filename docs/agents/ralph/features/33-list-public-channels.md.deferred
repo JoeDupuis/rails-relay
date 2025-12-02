@@ -1,3 +1,5 @@
+> **DEFERRED**: The yaic gem doesn't support LIST command events (322/323 numerics). This feature requires adding LIST support to yaic first.
+
 # List Public Channels
 
 ## Description
