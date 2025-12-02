@@ -60,6 +60,19 @@ class IrcEventHandler
 
   def handle_connected
     @server.update!(connected_at: Time.current)
+    auto_join_channels
+  end
+
+  def auto_join_channels
+    @server.channels.where(auto_join: true).find_each do |channel|
+      InternalApiClient.send_command(
+        server_id: @server.id,
+        command: "join",
+        params: { channel: channel.name }
+      )
+    rescue InternalApiClient::ServiceUnavailable, InternalApiClient::ConnectionNotFound => e
+      Rails.logger.error "Auto-join failed for #{channel.name}: #{e.message}"
+    end
   end
 
   def handle_disconnected

@@ -333,4 +333,25 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "form[action='#{channel_path(channel)}'][method='post'] input[name='_method'][value='delete']"
   end
+
+  test "PATCH /channels/:id updates auto_join" do
+    server = create_server
+    channel = create_channel(server, joined: true)
+    assert_equal false, channel.auto_join
+
+    patch channel_path(channel), params: { channel: { auto_join: true } }
+
+    assert_redirected_to channel_path(channel)
+    assert_equal true, channel.reload.auto_join
+  end
+
+  test "PATCH /channels/:id can disable auto_join" do
+    server = create_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true, auto_join: true)
+
+    patch channel_path(channel), params: { channel: { auto_join: false } }
+
+    assert_redirected_to channel_path(channel)
+    assert_equal false, channel.reload.auto_join
+  end
 end

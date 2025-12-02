@@ -160,4 +160,17 @@ class ChannelTest < ActiveSupport::TestCase
       server.destroy
     end
   end
+
+  test "auto_join defaults to false" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    assert_equal false, channel.auto_join
+  end
+
+  test "auto_join can be set to true" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", auto_join: false)
+    channel.update!(auto_join: true)
+    assert_equal true, channel.reload.auto_join
+  end
 end

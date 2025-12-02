@@ -8,7 +8,7 @@ Rails.application.routes.draw do
     resources :messages, only: [ :create ]
   end
 
-  resources :channels, only: [ :show, :destroy ] do
+  resources :channels, only: [ :show, :update, :destroy ] do
     resources :messages, only: [ :create ]
     resources :uploads, only: [ :create ]
   end

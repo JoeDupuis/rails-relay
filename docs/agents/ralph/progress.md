@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `23-channel-joined-state-reset` completed. Channel joined state is now reset on disconnect.
+Feature `24-auto-join-channels` completed. Channels can now be marked for auto-join on reconnect.
 
 ## Suggested Next Feature
 
-Start with `24-auto-join-channels.md` - Auto-rejoin channels on reconnect.
+Start with `25-connection-health-check.md` - Background job to detect stale connections.
 
 ## Pending Features
 
 ### Phase 8: Connection Reliability
-24. `24-auto-join-channels.md` - Auto-rejoin channels on reconnect
 25. `25-connection-health-check.md` - Background job to detect stale connections
 26. `26-message-send-failure-handling.md` - Handle message send failures gracefully
 
@@ -32,6 +31,7 @@ The application now has:
 - Media uploads
 - Nickname change sync
 - Channel joined state reset on disconnect
+- Auto-join channels on reconnect
 
 ---
 
@@ -677,3 +677,33 @@ The application now has:
 - Not-joined channels have `-not-joined` CSS variant class for styling
 - Message input is disabled when connected but not joined (shows placeholder text field)
 - When server disconnects, it also becomes not connected, so message form shows "Connect to server to send messages" message
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 24-auto-join-channels
+**Status**: Completed
+
+**What was done**:
+- Added migration for auto_join boolean column with default false
+- Updated IrcEventHandler#handle_connected to call auto_join_channels method
+- Added auto_join_channels method that queries channels with auto_join: true and sends JOIN commands
+- Added proper error handling (rescues ServiceUnavailable and ConnectionNotFound, logs errors)
+- Added update action to ChannelsController for toggling auto_join
+- Added auto_join to channel_params permitted attributes
+- Added update route for channels
+- Updated server view with auto-join badge and checkbox toggle for each channel
+- Updated channel view header with auto-join badge and toggle label
+- Added CSS for auto-join-badge and auto-join-form styling
+- Added 2 model tests for auto_join defaults and updates
+- Added 4 unit tests for IrcEventHandler auto-join behavior
+- Added 2 controller tests for PATCH auto_join update
+- Added 5 integration tests for complete auto-join flow
+- Passed QA review
+
+**Notes for next session**:
+- Auto-join happens after connected_at is updated in handle_connected
+- Uses find_each for memory efficiency when iterating channels
+- Checkbox uses onchange="this.form.requestSubmit()" for immediate toggle
+- System tests have pre-existing Ferrum::DeadBrowserError flakiness (environmental, not related to this feature)

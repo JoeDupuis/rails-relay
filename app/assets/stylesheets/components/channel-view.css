@@ -18,6 +18,30 @@
     font-size: var(--font-lg);
   }
 
+  & > .header > .auto-join-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: var(--font-xs);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: white;
+  }
+
+  & > .header > .auto-join-form {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  & > .header > .auto-join-form > .auto-join-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
   & > .header > .topic {
     color: var(--color-text-muted);
     flex: 1;

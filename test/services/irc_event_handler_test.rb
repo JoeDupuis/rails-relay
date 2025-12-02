@@ -1,4 +1,5 @@
 require "test_helper"
+require "webmock/minitest"
 
 class IrcEventHandlerTest < ActiveSupport::TestCase
   setup do
@@ -413,11 +414,53 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
   test "handle_connected sets connected_at" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
 
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202)
+
     event = { type: "connected" }
 
     IrcEventHandler.handle(server, event)
 
     assert_not_nil server.reload.connected_at
+  end
+
+  test "handle_connected sends JOIN for auto_join channels" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    Channel.create!(server: server, name: "#ruby", auto_join: true)
+    Channel.create!(server: server, name: "#python", auto_join: false)
+
+    join_request = stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .with(body: hash_including(command: "join", params: { channel: "#ruby" }))
+      .to_return(status: 202)
+
+    event = { type: "connected" }
+    IrcEventHandler.handle(server, event)
+
+    assert_requested join_request
+  end
+
+  test "handle_connected handles no auto_join channels" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    Channel.create!(server: server, name: "#ruby", auto_join: false)
+    Channel.create!(server: server, name: "#python", auto_join: false)
+
+    event = { type: "connected" }
+    IrcEventHandler.handle(server, event)
+
+    assert_not_requested :post, "#{Rails.configuration.irc_service_url}/internal/irc/commands"
+  end
+
+  test "handle_connected handles multiple auto_join channels" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    Channel.create!(server: server, name: "#ruby", auto_join: true)
+    Channel.create!(server: server, name: "#python", auto_join: true)
+    Channel.create!(server: server, name: "#elixir", auto_join: true)
+
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202)
+
+    event = { type: "connected" }
+    IrcEventHandler.handle(server, event)
+
+    assert_requested :post, "#{Rails.configuration.irc_service_url}/internal/irc/commands", times: 3
   end
 
   test "handle_disconnected clears connected_at" do

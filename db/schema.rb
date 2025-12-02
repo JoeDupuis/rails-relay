@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_030644) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_02_045723) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -50,6 +50,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_030644) do
   end
 
   create_table "channels", force: :cascade do |t|
+    t.boolean "auto_join", default: false, null: false
     t.datetime "created_at", null: false
     t.boolean "joined", default: false, null: false
     t.integer "last_read_message_id"

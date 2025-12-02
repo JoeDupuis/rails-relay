@@ -1,6 +1,6 @@
 class ChannelsController < ApplicationController
   before_action :set_server, only: [ :create ]
-  before_action :set_channel, only: [ :show, :destroy ]
+  before_action :set_channel, only: [ :show, :destroy, :update ]
 
   def show
     @channel.mark_as_read!
@@ -22,6 +22,11 @@ class ChannelsController < ApplicationController
     redirect_to @server, alert: "IRC service unavailable"
   rescue InternalApiClient::ConnectionNotFound
     redirect_to @server, alert: "Server not connected"
+  end
+
+  def update
+    @channel.update!(channel_params)
+    redirect_to @channel
   end
 
   def destroy
@@ -50,7 +55,7 @@ class ChannelsController < ApplicationController
   end
 
   def channel_params
-    params.require(:channel).permit(:name)
+    params.require(:channel).permit(:name, :auto_join)
   end
 
   def normalize_channel_name(name)
