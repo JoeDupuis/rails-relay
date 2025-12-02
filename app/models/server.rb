@@ -53,5 +53,8 @@ class Server < ApplicationRecord
     broadcast_replace_to(self, target: "status_server_#{id}", partial: "servers/status", locals: { server: self })
     broadcast_replace_to(self, target: "actions_server_#{id}", partial: "servers/actions", locals: { server: self })
     broadcast_replace_to(self, target: "join_server_#{id}", partial: "servers/join", locals: { server: self })
+
+    broadcast_replace_to(self, target: "flash_notice", html: "")
+    broadcast_replace_to(self, target: "flash_alert", html: "")
   end
 end

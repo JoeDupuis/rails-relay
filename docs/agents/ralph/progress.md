@@ -2,17 +2,16 @@
 
 ## Current State
 
-Feature `28-realtime-channel-joined-status` completed. Channel joined status changes now broadcast real-time UI updates to both channel and server views.
+Feature `29-dismiss-flash-on-status-change` completed. Flash messages ("Connecting...", "Disconnecting...") are now dismissed automatically when the connection status changes via Turbo Stream.
 
 ## Suggested Next Feature
 
-Start with `29-dismiss-flash-on-status-change.md` - Clear "Connecting..."/"Disconnecting..." flash on status change.
+Start with `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
 
-29. `29-dismiss-flash-on-status-change.md` - Clear "Connecting..."/"Disconnecting..." flash on status change
 31. `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live
 32. `32-channel-name-links-to-show.md` - Make channel names clickable links to show page
 33. `33-list-public-channels.md` - Browse and join public channels via IRC LIST command
@@ -814,3 +813,23 @@ The application now has:
 - CSS uses child selectors (`& > .element`), so Turbo target wrapper divs must have the appropriate class for styling
 - Banner partial conditionally renders either empty div (when joined) or styled div (when not joined) with same ID
 - Uses `ActionView::RecordIdentifier.dom_id` for consistent target IDs in model callbacks
+
+---
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 29-dismiss-flash-on-status-change
+**Status**: Completed
+
+**What was done**:
+- Updated application layout to wrap flash messages in divs with IDs (`flash_notice`, `flash_alert`) as Turbo Stream targets
+- Added flash clearing to `Server#broadcast_connection_status` using `broadcast_replace_to` with empty HTML
+- Added 2 integration tests for flash dismissal on connect/disconnect events
+- Added 1 system test for verifying flash disappears in browser after connection completes
+- Configured WebMock globally in `ApplicationSystemTestCase` to allow localhost (fixes system test conflicts)
+- Passed QA review
+
+**Notes for next session**:
+- Flash wrapper divs always exist (even when empty) so Turbo Streams always have a target
+- Using `broadcast_replace_to` with `html: ""` clears the flash content while keeping the target div
+- WebMock configuration in `ApplicationSystemTestCase` is `WebMock.disable_net_connect!(allow_localhost: true)` to allow Capybara to communicate with local Puma server while still blocking external HTTP requests

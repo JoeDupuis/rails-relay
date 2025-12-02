@@ -194,4 +194,28 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert_match /Connect/, response.body
     refute_match /Join Channel/, response.body
   end
+
+  test "flash is cleared when connection completes" do
+    server = @user.servers.create!(address: unique_address("flashconnect"), nickname: "testnick", connected_at: nil)
+
+    post server_connection_path(server)
+    follow_redirect!
+    assert_select "#flash_notice .notice", text: "Connecting..."
+
+    assert_turbo_stream_broadcasts(server) do
+      IrcEventHandler.handle(server, { type: "connected", data: {} })
+    end
+  end
+
+  test "flash is cleared when disconnection completes" do
+    server = @user.servers.create!(address: unique_address("flashdisconnect"), nickname: "testnick", connected_at: Time.current)
+
+    delete server_connection_path(server)
+    follow_redirect!
+    assert_select "#flash_notice .notice", text: "Disconnecting..."
+
+    assert_turbo_stream_broadcasts(server) do
+      IrcEventHandler.handle(server, { type: "disconnected", data: {} })
+    end
+  end
 end

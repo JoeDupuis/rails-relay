@@ -1,5 +1,8 @@
 require "test_helper"
 require "capybara/cuprite"
+require "webmock/minitest"
+
+WebMock.disable_net_connect!(allow_localhost: true)
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   Capybara.test_id = "data-qa"
