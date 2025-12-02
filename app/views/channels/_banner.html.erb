@@ -1,0 +1,7 @@
+<% if channel.joined %>
+  <div id="<%= dom_id(channel, :banner) %>"></div>
+<% else %>
+  <div class="not-joined-banner" id="<%= dom_id(channel, :banner) %>">
+    You are not in this channel. Join to send messages.
+  </div>
+<% end %>

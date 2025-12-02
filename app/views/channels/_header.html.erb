@@ -1,0 +1,21 @@
+<header class="header" id="<%= dom_id(channel, :header) %>">
+  <span class="name"><%= channel.name %></span>
+  <% if channel.auto_join %>
+    <span class="auto-join-badge">auto</span>
+  <% end %>
+  <%= form_with model: channel, class: "auto-join-form" do |f| %>
+    <label class="auto-join-toggle">
+      <%= f.check_box :auto_join, onchange: "this.form.requestSubmit()" %>
+      <span>Auto-join</span>
+    </label>
+  <% end %>
+  <span class="topic"><%= channel.topic %></span>
+  <% if channel.joined %>
+    <%= button_to "Leave", channel_path(channel), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{channel.name}?" } %>
+  <% else %>
+    <%= form_with url: server_channels_path(channel.server), class: "join-form" do |f| %>
+      <%= f.hidden_field :name, name: "channel[name]", value: channel.name %>
+      <%= f.submit "Join", class: "join" %>
+    <% end %>
+  <% end %>
+</header>

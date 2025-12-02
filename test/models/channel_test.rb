@@ -173,4 +173,31 @@ class ChannelTest < ActiveSupport::TestCase
     channel.update!(auto_join: true)
     assert_equal true, channel.reload.auto_join
   end
+
+  test "broadcasts joined status change to channel stream" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+
+    assert_turbo_stream_broadcasts channel do
+      channel.update!(joined: false)
+    end
+  end
+
+  test "broadcasts joined status change to server stream" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: false)
+
+    assert_turbo_stream_broadcasts server do
+      channel.update!(joined: true)
+    end
+  end
+
+  test "does not broadcast when joined is unchanged" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true, topic: "old")
+
+    assert_no_turbo_stream_broadcasts channel do
+      channel.update!(topic: "new topic")
+    end
+  end
 end

@@ -2,17 +2,16 @@
 
 ## Current State
 
-Feature `27-fix-kick-updates-joined-state` completed. Kick events now properly update channel joined status.
+Feature `28-realtime-channel-joined-status` completed. Channel joined status changes now broadcast real-time UI updates to both channel and server views.
 
 ## Suggested Next Feature
 
-Start with `28-realtime-channel-joined-status.md` - Real-time UI updates when channel joined status changes (depends on 27 which is now complete).
+Start with `29-dismiss-flash-on-status-change.md` - Clear "Connecting..."/"Disconnecting..." flash on status change.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
 
-28. `28-realtime-channel-joined-status.md` - Real-time UI updates when channel joined status changes
 29. `29-dismiss-flash-on-status-change.md` - Clear "Connecting..."/"Disconnecting..." flash on status change
 31. `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live
 32. `32-channel-name-links-to-show.md` - Make channel names clickable links to show page
@@ -48,6 +47,7 @@ The application now has:
 - Connection health check (detects stale connections)
 - Message send failure handling (graceful error recovery)
 - Kick event updates channel joined status
+- Real-time channel joined status updates (broadcasts UI changes)
 
 ---
 
@@ -791,3 +791,26 @@ The application now has:
 **Notes for next session**:
 - Next feature is `28-realtime-channel-joined-status.md` which depends on this fix
 - The fix mirrors existing behavior in `handle_part` when source_nick matches server nickname
+
+---
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 28-realtime-channel-joined-status
+**Status**: Completed
+
+**What was done**:
+- Added `Turbo::Broadcastable` include and `after_update_commit :broadcast_joined_status` callback to Channel model
+- Created `broadcast_joined_status` private method that broadcasts to 4 targets (header, banner, input on channel stream; channels on server stream)
+- Extracted channel show page into partials: `_header.html.erb`, `_banner.html.erb`, `_input.html.erb` with Turbo target IDs
+- Extracted server channels list into `_channels.html.erb` partial with Turbo target ID
+- Updated channel show view and server show view to use the new partials
+- Fixed banner partial to avoid breaking CSS child selector (`& > .not-joined-banner`)
+- Added 3 model tests for broadcast behavior (to channel stream, to server stream, no broadcast when unchanged)
+- Added 4 integration tests for real-time updates via IrcEventHandler
+- Passed QA review
+
+**Notes for next session**:
+- CSS uses child selectors (`& > .element`), so Turbo target wrapper divs must have the appropriate class for styling
+- Banner partial conditionally renders either empty div (when joined) or styled div (when not joined) with same ID
+- Uses `ActionView::RecordIdentifier.dom_id` for consistent target IDs in model callbacks
