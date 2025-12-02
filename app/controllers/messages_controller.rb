@@ -26,6 +26,8 @@ class MessagesController < ApplicationController
       send_message(@channel || params[:target], content)
     end
 
+    return if performed?
+
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_back fallback_location: @channel || @server }
@@ -46,6 +48,8 @@ class MessagesController < ApplicationController
   def send_message(target, content)
     target_name = target.is_a?(Channel) ? target.name : target
 
+    return unless send_irc_command("privmsg", target: target_name, message: content)
+
     @message = Message.create!(
       server: @server,
       channel: target.is_a?(Channel) ? target : nil,
@@ -54,12 +58,12 @@ class MessagesController < ApplicationController
       content: content,
       message_type: "privmsg"
     )
-
-    send_irc_command("privmsg", target: target_name, message: content)
   end
 
   def send_irc_action(target, action_text)
     target_name = target.is_a?(Channel) ? target.name : target
+
+    return unless send_irc_command("action", target: target_name, message: action_text)
 
     @message = Message.create!(
       server: @server,
@@ -69,11 +73,11 @@ class MessagesController < ApplicationController
       content: action_text,
       message_type: "action"
     )
-
-    send_irc_command("action", target: target_name, message: action_text)
   end
 
   def send_pm(nick, content)
+    return unless send_irc_command("privmsg", target: nick, message: content)
+
     @message = Message.create!(
       server: @server,
       channel: nil,
@@ -82,8 +86,6 @@ class MessagesController < ApplicationController
       content: content,
       message_type: "privmsg"
     )
-
-    send_irc_command("privmsg", target: nick, message: content)
   end
 
   def send_notice(target, content)
@@ -108,7 +110,8 @@ class MessagesController < ApplicationController
     )
     redirect_to @server
   rescue InternalApiClient::ConnectionNotFound
-    flash[:alert] = "Server not connected"
+    @server.mark_disconnected!
+    flash[:alert] = "Connection lost"
     redirect_to @server
   rescue InternalApiClient::ServiceUnavailable
     flash[:alert] = "IRC service unavailable"
@@ -121,9 +124,15 @@ class MessagesController < ApplicationController
       command: command,
       params: params
     )
+    true
   rescue InternalApiClient::ConnectionNotFound
-    flash[:alert] = "Server not connected"
+    @server.mark_disconnected!
+    flash[:alert] = "Connection lost"
+    redirect_to @server
+    false
   rescue InternalApiClient::ServiceUnavailable
     flash[:alert] = "IRC service unavailable"
+    redirect_back fallback_location: @channel || @server
+    false
   end
 end

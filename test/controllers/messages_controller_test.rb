@@ -186,32 +186,66 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Unknown command", response.body
   end
 
-  test "POST when server not connected shows error but creates message" do
+  test "POST when server not connected does not create message" do
     server = create_server
     channel = create_channel(server)
     WebMock.reset!
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
       .to_return(status: 404, body: "", headers: {})
 
-    assert_difference -> { Message.count } do
+    assert_no_difference -> { Message.count } do
       post channel_messages_path(channel), params: { content: "Hello world" }
     end
 
-    follow_redirect!
-    assert_match "not connected", response.body
+    assert_redirected_to server_path(server)
   end
 
-  test "POST when IRC service unavailable shows error but creates message" do
+  test "POST when server not connected marks server as disconnected" do
+    server = create_server
+    channel = create_channel(server)
+    channel2 = create_channel(server, name: "#test")
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 404, body: "", headers: {})
+
+    assert server.connected?
+
+    post channel_messages_path(channel), params: { content: "Hello world" }
+
+    server.reload
+    assert_not server.connected?
+    assert_not channel.reload.joined
+    assert_not channel2.reload.joined
+    assert_redirected_to server_path(server)
+    follow_redirect!
+    assert_match "Connection lost", response.body
+  end
+
+  test "POST when IRC service unavailable does not create message" do
     server = create_server
     channel = create_channel(server)
     WebMock.reset!
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
       .to_raise(Errno::ECONNREFUSED)
 
-    assert_difference -> { Message.count } do
+    assert_no_difference -> { Message.count } do
       post channel_messages_path(channel), params: { content: "Hello world" }
     end
+  end
 
+  test "POST when IRC service unavailable does not disconnect server" do
+    server = create_server
+    channel = create_channel(server)
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_raise(Errno::ECONNREFUSED)
+
+    assert server.connected?
+
+    post channel_messages_path(channel), params: { content: "Hello world" }
+
+    server.reload
+    assert server.connected?
     follow_redirect!
     assert_match "service unavailable", response.body
   end

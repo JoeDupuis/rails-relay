@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `25-connection-health-check` completed. Background job now detects and cleans up stale connections.
+Feature `26-message-send-failure-handling` completed. Message send failures are now handled gracefully.
 
 ## Suggested Next Feature
 
-Start with `26-message-send-failure-handling.md` - Handle message send failures gracefully.
+All planned features have been completed! The application is feature-complete.
 
 ## Pending Features
 
-### Phase 8: Connection Reliability
-26. `26-message-send-failure-handling.md` - Handle message send failures gracefully
+None - all features completed.
 
 ---
 
@@ -32,6 +31,7 @@ The application now has:
 - Channel joined state reset on disconnect
 - Auto-join channels on reconnect
 - Connection health check (detects stale connections)
+- Message send failure handling (graceful error recovery)
 
 ---
 
@@ -732,3 +732,27 @@ The application now has:
 - Use `stub` method instead of `instance_variable_get` for testing (per conventions)
 - The job uses `find_each` for memory efficiency when iterating servers
 - ServiceUnavailable is caught and results in empty connections list (marks all as stale)
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 26-message-send-failure-handling
+**Status**: Completed
+
+**What was done**:
+- Added `Server#mark_disconnected!` method that encapsulates disconnect logic in a transaction
+- Updated `IrcEventHandler#handle_disconnected` to use the new method
+- Refactored `MessagesController#send_irc_command` to return true/false for success/failure
+- Updated `send_message`, `send_irc_action`, `send_pm` to send IRC command FIRST, then create message only on success
+- On ConnectionNotFound (404): mark server disconnected, show "Connection lost" flash, redirect to server
+- On ServiceUnavailable: show error, redirect back without disconnecting server
+- Added 4 model tests for `mark_disconnected!`
+- Updated 2 controller tests and added 2 new ones for error handling
+- Added 2 integration tests for complete flow
+- Passed QA review
+
+**Notes for next session**:
+- All planned features are now complete!
+- `Server#mark_disconnected!` wraps all disconnect logic in a transaction for consistency
+- `send_irc_command` returns boolean - this allows clean early returns without exceptions

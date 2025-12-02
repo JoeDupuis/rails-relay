@@ -173,4 +173,46 @@ class ServerTest < ActiveSupport::TestCase
       server.update!(address: "other.example.com")
     end
   end
+
+  test "mark_disconnected! clears connected_at" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+    assert server.connected?
+
+    server.mark_disconnected!
+
+    assert_nil server.connected_at
+    assert_not server.connected?
+  end
+
+  test "mark_disconnected! sets all channels to not joined" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+    channel1 = server.channels.create!(name: "#test1", joined: true)
+    channel2 = server.channels.create!(name: "#test2", joined: true)
+
+    server.mark_disconnected!
+
+    assert_not channel1.reload.joined
+    assert_not channel2.reload.joined
+  end
+
+  test "mark_disconnected! deletes all channel users" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+    channel = server.channels.create!(name: "#test", joined: true)
+    channel.channel_users.create!(nickname: "user1")
+    channel.channel_users.create!(nickname: "user2")
+
+    assert_equal 2, channel.channel_users.count
+
+    server.mark_disconnected!
+
+    assert_equal 0, channel.channel_users.count
+  end
+
+  test "mark_disconnected! broadcasts connection status change" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+
+    assert_turbo_stream_broadcasts server do
+      server.mark_disconnected!
+    end
+  end
 end

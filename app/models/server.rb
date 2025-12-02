@@ -22,6 +22,14 @@ class Server < ApplicationRecord
     connected_at.present?
   end
 
+  def mark_disconnected!
+    transaction do
+      update!(connected_at: nil)
+      channels.update_all(joined: false)
+      ChannelUser.joins(:channel).where(channels: { server_id: id }).delete_all
+    end
+  end
+
   private
 
   def set_defaults

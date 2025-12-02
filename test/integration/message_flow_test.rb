@@ -79,4 +79,43 @@ class MessageFlowTest < ActionDispatch::IntegrationTest
         body["params"]["message"] == "Hey there!"
     end
   end
+
+  test "message send failure redirects to server and shows disconnected" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel2 = Channel.create!(server: server, name: "#test", joined: true)
+
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 404, body: "", headers: {})
+
+    post channel_messages_path(channel), params: { content: "Hello" }
+
+    assert_redirected_to server_path(server)
+    follow_redirect!
+
+    assert_match "Connection lost", response.body
+
+    server.reload
+    assert_not server.connected?
+    assert_not channel.reload.joined
+    assert_not channel2.reload.joined
+  end
+
+  test "successful message send creates message and appears in UI" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+
+    assert_difference -> { Message.count }, 1 do
+      post channel_messages_path(channel), params: { content: "Hello world" },
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    end
+
+    assert_response :ok
+    assert_includes response.content_type, "turbo-stream"
+
+    message = Message.last
+    assert_equal "Hello world", message.content
+    assert_equal channel, message.channel
+  end
 end
