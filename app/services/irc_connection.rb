@@ -168,9 +168,20 @@ class IrcConnection
   end
 
   def serialize_names_event(event)
+    names = event.users.map do |nick, modes|
+      prefix = if modes.include?(:op)
+        "@"
+      elsif modes.include?(:voice)
+        "+"
+      else
+        ""
+      end
+      "#{prefix}#{nick}"
+    end
+
     {
       channel: event.channel,
-      names: event.users
+      names: names
     }
   end
 end
