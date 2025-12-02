@@ -2,11 +2,11 @@
 
 ## Current State
 
-Feature `34-connection-timeouts` completed. Connection timeout handling verified with tests.
+Feature `36-nick-change-live-update` completed. All Phase 8 features are now done (except deferred #33).
 
 ## Suggested Next Feature
 
-Start with `36-nick-change-live-update.md` - verify nickname changes update UI in real-time.
+No more features pending. Phase 8 is complete.
 
 ## Pending Features
 
@@ -15,7 +15,7 @@ Start with `36-nick-change-live-update.md` - verify nickname changes update UI i
 33. `33-list-public-channels.md.deferred` - DEFERRED (requires yaic LIST support)
 34. `34-connection-timeouts.md.done` - COMPLETED
 35. `35-fix-kick-message-format.md.done` - COMPLETED
-36. `36-nick-change-live-update.md` - Verify nickname changes update UI in real-time
+36. `36-nick-change-live-update.md.done` - COMPLETED
 
 ---
 
@@ -40,6 +40,7 @@ The application now has:
 - Kick event updates channel joined status
 - Real-time channel joined status updates (broadcasts UI changes)
 - Connection timeout handling (graceful recovery on connect timeout)
+- Nick change live update (real-time nickname updates in UI)
 
 ---
 
@@ -78,6 +79,27 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 36-nick-change-live-update
+**Status**: Completed
+
+**What was done**:
+- Verified existing `broadcast_nickname_change` callback in Server model works correctly
+- Added 2 model tests for nickname broadcast behavior (broadcasts on change, no broadcast when unchanged)
+- Added 1 integration test for Turbo Stream broadcast via IrcEventHandler
+- Added 1 system test verifying real-time nickname update in browser
+- All tests pass (409 unit tests, 20 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- All Phase 8 features are complete (except deferred #33 which requires yaic LIST support)
+- The nickname is only displayed on the server show page
+- Sidebar shows server address, header shows user email (neither shows IRC nickname)
+- Existing broadcast implementation was already correct, just needed test coverage
+
+---
 
 ### Session 2025-12-02 (continued)
 

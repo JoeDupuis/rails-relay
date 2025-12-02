@@ -236,4 +236,15 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select ".channels .row a.name[href='#{channel_path(channel)}']", text: "#ruby"
   end
+
+  test "nickname broadcasts Turbo Stream update when changed" do
+    server = @user.servers.create!(address: unique_address("nickbroadcast"), nickname: "joe", connected_at: Time.current)
+
+    assert_turbo_stream_broadcasts server do
+      IrcEventHandler.handle(server, {
+        type: "nick",
+        data: { source: "joe!joe@host", new_nick: "joe_" }
+      })
+    end
+  end
 end

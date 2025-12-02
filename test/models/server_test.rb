@@ -215,4 +215,20 @@ class ServerTest < ActiveSupport::TestCase
       server.mark_disconnected!
     end
   end
+
+  test "broadcasts nickname change when nickname is updated" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "oldnick")
+
+    assert_turbo_stream_broadcasts server do
+      server.update!(nickname: "newnick")
+    end
+  end
+
+  test "does not broadcast nickname change when nickname unchanged" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+
+    assert_no_turbo_stream_broadcasts server do
+      server.update!(address: "other.example.com")
+    end
+  end
 end
