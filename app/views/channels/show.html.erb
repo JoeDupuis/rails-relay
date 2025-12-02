@@ -18,7 +18,7 @@
       <%= button_to "Leave", channel_path(@channel), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{@channel.name}?" } %>
     <% else %>
       <%= form_with url: server_channels_path(@channel.server), class: "join-form" do |f| %>
-        <%= f.hidden_field :name, value: @channel.name %>
+        <%= f.hidden_field :name, name: "channel[name]", value: @channel.name %>
         <%= f.submit "Join", class: "join" %>
       <% end %>
     <% end %>

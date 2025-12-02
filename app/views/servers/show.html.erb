@@ -41,7 +41,7 @@
                   <%= f.check_box :auto_join, onchange: "this.form.requestSubmit()" %>
                 <% end %>
                 <%= form_with url: server_channels_path(@server), class: "inline-form" do |f| %>
-                  <%= f.hidden_field :name, value: channel.name %>
+                  <%= f.hidden_field :name, name: "channel[name]", value: channel.name %>
                   <%= f.submit "Join", class: "link" %>
                 <% end %>
                 <%= button_to "Remove", channel_path(channel), method: :delete, class: "link -danger" %>
