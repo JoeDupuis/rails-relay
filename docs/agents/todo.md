@@ -5,3 +5,6 @@
 - nick doesnt get updated
 - Channels dont get rejoined (auto join feature)
 - make INTERNAL_API_SECRET optional in dev
+- no live update on other joining/leaving a channel
+- No live update on connecting and no indication of anything going bad if it gets stuck
+- reconnecting to a server I see that I am still in a channel even though I am not. We need to fix the sync with the backend client
