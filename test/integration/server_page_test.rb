@@ -218,4 +218,22 @@ class ServerPageTest < ActionDispatch::IntegrationTest
       IrcEventHandler.handle(server, { type: "disconnected", data: {} })
     end
   end
+
+  test "channel name links to channel show page" do
+    server = @user.servers.create!(address: unique_address("chanlink"), nickname: "testnick", connected_at: Time.current)
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".channels .row a.name[href='#{channel_path(channel)}']", text: "#ruby"
+  end
+
+  test "channel name links to show even when not joined" do
+    server = @user.servers.create!(address: unique_address("chanlinknotjoined"), nickname: "testnick", connected_at: Time.current)
+    channel = Channel.create!(server: server, name: "#ruby", joined: false)
+
+    get server_path(server)
+    assert_response :ok
+    assert_select ".channels .row a.name[href='#{channel_path(channel)}']", text: "#ruby"
+  end
 end

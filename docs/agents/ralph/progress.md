@@ -2,17 +2,16 @@
 
 ## Current State
 
-Feature `31-verify-user-list-live-updates` completed. Investigation confirmed the implementation is correct - no bug was found. Added missing test for quit events.
+Feature `32-channel-name-links-to-show` completed. Channel names on server page are now clickable links to the channel show page.
 
 ## Suggested Next Feature
 
-Start with `32-channel-name-links-to-show.md` - Make channel names clickable links to show page.
+Start with `33-list-public-channels.md` - Browse and join public channels via IRC LIST command. Note: May require yaic changes.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
 
-32. `32-channel-name-links-to-show.md` - Make channel names clickable links to show page
 33. `33-list-public-channels.md` - Browse and join public channels via IRC LIST command
 34. `34-connection-timeouts.md` - Verify timeout handling works correctly
 35. `35-fix-kick-message-format.md` - Fix kick message display format
@@ -82,6 +81,24 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 32-channel-name-links-to-show
+**Status**: Completed
+
+**What was done**:
+- Changed channel name from `<span>` to `<%= link_to %>` in servers/_channels.html.erb
+- Added 2 integration tests for link presence (joined and not-joined states)
+- Added 1 system test for click navigation behavior
+- All tests pass (402 unit tests, 19 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- Simple UI change - channel name is now a clickable link to channel show page
+- The "View" button is still present for joined channels (link on name is additional)
+
+---
 
 ### Session 2025-12-02 (continued)
 
