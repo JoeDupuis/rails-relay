@@ -237,4 +237,59 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal msg2.id, channel.reload.last_read_message_id
   end
+
+  test "POST /servers/:server_id/channels with # prefix works" do
+    server = create_server
+
+    post server_channels_path(server), params: { channel: { name: "#test" } }
+
+    channel = Channel.find_by(name: "#test")
+    assert channel, "Channel should be created with name #test"
+    assert_redirected_to channel_path(channel)
+  end
+
+  test "POST /servers/:server_id/channels without # prefix prepends #" do
+    server = create_server
+
+    post server_channels_path(server), params: { channel: { name: "test" } }
+
+    channel = Channel.find_by(name: "#test")
+    assert channel, "Channel should be created with name #test"
+    assert_redirected_to channel_path(channel)
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "join" && body["params"]["channel"] == "#test"
+    end
+  end
+
+  test "POST /servers/:server_id/channels with & prefix works" do
+    server = create_server
+
+    post server_channels_path(server), params: { channel: { name: "&local" } }
+
+    channel = Channel.find_by(name: "&local")
+    assert channel, "Channel should be created with name &local"
+    assert_redirected_to channel_path(channel)
+  end
+
+  test "POST /servers/:server_id/channels with whitespace is trimmed" do
+    server = create_server
+
+    post server_channels_path(server), params: { channel: { name: "  #test  " } }
+
+    channel = Channel.find_by(name: "#test")
+    assert channel, "Channel should be created with name #test (trimmed)"
+    assert_redirected_to channel_path(channel)
+  end
+
+  test "POST /servers/:server_id/channels without prefix and with whitespace" do
+    server = create_server
+
+    post server_channels_path(server), params: { channel: { name: "  test  " } }
+
+    channel = Channel.find_by(name: "#test")
+    assert channel, "Channel should be created with name #test (trimmed and prefixed)"
+    assert_redirected_to channel_path(channel)
+  end
 end

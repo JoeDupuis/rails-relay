@@ -196,4 +196,27 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     assert_not channel.channel_users.exists?(nickname: "user1")
     assert channel.channel_users.exists?(nickname: "user2")
   end
+
+  test "user joins channel without typing #" do
+    server = create_connected_server
+
+    get server_path(server)
+    assert_response :ok
+    assert_select "input[name='channel[name]']"
+
+    post server_channels_path(server), params: { channel: { name: "general" } }
+
+    channel = Channel.find_by(name: "#general")
+    assert channel, "Channel should be created with name #general"
+    assert_redirected_to channel_path(channel)
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
+      body = JSON.parse(req.body)
+      body["command"] == "join" && body["params"]["channel"] == "#general"
+    end
+
+    follow_redirect!
+    assert_response :ok
+    assert_match "#general", response.body
+  end
 end

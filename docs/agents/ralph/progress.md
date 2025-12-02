@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `21-realtime-connection-status` completed. Connection reliability improvements continue.
+Feature `22-channel-join-prefix` completed. Users can now join channels with or without the # prefix.
 
 ## Suggested Next Feature
 
-Start with `22-channel-join-prefix.md` - Handle channel names with or without # prefix.
+Start with `23-channel-joined-state-reset.md` - Reset channel joined state on disconnect.
 
 ## Pending Features
 
 ### Phase 8: Connection Reliability
-22. `22-channel-join-prefix.md` - Handle channel names with or without # prefix
 23. `23-channel-joined-state-reset.md` - Reset channel joined state on disconnect
 24. `24-auto-join-channels.md` - Auto-rejoin channels on reconnect
 25. `25-connection-health-check.md` - Background job to detect stale connections
@@ -629,3 +628,22 @@ The application now has:
 - The server show view already had `turbo_stream_from @server` subscription
 - Partials use `dom_id(server, :prefix)` helper for consistent target IDs
 - The `broadcast_replace_to` method broadcasts to `self` (server) stream with partials
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 22-channel-join-prefix
+**Status**: Completed
+
+**What was done**:
+- Added `normalize_channel_name` private method to ChannelsController
+- Method strips leading/trailing whitespace and prepends `#` if name doesn't start with `#` or `&`
+- Updated `create` action to call `normalize_channel_name` before `find_or_initialize_by`
+- Added 5 controller tests covering all spec test cases
+- Added 1 integration test for user flow
+- Passed QA review
+
+**Notes for next session**:
+- The normalization happens in the controller (not model) to keep validation strict
+- `&` prefix is preserved for IRC local channels

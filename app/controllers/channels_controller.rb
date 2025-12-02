@@ -8,7 +8,7 @@ class ChannelsController < ApplicationController
   end
 
   def create
-    @channel = @server.channels.find_or_initialize_by(name: channel_params[:name])
+    @channel = @server.channels.find_or_initialize_by(name: normalize_channel_name(channel_params[:name]))
 
     InternalApiClient.send_command(
       server_id: @server.id,
@@ -51,5 +51,10 @@ class ChannelsController < ApplicationController
 
   def channel_params
     params.require(:channel).permit(:name)
+  end
+
+  def normalize_channel_name(name)
+    name = name.strip
+    name.start_with?("#", "&") ? name : "##{name}"
   end
 end
