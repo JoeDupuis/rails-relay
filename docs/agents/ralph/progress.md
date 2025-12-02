@@ -2,17 +2,16 @@
 
 ## Current State
 
-Feature `26-message-send-failure-handling` completed. New bug fix and enhancement features added.
+Feature `27-fix-kick-updates-joined-state` completed. Kick events now properly update channel joined status.
 
 ## Suggested Next Feature
 
-Start with `27-fix-kick-updates-joined-state.md` - Critical bug fix where getting kicked doesn't update channel joined status.
+Start with `28-realtime-channel-joined-status.md` - Real-time UI updates when channel joined status changes (depends on 27 which is now complete).
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
 
-27. `27-fix-kick-updates-joined-state.md` - Fix: kicked user's channel joined status not updated
 28. `28-realtime-channel-joined-status.md` - Real-time UI updates when channel joined status changes
 29. `29-dismiss-flash-on-status-change.md` - Clear "Connecting..."/"Disconnecting..." flash on status change
 31. `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live
@@ -24,7 +23,6 @@ Start with `27-fix-kick-updates-joined-state.md` - Critical bug fix where gettin
 
 ### Dependencies
 
-- 28 depends on 27 (kick must update joined status first)
 - 31 may require yaic changes (use AskUserQuestion if so)
 - 33 may require yaic changes (use AskUserQuestion if so)
 - 36 depends on 31 (may share Turbo Stream fixes)
@@ -49,6 +47,7 @@ The application now has:
 - Auto-join channels on reconnect
 - Connection health check (detects stale connections)
 - Message send failure handling (graceful error recovery)
+- Kick event updates channel joined status
 
 ---
 
@@ -773,3 +772,22 @@ The application now has:
 - All planned features are now complete!
 - `Server#mark_disconnected!` wraps all disconnect logic in a transaction for consistency
 - `send_irc_command` returns boolean - this allows clean early returns without exceptions
+
+---
+
+### Session 2025-12-02
+
+**Feature**: 27-fix-kick-updates-joined-state
+**Status**: Completed
+
+**What was done**:
+- Updated `IrcEventHandler#handle_kick` to check if kicked user is server's own nickname
+- When we are kicked: set `channel.joined = false` and clear all channel_users with `destroy_all`
+- Used `casecmp?` for case-insensitive nickname comparison (IRC nicknames are case-insensitive)
+- Added 3 unit tests for handle_kick behavior
+- Added 1 integration test for kick updating channel view
+- Passed QA review
+
+**Notes for next session**:
+- Next feature is `28-realtime-channel-joined-status.md` which depends on this fix
+- The fix mirrors existing behavior in `handle_part` when source_nick matches server nickname

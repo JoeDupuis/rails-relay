@@ -199,7 +199,13 @@ class IrcEventHandler
     return unless channel
 
     kicked_nick = data[:kicked]
-    channel.channel_users.find_by(nickname: kicked_nick)&.destroy
+
+    if kicked_nick.casecmp?(@server.nickname)
+      channel.update!(joined: false)
+      channel.channel_users.destroy_all
+    else
+      channel.channel_users.find_by(nickname: kicked_nick)&.destroy
+    end
 
     Message.create!(
       server: @server,

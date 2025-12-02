@@ -267,4 +267,34 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     assert_match "not in this channel", response.body
     assert_select "form[action='#{server_channels_path(server)}'] input[value='Join']"
   end
+
+  test "getting kicked updates channel joined state" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "testnick")
+    channel.channel_users.create!(nickname: "otheruser")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: {
+        type: "kick",
+        data: {
+          source: "op!op@host",
+          target: "#ruby",
+          kicked: "testnick",
+          text: "Bye"
+        }
+      }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    channel.reload
+    assert_not channel.joined
+    assert_equal 0, channel.channel_users.count
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_match "not in this channel", response.body
+    assert_select "form[action='#{server_channels_path(server)}'] input[value='Join']"
+  end
 end

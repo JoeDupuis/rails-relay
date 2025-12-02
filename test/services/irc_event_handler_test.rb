@@ -242,6 +242,74 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert_includes message.content, "baduser was kicked"
   end
 
+  test "handle_kick marks channel as not joined when we are kicked" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testuser")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "testuser")
+    channel.channel_users.create!(nickname: "otheruser")
+
+    event = {
+      type: "kick",
+      data: {
+        source: "op!op@host",
+        target: "#ruby",
+        kicked: "testuser",
+        text: "Bye"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    channel.reload
+    assert_not channel.joined
+    assert_equal 0, channel.channel_users.count
+  end
+
+  test "handle_kick marks channel as not joined case-insensitively" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "TestUser")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "TestUser")
+
+    event = {
+      type: "kick",
+      data: {
+        source: "op!op@host",
+        target: "#ruby",
+        kicked: "TESTUSER",
+        text: "Bye"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    channel.reload
+    assert_not channel.joined
+  end
+
+  test "handle_kick only removes channel_user when someone else is kicked" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testuser")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "other")
+    channel.channel_users.create!(nickname: "testuser")
+
+    event = {
+      type: "kick",
+      data: {
+        source: "op!op@host",
+        target: "#ruby",
+        kicked: "other",
+        text: "Bye"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    channel.reload
+    assert channel.joined
+    assert_equal 1, channel.channel_users.count
+    assert channel.channel_users.exists?(nickname: "testuser")
+  end
+
   test "handle_nick updates user in all channels" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel1 = Channel.create!(server: server, name: "#ruby", joined: true)
