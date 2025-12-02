@@ -64,6 +64,8 @@ class IrcEventHandler
 
   def handle_disconnected
     @server.update!(connected_at: nil)
+    @server.channels.update_all(joined: false)
+    ChannelUser.joins(:channel).where(channels: { server_id: @server.id }).delete_all
   end
 
   def handle_message

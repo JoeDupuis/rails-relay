@@ -1,4 +1,4 @@
-<% if channel.server.connected? %>
+<% if channel.server.connected? && channel.joined %>
   <%= form_with url: channel_messages_path(channel),
       class: "message-input",
       data: {
@@ -20,6 +20,10 @@
     </label>
     <%= f.submit "Send", class: "submit" %>
   <% end %>
+<% elsif channel.server.connected? && !channel.joined %>
+  <div class="message-input">
+    <%= text_field_tag :content, nil, placeholder: "Message #{channel.name}", class: "field", disabled: true %>
+  </div>
 <% else %>
   <div class="message-input">
     <span class="disabled">Connect to server to send messages.</span>

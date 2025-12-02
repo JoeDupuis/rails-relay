@@ -429,4 +429,36 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
 
     assert_nil server.reload.connected_at
   end
+
+  test "handle_disconnected resets all channel joined status" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+    channel1 = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel2 = Channel.create!(server: server, name: "#python", joined: true)
+    channel3 = Channel.create!(server: server, name: "#elixir", joined: true)
+
+    event = { type: "disconnected" }
+
+    IrcEventHandler.handle(server, event)
+
+    assert_not channel1.reload.joined
+    assert_not channel2.reload.joined
+    assert_not channel3.reload.joined
+  end
+
+  test "handle_disconnected clears all channel users" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+    channel1 = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel2 = Channel.create!(server: server, name: "#python", joined: true)
+    5.times { |i| channel1.channel_users.create!(nickname: "user#{i}") }
+    5.times { |i| channel2.channel_users.create!(nickname: "other#{i}") }
+
+    event = { type: "disconnected" }
+
+    assert_difference "ChannelUser.count", -10 do
+      IrcEventHandler.handle(server, event)
+    end
+
+    assert_equal 0, channel1.channel_users.count
+    assert_equal 0, channel2.channel_users.count
+  end
 end

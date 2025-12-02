@@ -292,4 +292,45 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
     assert channel, "Channel should be created with name #test (trimmed and prefixed)"
     assert_redirected_to channel_path(channel)
   end
+
+  test "GET /channels/:id when not joined shows disabled input" do
+    server = create_server
+    channel = create_channel(server, joined: false)
+
+    get channel_path(channel)
+
+    assert_response :ok
+    assert_select ".message-input .field[disabled]"
+  end
+
+  test "GET /channels/:id when not joined shows not in channel message" do
+    server = create_server
+    channel = create_channel(server, joined: false)
+
+    get channel_path(channel)
+
+    assert_response :ok
+    assert_match "not in this channel", response.body
+  end
+
+  test "GET /channels/:id when not joined shows Join button" do
+    server = create_server
+    channel = create_channel(server, joined: false)
+
+    get channel_path(channel)
+
+    assert_response :ok
+    assert_select "form[action='#{server_channels_path(server)}'] input[value='Join']"
+    assert_select "form[action='#{channel_path(channel)}'][method='post'] input[name='_method'][value='delete']", count: 0
+  end
+
+  test "GET /channels/:id when joined shows Leave button" do
+    server = create_server
+    channel = create_channel(server, joined: true)
+
+    get channel_path(channel)
+
+    assert_response :ok
+    assert_select "form[action='#{channel_path(channel)}'][method='post'] input[name='_method'][value='delete']"
+  end
 end

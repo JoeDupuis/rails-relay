@@ -219,4 +219,52 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_match "#general", response.body
   end
+
+  test "disconnect resets channel state" do
+    server = create_connected_server
+    channel1 = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel2 = Channel.create!(server: server, name: "#python", joined: true)
+    channel1.channel_users.create!(nickname: "user1")
+    channel1.channel_users.create!(nickname: "user2")
+    channel2.channel_users.create!(nickname: "user3")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: { type: "disconnected" }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    assert_not channel1.reload.joined
+    assert_not channel2.reload.joined
+    assert_equal 0, channel1.channel_users.count
+    assert_equal 0, channel2.channel_users.count
+  end
+
+  test "channel view after disconnect shows not-joined state" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel.channel_users.create!(nickname: "user1")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: { type: "disconnected" }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_match "not in this channel", response.body
+    assert_select "form[action='#{server_channels_path(server)}'] input[value='Join']"
+  end
+
+  test "channel view when not joined but connected shows disabled input" do
+    server = create_connected_server
+    channel = Channel.create!(server: server, name: "#ruby", joined: false)
+
+    get channel_path(channel)
+    assert_response :ok
+    assert_select ".message-input .field[disabled]"
+    assert_match "not in this channel", response.body
+    assert_select "form[action='#{server_channels_path(server)}'] input[value='Join']"
+  end
 end

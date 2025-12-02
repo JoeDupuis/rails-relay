@@ -89,7 +89,7 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert_select ".row .users", text: /1/
   end
 
-  test "server page hides parted channels" do
+  test "server page shows not-joined channels differently" do
     server = @user.servers.create!(address: unique_address("parted"), nickname: "testnick", connected_at: Time.current)
     Channel.create!(server: server, name: "#active", joined: true)
     Channel.create!(server: server, name: "#inactive", joined: false)
@@ -98,7 +98,18 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     assert_response :ok
 
     assert_select ".channels .row .name", text: "#active"
-    assert_select ".channels .row .name", text: "#inactive", count: 0
+    assert_select ".channels .row .name", text: "#inactive"
+
+    assert_select ".channels .row" do |rows|
+      active_row = rows.find { |r| r.css(".name").text == "#active" }
+      inactive_row = rows.find { |r| r.css(".name").text == "#inactive" }
+
+      assert_select active_row, ".users", text: /users/
+      assert_select active_row, "a.link", text: "View"
+
+      assert_select inactive_row, ".status", text: "(not joined)"
+      assert_select inactive_row, "input[value='Join']"
+    end
   end
 
   test "channel list updates after join event" do

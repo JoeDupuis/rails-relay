@@ -5,8 +5,21 @@
   <header class="header">
     <span class="name"><%= @channel.name %></span>
     <span class="topic"><%= @channel.topic %></span>
-    <%= button_to "Leave", channel_path(@channel), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{@channel.name}?" } %>
+    <% if @channel.joined %>
+      <%= button_to "Leave", channel_path(@channel), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{@channel.name}?" } %>
+    <% else %>
+      <%= form_with url: server_channels_path(@channel.server), class: "join-form" do |f| %>
+        <%= f.hidden_field :name, value: @channel.name %>
+        <%= f.submit "Join", class: "join" %>
+      <% end %>
+    <% end %>
   </header>
+
+  <% unless @channel.joined %>
+    <div class="not-joined-banner">
+      You are not in this channel. Join to send messages.
+    </div>
+  <% end %>
 
   <div class="messages"
        data-controller="message-list"

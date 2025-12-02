@@ -133,6 +133,14 @@
     padding: 8px 0;
     border-bottom: 1px solid var(--color-border);
 
+    &.-not-joined {
+      opacity: 0.7;
+
+      & > .name {
+        font-style: italic;
+      }
+    }
+
     & > .name {
       font-weight: 500;
       min-width: 150px;
@@ -143,10 +151,20 @@
       font-size: var(--font-sm);
     }
 
+    & > .status {
+      color: var(--color-text-muted);
+      font-size: var(--font-sm);
+      font-style: italic;
+    }
+
     & > .actions {
       margin-left: auto;
       display: flex;
       gap: 12px;
+
+      & > .inline-form {
+        display: inline;
+      }
     }
   }
 

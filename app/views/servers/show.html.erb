@@ -20,13 +20,24 @@
     <% if @channels.any? %>
       <ul class="list">
         <% @channels.each do |channel| %>
-          <li class="row">
+          <li class="row<%= ' -not-joined' unless channel.joined %>">
             <span class="name"><%= channel.name %></span>
-            <span class="users"><%= channel.channel_users.size %> users</span>
-            <span class="actions">
-              <%= link_to "View", channel_path(channel), class: "link" %>
-              <%= button_to "Leave", channel_path(channel), method: :delete, class: "link -danger" %>
-            </span>
+            <% if channel.joined %>
+              <span class="users"><%= channel.channel_users.size %> users</span>
+              <span class="actions">
+                <%= link_to "View", channel_path(channel), class: "link" %>
+                <%= button_to "Leave", channel_path(channel), method: :delete, class: "link -danger" %>
+              </span>
+            <% else %>
+              <span class="status">(not joined)</span>
+              <span class="actions">
+                <%= form_with url: server_channels_path(@server), class: "inline-form" do |f| %>
+                  <%= f.hidden_field :name, value: channel.name %>
+                  <%= f.submit "Join", class: "link" %>
+                <% end %>
+                <%= button_to "Remove", channel_path(channel), method: :delete, class: "link -danger" %>
+              </span>
+            <% end %>
           </li>
         <% end %>
       </ul>

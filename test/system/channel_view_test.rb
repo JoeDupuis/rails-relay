@@ -130,4 +130,22 @@ class ChannelViewTest < ApplicationSystemTestCase
     assert_selector ".message-item.-mine .sender", text: "testnick"
     assert_no_selector ".message-item.-mine .sender", text: "alice"
   end
+
+  test "channel input disabled when not joined" do
+    server = @user.servers.create!(
+      address: "#{@test_id}-connected.example.chat",
+      nickname: "testnick",
+      connected_at: Time.current
+    )
+    channel = Channel.create!(server: server, name: "#notjoined", joined: false)
+    sign_in_user
+
+    visit channel_path(channel)
+    assert_selector ".channel-view"
+
+    assert_selector ".message-input .field[disabled]"
+    assert_selector ".not-joined-banner", text: "not in this channel"
+    assert_selector "form input[value='Join']"
+    assert_no_selector "form input[value='Leave']"
+  end
 end

@@ -6,7 +6,7 @@ class ServersController < ApplicationController
   end
 
   def show
-    @channels = @server.channels.joined.includes(:channel_users).order(:name)
+    @channels = @server.channels.includes(:channel_users).order(:name)
     @server_messages = @server.messages
                               .where(channel_id: nil, target: nil)
                               .order(created_at: :desc)

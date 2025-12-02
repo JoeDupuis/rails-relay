@@ -35,6 +35,31 @@
     text-decoration: underline;
   }
 
+  & > .header > .join-form {
+    display: inline;
+  }
+
+  & > .header > .join-form > .join {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  & > .header > .join-form > .join:hover {
+    opacity: 0.9;
+  }
+
+  & > .not-joined-banner {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background: var(--color-warning-bg, #fff3cd);
+    color: var(--color-warning-text, #856404);
+    text-align: center;
+  }
+
   & > .messages {
     flex: 1;
     overflow-y: auto;

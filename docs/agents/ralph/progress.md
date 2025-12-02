@@ -2,16 +2,15 @@
 
 ## Current State
 
-Feature `22-channel-join-prefix` completed. Users can now join channels with or without the # prefix.
+Feature `23-channel-joined-state-reset` completed. Channel joined state is now reset on disconnect.
 
 ## Suggested Next Feature
 
-Start with `23-channel-joined-state-reset.md` - Reset channel joined state on disconnect.
+Start with `24-auto-join-channels.md` - Auto-rejoin channels on reconnect.
 
 ## Pending Features
 
 ### Phase 8: Connection Reliability
-23. `23-channel-joined-state-reset.md` - Reset channel joined state on disconnect
 24. `24-auto-join-channels.md` - Auto-rejoin channels on reconnect
 25. `25-connection-health-check.md` - Background job to detect stale connections
 26. `26-message-send-failure-handling.md` - Handle message send failures gracefully
@@ -32,6 +31,7 @@ The application now has:
 - Complete UI layout
 - Media uploads
 - Nickname change sync
+- Channel joined state reset on disconnect
 
 ---
 
@@ -647,3 +647,33 @@ The application now has:
 **Notes for next session**:
 - The normalization happens in the controller (not model) to keep validation strict
 - `&` prefix is preserved for IRC local channels
+
+---
+
+### Session 2025-12-01 (continued)
+
+**Feature**: 23-channel-joined-state-reset
+**Status**: Completed
+
+**What was done**:
+- Updated `IrcEventHandler#handle_disconnected` to reset all channel joined status and clear all channel_users
+- Added `@server.channels.update_all(joined: false)` to reset joined status
+- Added `ChannelUser.joins(:channel).where(channels: { server_id: @server.id }).delete_all` to clear users
+- Updated channel view to show "not in this channel" banner when not joined
+- Updated channel view to show "Join" button instead of "Leave" when not joined
+- Updated message form to show disabled input when connected but not joined
+- Updated server view to show all channels (not just joined ones)
+- Added different styling and actions for not-joined channels on server page (italic, grayed out, Join/Remove buttons)
+- Updated ServersController to load all channels instead of just joined ones
+- Added CSS for not-joined-banner and not-joined channel row styling
+- Added 2 unit tests for handle_disconnected
+- Added 4 controller tests for channel show when not joined
+- Added 3 integration tests for disconnect flow
+- Added 1 system test for disabled channel input
+- Passed QA review
+
+**Notes for next session**:
+- Server page now shows all channels, not just joined ones
+- Not-joined channels have `-not-joined` CSS variant class for styling
+- Message input is disabled when connected but not joined (shows placeholder text field)
+- When server disconnects, it also becomes not connected, so message form shows "Connect to server to send messages" message
