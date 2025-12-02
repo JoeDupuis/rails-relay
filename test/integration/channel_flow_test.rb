@@ -197,6 +197,34 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     assert channel.channel_users.exists?(nickname: "user2")
   end
 
+  test "user list updates when user quits" do
+    server = create_connected_server
+    channel1 = Channel.create!(server: server, name: "#ruby", joined: true)
+    channel2 = Channel.create!(server: server, name: "#python", joined: true)
+    channel1.channel_users.create!(nickname: "quitter")
+    channel1.channel_users.create!(nickname: "stayer")
+    channel2.channel_users.create!(nickname: "quitter")
+
+    post internal_irc_events_path, params: {
+      server_id: server.id,
+      user_id: @user.id,
+      event: {
+        type: "quit",
+        data: {
+          source: "quitter!user@host",
+          text: "Goodbye"
+        }
+      }
+    }, headers: { "Authorization" => "Bearer #{ENV['INTERNAL_API_SECRET']}" }
+
+    channel1.reload
+    channel2.reload
+    assert_equal 1, channel1.channel_users.count
+    assert_not channel1.channel_users.exists?(nickname: "quitter")
+    assert channel1.channel_users.exists?(nickname: "stayer")
+    assert_equal 0, channel2.channel_users.count
+  end
+
   test "user joins channel without typing #" do
     server = create_connected_server
 

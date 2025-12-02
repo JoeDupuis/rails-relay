@@ -2,17 +2,16 @@
 
 ## Current State
 
-Feature `29-dismiss-flash-on-status-change` completed. Flash messages ("Connecting...", "Disconnecting...") are now dismissed automatically when the connection status changes via Turbo Stream.
+Feature `31-verify-user-list-live-updates` completed. Investigation confirmed the implementation is correct - no bug was found. Added missing test for quit events.
 
 ## Suggested Next Feature
 
-Start with `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live.
+Start with `32-channel-name-links-to-show.md` - Make channel names clickable links to show page.
 
 ## Pending Features
 
 ### Phase 8: Bug Fixes & Enhancements
 
-31. `31-verify-user-list-live-updates.md` - Investigate and fix user list not updating live
 32. `32-channel-name-links-to-show.md` - Make channel names clickable links to show page
 33. `33-list-public-channels.md` - Browse and join public channels via IRC LIST command
 34. `34-connection-timeouts.md` - Verify timeout handling works correctly
@@ -21,9 +20,7 @@ Start with `31-verify-user-list-live-updates.md` - Investigate and fix user list
 
 ### Dependencies
 
-- 31 may require yaic changes (use AskUserQuestion if so)
 - 33 may require yaic changes (use AskUserQuestion if so)
-- 36 depends on 31 (may share Turbo Stream fixes)
 
 ---
 
@@ -85,6 +82,28 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 31-verify-user-list-live-updates
+**Status**: Completed
+
+**What was done**:
+- Investigated reported issue of user list not updating live
+- Verified yaic correctly emits join/part/quit events for all users (not just self)
+- Verified IrcConnection correctly forwards events via `@on_event.call`
+- Verified IrcEventHandler correctly creates/destroys ChannelUser records
+- Verified ChannelUser model has correct Turbo Stream broadcast callbacks
+- Verified channel view correctly subscribes to `@channel, :users` stream
+- Conclusion: Implementation is correct, no bug found
+- Added missing test for quit event updating user list across all channels
+
+**Notes for next session**:
+- The user list live update feature was already fully implemented and working
+- Turbo Stream broadcasts go to `[channel, :users]` stream with target `channel_#{id}_user_list`
+- Feature 36 (nick change live update) may now be simpler since broadcasts are verified working
+
+---
 
 ### Session 2025-11-29
 
