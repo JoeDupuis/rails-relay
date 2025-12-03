@@ -6,7 +6,7 @@ Phase 9: UX Improvements & Mobile Support in progress.
 
 ## Suggested Next Feature
 
-Start with `36-fix-server-page-layout.md` - fixes server page layout on mobile viewports.
+Start with `37-mobile-userlist-drawer.md` - adds user list drawer for mobile viewports.
 
 ## Pending Features
 
@@ -14,7 +14,7 @@ Start with `36-fix-server-page-layout.md` - fixes server page layout on mobile v
 
 34. `34-fix-message-auto-scroll.md.done` - DONE - Fix auto-scroll to bottom on new messages
 35. `35-fix-sidebar-live-updates.md.done` - DONE - Fix sidebar not updating when channels join or DMs arrive
-36. `36-fix-server-page-layout.md` - PENDING - Fix server page layout on mobile viewports
+36. `36-fix-server-page-layout.md.done` - DONE - Fix server page layout on mobile viewports
 37. `37-mobile-userlist-drawer.md` - PENDING - Add user list drawer for mobile
 38. `38-dm-initiation.md` - PENDING - Click username to DM, fix /msg command
 
@@ -87,6 +87,25 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 36-fix-server-page-layout
+**Status**: Completed
+
+**What was done**:
+- Fixed CSS specificity issue in app-layout.css where `-no-userlist` variant overrode media query
+- Changed `@media (max-width: 1023px) { grid-template-columns: 1fr; }` to include `-no-userlist` in selector
+- Added 4 system tests for mobile/tablet/desktop layouts on server and channel pages
+- All tests pass (418 unit tests, 37 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- The fix uses `&, &.-no-userlist { grid-template-columns: 1fr; }` inside the media query
+- This ensures the mobile rule matches or exceeds the specificity of the `-no-userlist` variant
+- Tests verify main content width is > 90% of viewport on mobile/tablet
+
+---
 
 ### Session 2025-12-02 (continued)
 

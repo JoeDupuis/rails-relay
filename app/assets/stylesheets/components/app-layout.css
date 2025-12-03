@@ -36,7 +36,9 @@
   }
 
   @media (max-width: 1023px) {
-    grid-template-columns: 1fr;
+    &, &.-no-userlist {
+      grid-template-columns: 1fr;
+    }
 
     & > .sidebar {
       position: fixed;
