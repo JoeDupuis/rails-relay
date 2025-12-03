@@ -275,4 +275,39 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "somenick", message.target
     assert_equal "Hello", message.content
   end
+
+  test "POST with /msg command creates conversation" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Conversation.count } do
+      post channel_messages_path(channel), params: { content: "/msg bob hello there" }
+    end
+
+    conversation = Conversation.last
+    assert_equal server, conversation.server
+    assert_equal "bob", conversation.target_nick
+  end
+
+  test "POST with /msg command updates conversation last_message_at" do
+    server = create_server
+    channel = create_channel(server)
+    conversation = Conversation.create!(server: server, target_nick: "bob", last_message_at: 1.day.ago)
+
+    post channel_messages_path(channel), params: { content: "/msg bob hi again" }
+
+    assert_in_delta Time.current, conversation.reload.last_message_at, 2.seconds
+  end
+
+  test "POST with /msg command finds existing conversation" do
+    server = create_server
+    channel = create_channel(server)
+    existing = Conversation.create!(server: server, target_nick: "bob")
+
+    assert_no_difference -> { Conversation.count } do
+      post channel_messages_path(channel), params: { content: "/msg bob hello" }
+    end
+
+    assert_in_delta Time.current, existing.reload.last_message_at, 2.seconds
+  end
 end

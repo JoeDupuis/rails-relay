@@ -1,6 +1,6 @@
 <div class="message-item -<%= message.message_type %> <%= '-mine' if message.from_me?(current_nickname) %> <%= '-highlight' if message.highlight?(current_nickname) %>"
      id="<%= dom_id(message) %>">
   <span class="timestamp"><%= message.created_at.strftime("%H:%M") %></span>
-  <span class="sender"><%= message.sender %></span>
+  <span class="sender"><%= link_to message.sender, server_conversations_path(message.server, target_nick: message.sender), data: { turbo_method: :post } %></span>
   <span class="content"><%= format_message(message) %></span>
 </div>

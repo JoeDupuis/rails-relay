@@ -208,4 +208,17 @@ class PmFlowTest < ActionDispatch::IntegrationTest
     assert_equal "alice", message.target
     assert_equal "testnick", message.sender
   end
+
+  test "/msg from channel then view conversation shows message" do
+    server = create_server
+    channel = Channel.create!(server: server, name: "#general", joined: true)
+
+    post channel_messages_path(channel), params: { content: "/msg bob hey there" }
+
+    conversation = Conversation.find_by!(server: server, target_nick: "bob")
+
+    get conversation_path(conversation)
+    assert_response :ok
+    assert_match "hey there", response.body
+  end
 end

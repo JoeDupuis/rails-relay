@@ -85,4 +85,47 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
     get conversation_path(conversation)
     assert_response :not_found
   end
+
+  test "POST /servers/:server_id/conversations creates conversation" do
+    server = create_server
+
+    assert_difference -> { Conversation.count } do
+      post server_conversations_path(server), params: { target_nick: "bob" }
+    end
+
+    conversation = Conversation.last
+    assert_equal server, conversation.server
+    assert_equal "bob", conversation.target_nick
+  end
+
+  test "POST /servers/:server_id/conversations redirects to conversation show page" do
+    server = create_server
+
+    post server_conversations_path(server), params: { target_nick: "bob" }
+
+    conversation = Conversation.last
+    assert_redirected_to conversation_path(conversation)
+  end
+
+  test "POST /servers/:server_id/conversations finds existing conversation" do
+    server = create_server
+    existing = create_conversation(server, target_nick: "bob")
+
+    assert_no_difference -> { Conversation.count } do
+      post server_conversations_path(server), params: { target_nick: "bob" }
+    end
+
+    assert_redirected_to conversation_path(existing)
+  end
+
+  test "user can only create conversations on their own servers" do
+    server = create_server
+
+    delete session_path
+    other_user = users(:jane)
+    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+
+    post server_conversations_path(server), params: { target_nick: "bob" }
+    assert_response :not_found
+  end
 end

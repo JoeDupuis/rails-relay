@@ -3,7 +3,7 @@
     <div class="grouptitle">Operators</div>
     <ul class="users">
       <% channel.channel_users.ops.order(:nickname).each do |u| %>
-        <li class="user-item -op"><span class="nick"><%= u.nickname %></span></li>
+        <li class="user-item -op"><%= link_to u.nickname, server_conversations_path(channel.server, target_nick: u.nickname), data: { turbo_method: :post }, class: "nick" %></li>
       <% end %>
     </ul>
   </div>
@@ -14,7 +14,7 @@
     <div class="grouptitle">Voiced</div>
     <ul class="users">
       <% channel.channel_users.voiced.order(:nickname).each do |u| %>
-        <li class="user-item -voice"><span class="nick"><%= u.nickname %></span></li>
+        <li class="user-item -voice"><%= link_to u.nickname, server_conversations_path(channel.server, target_nick: u.nickname), data: { turbo_method: :post }, class: "nick" %></li>
       <% end %>
     </ul>
   </div>
@@ -23,7 +23,7 @@
 <div class="group">
   <ul class="users">
     <% channel.channel_users.regular.order(:nickname).each do |u| %>
-      <li class="user-item"><span class="nick"><%= u.nickname %></span></li>
+      <li class="user-item"><%= link_to u.nickname, server_conversations_path(channel.server, target_nick: u.nickname), data: { turbo_method: :post }, class: "nick" %></li>
     <% end %>
   </ul>
 </div>

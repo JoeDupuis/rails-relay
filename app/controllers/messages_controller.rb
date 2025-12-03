@@ -78,6 +78,9 @@ class MessagesController < ApplicationController
   def send_pm(nick, content)
     return unless send_irc_command("privmsg", target: nick, message: content)
 
+    conversation = Conversation.find_or_create_by!(server: @server, target_nick: nick)
+    conversation.touch(:last_message_at)
+
     @message = Message.create!(
       server: @server,
       channel: nil,
@@ -86,6 +89,8 @@ class MessagesController < ApplicationController
       content: content,
       message_type: "privmsg"
     )
+
+    @created_conversation = conversation
   end
 
   def send_notice(target, content)

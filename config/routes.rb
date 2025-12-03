@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     resource :connection, only: [ :create, :destroy ]
     resources :channels, only: [ :create ]
     resources :messages, only: [ :create ]
+    resources :conversations, only: [ :create ]
   end
 
   resources :channels, only: [ :show, :update, :destroy ] do

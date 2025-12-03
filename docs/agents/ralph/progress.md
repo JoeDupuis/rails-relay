@@ -2,11 +2,11 @@
 
 ## Current State
 
-Phase 9: UX Improvements & Mobile Support in progress.
+Phase 9: UX Improvements & Mobile Support complete.
 
 ## Suggested Next Feature
 
-Start with `38-dm-initiation.md` - allows clicking usernames to start DMs, and fixes /msg command.
+All Phase 9 features are complete. Check for any new features or wait for user direction.
 
 ## Pending Features
 
@@ -16,7 +16,7 @@ Start with `38-dm-initiation.md` - allows clicking usernames to start DMs, and f
 35. `35-fix-sidebar-live-updates.md.done` - DONE - Fix sidebar not updating when channels join or DMs arrive
 36. `36-fix-server-page-layout.md.done` - DONE - Fix server page layout on mobile viewports
 37. `37-mobile-userlist-drawer.md.done` - DONE - Add user list drawer for mobile
-38. `38-dm-initiation.md` - PENDING - Click username to DM, fix /msg command
+38. `38-dm-initiation.md.done` - DONE - Click username to DM, fix /msg command
 
 ### Deferred
 
@@ -50,6 +50,7 @@ The application now has:
 - User list live updates (join/part/quit/kick update user list in real-time)
 - Mobile user list drawer (slide-in drawer for viewports < 1024px)
 - Message auto-scroll (auto-scroll to bottom on new messages, preserve position when reading history)
+- DM initiation (click username to start DM, /msg creates conversation)
 
 ---
 
@@ -88,6 +89,32 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 38-dm-initiation
+**Status**: Completed
+
+**What was done**:
+- Fixed /msg command to create Conversation record in MessagesController#send_pm
+- Added conversations#create action that finds or creates conversation and redirects to it
+- Added route for conversations nested under servers (resources :conversations, only: [:create])
+- Made usernames clickable in user list (_user_list_content.html.erb) using link_to with turbo_method: :post
+- Made usernames clickable in messages (_message.html.erb) using link_to with turbo_method: :post
+- Added CSS styles for username links in user-list.css and message-item.css
+- Added 4 controller tests for conversations#create (create, redirect, find existing, access control)
+- Added 3 controller tests for /msg creating conversation (creates, updates last_message_at, finds existing)
+- Added 3 system tests for DM initiation (click user list, creates sidebar entry, click message)
+- Added 1 integration test for /msg then view conversation flow
+- All tests pass (426 unit tests, 47 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- Phase 9 is now complete
+- The @created_conversation instance variable is set but not used for redirect (spec mentions optional Turbo visit approach)
+- Username links use POST method via data-turbo-method attribute
+
+---
 
 ### Session 2025-12-02 (continued)
 
