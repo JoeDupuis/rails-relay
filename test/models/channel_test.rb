@@ -200,4 +200,22 @@ class ChannelTest < ActiveSupport::TestCase
       channel.update!(topic: "new topic")
     end
   end
+
+  test "broadcasts sidebar append when channel is joined" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: false)
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      channel.update!(joined: true)
+    end
+  end
+
+  test "broadcasts sidebar remove when channel is left" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", joined: true)
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      channel.update!(joined: false)
+    end
+  end
 end

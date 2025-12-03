@@ -11,6 +11,7 @@ class Channel < ApplicationRecord
   scope :joined, -> { where(joined: true) }
 
   after_update_commit :broadcast_joined_status, if: :saved_change_to_joined?
+  after_update_commit :broadcast_sidebar_joined_status, if: :saved_change_to_joined?
 
   def unread_count
     return 0 unless last_read_message_id
@@ -30,6 +31,24 @@ class Channel < ApplicationRecord
   end
 
   private
+
+  def broadcast_sidebar_joined_status
+    return unless server.user_id
+
+    if joined?
+      broadcast_append_to(
+        "sidebar_#{server.user_id}",
+        target: "server_#{server.id}_channels",
+        partial: "shared/channel_sidebar_item",
+        locals: { channel: self }
+      )
+    else
+      broadcast_remove_to(
+        "sidebar_#{server.user_id}",
+        target: "channel_#{id}_sidebar"
+      )
+    end
+  end
 
   def broadcast_joined_status
     broadcast_replace_to(

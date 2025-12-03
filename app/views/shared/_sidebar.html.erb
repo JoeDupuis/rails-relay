@@ -6,22 +6,22 @@
       <%= link_to server.address, server_path(server), class: "link", data: { qa: "server-link" } %>
     </div>
 
-    <% if server.conversations.any? %>
+    <div class="dm-section" id="server_<%= server.id %>_dm_section">
       <div class="section-label">DMs</div>
-      <ul class="dm-list">
+      <ul class="dm-list" id="server_<%= server.id %>_dms">
         <% server.conversations.order(last_message_at: :desc).each do |convo| %>
           <%= render "shared/conversation_sidebar_item", conversation: convo %>
         <% end %>
       </ul>
-    <% end %>
+    </div>
 
-    <% if server.channels.joined.any? %>
+    <div class="channels-section" id="server_<%= server.id %>_channels_section">
       <div class="section-label">Channels</div>
-    <% end %>
-    <ul class="channels">
-      <% server.channels.joined.each do |channel| %>
-        <%= render "shared/channel_sidebar_item", channel: channel %>
-      <% end %>
-    </ul>
+      <ul class="channels" id="server_<%= server.id %>_channels">
+        <% server.channels.joined.each do |channel| %>
+          <%= render "shared/channel_sidebar_item", channel: channel %>
+        <% end %>
+      </ul>
+    </div>
   </div>
 <% end %>

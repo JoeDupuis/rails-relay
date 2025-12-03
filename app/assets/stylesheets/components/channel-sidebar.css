@@ -24,7 +24,20 @@
     color: var(--color-primary);
   }
 
-  & > .servergroup > .channels {
+  & > .servergroup > .dm-section {
+    &:has(.dm-list:empty) {
+      display: none;
+    }
+  }
+
+  & > .servergroup > .channels-section {
+    &:has(.channels:empty) {
+      display: none;
+    }
+  }
+
+  & > .servergroup > .dm-section > .dm-list,
+  & > .servergroup > .channels-section > .channels {
     list-style: none;
     padding: 0;
     margin: 0;

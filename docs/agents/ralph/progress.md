@@ -6,14 +6,14 @@ Phase 9: UX Improvements & Mobile Support in progress.
 
 ## Suggested Next Feature
 
-Start with `35-fix-sidebar-live-updates.md` - fixes sidebar not updating when channels join or DMs arrive.
+Start with `36-fix-server-page-layout.md` - fixes server page layout on mobile viewports.
 
 ## Pending Features
 
 ### Phase 9: UX Improvements & Mobile Support
 
 34. `34-fix-message-auto-scroll.md.done` - DONE - Fix auto-scroll to bottom on new messages
-35. `35-fix-sidebar-live-updates.md` - PENDING - Fix sidebar not updating when channels join or DMs arrive
+35. `35-fix-sidebar-live-updates.md.done` - DONE - Fix sidebar not updating when channels join or DMs arrive
 36. `36-fix-server-page-layout.md` - PENDING - Fix server page layout on mobile viewports
 37. `37-mobile-userlist-drawer.md` - PENDING - Add user list drawer for mobile
 38. `38-dm-initiation.md` - PENDING - Click username to DM, fix /msg command
@@ -28,6 +28,7 @@ Start with `35-fix-sidebar-live-updates.md` - fixes sidebar not updating when ch
 
 The application now has:
 - User authentication
+- Sidebar live updates (DMs, channel join/leave, unread counts)
 - Server management (CRUD)
 - IRC connections via internal API
 - Channels (join, leave, list)
@@ -86,6 +87,30 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 35-fix-sidebar-live-updates
+**Status**: Completed
+
+**What was done**:
+- Fixed Message#broadcast_sidebar_update stream name from `user_#{id}_sidebar` to `sidebar_#{id}`
+- Added Channel#broadcast_sidebar_joined_status callback for real-time sidebar updates on join/leave
+- Added Conversation broadcasts (after_create_commit and after_update_commit for last_message_at)
+- Updated sidebar view with target IDs for channels and DMs lists (wrapped in section divs)
+- Added CSS `:has()` selectors to hide empty DM and Channels sections
+- Added model tests for all broadcast behaviors
+- Added 4 system tests covering DM creation, channel join, channel leave, unread count updates
+- Fixed test for PM flow to match new sidebar structure (sections always rendered, hidden via CSS)
+- All tests pass (418 unit tests, 33 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- Message broadcast uses `Current.user_id || Current.user&.id` to support both internal API and web contexts
+- Sidebar sections use CSS `:has(.list:empty)` to hide when no items, so Turbo Streams always have a target to append to
+- The `unread_count` method returns 0 when `last_read_message_id` is nil - this is intentional per existing behavior
+
+---
 
 ### Session 2025-12-02 (continued)
 

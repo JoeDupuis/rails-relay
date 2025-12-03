@@ -34,10 +34,11 @@ class Message < ApplicationRecord
 
   def broadcast_sidebar_update
     return unless channel
-    return unless Current.user_id
+    user_id = Current.user_id || Current.user&.id
+    return unless user_id
 
     broadcast_replace_to(
-      "user_#{Current.user_id}_sidebar",
+      "sidebar_#{user_id}",
       target: "channel_#{channel.id}_sidebar",
       partial: "shared/channel_sidebar_item",
       locals: { channel: channel }

@@ -201,4 +201,18 @@ class ConversationTest < ActiveSupport::TestCase
       @server.destroy
     end
   end
+
+  test "broadcasts sidebar append on create" do
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      Conversation.create!(server: @server, target_nick: "alice")
+    end
+  end
+
+  test "broadcasts sidebar update when last_message_at changes" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      conversation.update!(last_message_at: Time.current)
+    end
+  end
 end

@@ -166,4 +166,17 @@ class MessageTest < ActiveSupport::TestCase
 
     assert_not message.highlight?("testnick")
   end
+
+  test "broadcast_sidebar_update uses sidebar stream name" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    Current.user_id = @user.id
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      Message.create!(server: server, channel: channel, sender: "alice", content: "Hello", message_type: "privmsg")
+    end
+  ensure
+    Current.user_id = nil
+  end
 end

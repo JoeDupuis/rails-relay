@@ -103,13 +103,15 @@ class PmFlowTest < ActionDispatch::IntegrationTest
     assert_match "alice", response.body
   end
 
-  test "sidebar does not show DMs section when no conversations" do
+  test "sidebar shows empty DMs section when no conversations" do
     server = create_server
     Channel.create!(server: server, name: "#ruby", joined: true)
 
     get servers_path
     assert_response :ok
-    assert_select ".section-label", text: "DMs", count: 0
+    assert_select ".dm-list" do
+      assert_select ".dm-item", count: 0
+    end
   end
 
   test "DMs appear above channels in sidebar" do
