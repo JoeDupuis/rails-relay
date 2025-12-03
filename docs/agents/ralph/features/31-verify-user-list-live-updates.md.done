@@ -1,3 +1,5 @@
+**EDIT: This feature is still broken. Flagging as done because of "failure to reproduce" is UNACCEPTABLE. There was no system test written to verify the Turbo Stream actually works in the browser. The ChannelUser model also has no broadcast tests unlike Server and Channel models. A proper system test is required where a user is logged in viewing a channel and another user joins/leaves via yaic directly in the test.**
+
 # Verify User List Live Updates
 
 ## Description

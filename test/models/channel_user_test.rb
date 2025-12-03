@@ -118,4 +118,51 @@ class ChannelUserTest < ActiveSupport::TestCase
     channel_user = ChannelUser.create!(channel: channel, nickname: "user1")
     assert_equal channel, channel_user.channel
   end
+
+  test "broadcasts user list when user is created" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    assert_turbo_stream_broadcasts [ channel, :users ] do
+      ChannelUser.create!(channel: channel, nickname: "newuser")
+    end
+  end
+
+  test "broadcasts user list when user is destroyed" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    channel_user = ChannelUser.create!(channel: channel, nickname: "olduser")
+
+    assert_turbo_stream_broadcasts [ channel, :users ] do
+      channel_user.destroy
+    end
+  end
+
+  test "broadcasts user list when modes change" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    channel_user = ChannelUser.create!(channel: channel, nickname: "user1")
+
+    assert_turbo_stream_broadcasts [ channel, :users ] do
+      channel_user.update!(modes: "o")
+    end
+  end
+
+  test "does not broadcast when modes unchanged" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    channel_user = ChannelUser.create!(channel: channel, nickname: "user1", modes: "o")
+
+    ActionCable.server.pubsub.clear_messages(stream_name_for(channel, :users))
+
+    assert_no_turbo_stream_broadcasts [ channel, :users ] do
+      channel_user.update!(nickname: "user1renamed")
+    end
+  end
+
+  private
+
+  def stream_name_for(*streamables)
+    streamables.map { |s| s.try(:to_gid_param) || s.to_param }.join(":")
+  end
 end

@@ -22,7 +22,5 @@
 </div>
 
 <% content_for :userlist do %>
-  <div id="channel_<%= @channel.id %>_user_list">
-    <%= render "channels/user_list", channel: @channel %>
-  </div>
+  <%= render "channels/user_list", channel: @channel %>
 <% end %>

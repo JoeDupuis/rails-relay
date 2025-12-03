@@ -2,7 +2,7 @@
 
 ## Current State
 
-Feature `36-nick-change-live-update` completed. All Phase 8 features are now done (except deferred #33).
+Feature `31-verify-user-list-live-updates` re-completed. Fixed critical Turbo Stream bug where user list updates would fail after the first update.
 
 ## Suggested Next Feature
 
@@ -41,6 +41,7 @@ The application now has:
 - Real-time channel joined status updates (broadcasts UI changes)
 - Connection timeout handling (graceful recovery on connect timeout)
 - Nick change live update (real-time nickname updates in UI)
+- User list live updates (join/part/quit/kick update user list in real-time)
 
 ---
 
@@ -79,6 +80,28 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 31-verify-user-list-live-updates
+**Status**: Re-completed
+
+**What was done**:
+- Fixed ChannelUser model: added explicit `Turbo::Broadcastable` include
+- Fixed callback merging issue by using separate method names for after_create_commit, after_destroy_commit, after_update_commit
+- Added guard in after_destroy_commit to skip broadcast if channel was already deleted (dependent: :destroy case)
+- Added 4 broadcast tests to ChannelUser model (create, destroy, mode change, no-broadcast-on-unrelated-update)
+- Created system test file with 5 tests (join, part, quit, kick, multiple sequential events)
+- Fixed critical bug: user list partial missing target ID causing subsequent Turbo Stream updates to fail
+- All tests pass (413 unit tests, 25 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- The user list partial now has the target ID directly in it (`channel_<%= channel.id %>_user_list`)
+- Removed duplicate wrapper div from channels/show.html.erb
+- The multiple sequential events test verifies join->join->part->kick all work in sequence
+
+---
 
 ### Session 2025-12-02 (continued)
 

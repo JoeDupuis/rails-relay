@@ -1,4 +1,4 @@
-<div class="user-list">
+<div id="channel_<%= channel.id %>_user_list" class="user-list">
   <div class="header"><%= channel.channel_users.size %> users</div>
 
   <% if channel.channel_users.ops.any? %>
