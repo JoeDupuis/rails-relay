@@ -1,4 +1,4 @@
-<header class="header" id="<%= dom_id(channel, :header) %>">
+<header class="header" id="<%= dom_id(channel, :header) %>" data-controller="userlist-drawer">
   <span class="name"><%= channel.name %></span>
   <% if channel.auto_join %>
     <span class="auto-join-badge">auto</span>
@@ -18,4 +18,21 @@
       <%= f.submit "Join", class: "join" %>
     <% end %>
   <% end %>
+
+  <button class="userlist-toggle" data-action="userlist-drawer#open" aria-label="Show user list">
+    <span class="icon">&#128101;</span>
+    <span class="count"><%= channel.channel_users.size %></span>
+  </button>
+
+  <div class="userlist-backdrop" data-userlist-drawer-target="backdrop" data-action="click->userlist-drawer#backdropClick"></div>
+
+  <aside class="userlist-drawer" data-userlist-drawer-target="drawer">
+    <div class="header">
+      <span class="title">Users (<%= channel.channel_users.size %>)</span>
+      <button class="close" data-action="userlist-drawer#close" aria-label="Close user list">&times;</button>
+    </div>
+    <div class="content">
+      <%= render "channels/user_list_content", channel: channel %>
+    </div>
+  </aside>
 </header>

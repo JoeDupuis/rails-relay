@@ -1,0 +1,14 @@
+.userlist-toggle {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+
+  @media (max-width: 1023px) {
+    display: flex;
+  }
+}

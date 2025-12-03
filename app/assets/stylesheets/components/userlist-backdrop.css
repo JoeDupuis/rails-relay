@@ -1,0 +1,22 @@
+.userlist-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 199;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  &.-visible {
+    opacity: 1;
+  }
+
+  @media (max-width: 1023px) {
+    display: block;
+    pointer-events: none;
+
+    &.-visible {
+      pointer-events: auto;
+    }
+  }
+}

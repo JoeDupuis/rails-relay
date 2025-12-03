@@ -6,7 +6,7 @@ Phase 9: UX Improvements & Mobile Support in progress.
 
 ## Suggested Next Feature
 
-Start with `37-mobile-userlist-drawer.md` - adds user list drawer for mobile viewports.
+Start with `38-dm-initiation.md` - allows clicking usernames to start DMs, and fixes /msg command.
 
 ## Pending Features
 
@@ -15,7 +15,7 @@ Start with `37-mobile-userlist-drawer.md` - adds user list drawer for mobile vie
 34. `34-fix-message-auto-scroll.md.done` - DONE - Fix auto-scroll to bottom on new messages
 35. `35-fix-sidebar-live-updates.md.done` - DONE - Fix sidebar not updating when channels join or DMs arrive
 36. `36-fix-server-page-layout.md.done` - DONE - Fix server page layout on mobile viewports
-37. `37-mobile-userlist-drawer.md` - PENDING - Add user list drawer for mobile
+37. `37-mobile-userlist-drawer.md.done` - DONE - Add user list drawer for mobile
 38. `38-dm-initiation.md` - PENDING - Click username to DM, fix /msg command
 
 ### Deferred
@@ -48,6 +48,7 @@ The application now has:
 - Connection timeout handling (graceful recovery on connect timeout)
 - Nick change live update (real-time nickname updates in UI)
 - User list live updates (join/part/quit/kick update user list in real-time)
+- Mobile user list drawer (slide-in drawer for viewports < 1024px)
 - Message auto-scroll (auto-scroll to bottom on new messages, preserve position when reading history)
 
 ---
@@ -87,6 +88,33 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 37-mobile-userlist-drawer
+**Status**: Completed
+
+**What was done**:
+- Created userlist_drawer_controller.js Stimulus controller for open/close with global keydown handler
+- Extracted user list content into _user_list_content.html.erb partial
+- Updated _user_list.html.erb to use the content partial
+- Added toggle button and slide-in drawer to channel header partial
+- Created 3 RSCSS-compliant CSS files: userlist-toggle.css, userlist-backdrop.css, userlist-drawer.css
+- Toggle button shows user count (&#128101; icon), visible only on viewports < 1024px
+- Drawer slides in from right, width 240px on tablet, 100% on phone (< 768px)
+- Close via X button, backdrop click, or Escape key
+- Body overflow hidden when drawer open to prevent scroll
+- Added 7 system tests covering toggle visibility, open/close interactions
+- All tests pass (418 unit tests, 44 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- Stimulus controller uses global keydown event listener added on open, removed on close
+- CSS properly split into 3 component files per RSCSS conventions
+- Element classes are single words: header, title, close, content
+- Next feature is 38-dm-initiation.md
+
+---
 
 ### Session 2025-12-02 (continued)
 
