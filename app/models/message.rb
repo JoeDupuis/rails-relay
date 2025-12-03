@@ -26,7 +26,7 @@ class Message < ApplicationRecord
     if channel
       broadcast_append_to channel, target: "messages"
     elsif target.present?
-      broadcast_append_to [ server, :pms ], target: "pm_messages"
+      broadcast_append_to [ server, :dm, target.downcase ], target: "pm_messages"
     else
       broadcast_append_to [ server, :server ], target: "server_messages"
     end

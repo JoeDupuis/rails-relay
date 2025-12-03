@@ -1,4 +1,4 @@
-<%= turbo_stream_from [ @server, :pms ] %>
+<%= turbo_stream_from [ @server, :dm, @conversation.target_nick.downcase ] %>
 
 <div class="channel-view">
   <header class="channel-header">

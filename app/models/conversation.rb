@@ -10,8 +10,7 @@ class Conversation < ApplicationRecord
   after_update_commit :broadcast_sidebar_update, if: :saved_change_to_last_message_at?
 
   def messages
-    Message.where(server: server, channel_id: nil)
-           .where("target = ? OR sender = ?", target_nick, target_nick)
+    Message.where(server: server, channel_id: nil, target: target_nick)
            .order(:created_at)
   end
 
