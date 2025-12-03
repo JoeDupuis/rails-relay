@@ -162,6 +162,9 @@ test "descriptive name of what is being tested" do
 end
 ```
 
+### Yaic / irc events
+You can simulate events from yaic/irc servers by sending requests to the internal API directly.
+
 ### What to Test
 
 - Public interface thoroughly

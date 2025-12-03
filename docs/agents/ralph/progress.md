@@ -2,20 +2,25 @@
 
 ## Current State
 
-Feature `31-verify-user-list-live-updates` re-completed. Fixed critical Turbo Stream bug where user list updates would fail after the first update.
+New features added for Phase 9: UX Improvements & Mobile Support.
 
 ## Suggested Next Feature
 
-No more features pending. Phase 8 is complete.
+Start with `34-fix-message-auto-scroll.md` - fixes the broken auto-scroll behavior.
 
 ## Pending Features
 
-### Phase 8: Bug Fixes & Enhancements
+### Phase 9: UX Improvements & Mobile Support
+
+34. `34-fix-message-auto-scroll.md` - PENDING - Fix auto-scroll to bottom on new messages
+35. `35-fix-sidebar-live-updates.md` - PENDING - Fix sidebar not updating when channels join or DMs arrive
+36. `36-fix-server-page-layout.md` - PENDING - Fix server page layout on mobile viewports
+37. `37-mobile-userlist-drawer.md` - PENDING - Add user list drawer for mobile
+38. `38-dm-initiation.md` - PENDING - Click username to DM, fix /msg command
+
+### Deferred
 
 33. `33-list-public-channels.md.deferred` - DEFERRED (requires yaic LIST support)
-34. `34-connection-timeouts.md.done` - COMPLETED
-35. `35-fix-kick-message-format.md.done` - COMPLETED
-36. `36-nick-change-live-update.md.done` - COMPLETED
 
 ---
 

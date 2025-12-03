@@ -46,6 +46,7 @@ Read and apply rules from `docs/agents/conventions/rscss.md`.
 - Unit tests are fast and isolated
 - Be HIGHLY skeptical of skipped tests. Make sure the agent didn't skip test needlessly. If the agent skipped a test because it is not able to implement the test it should reach out with the ask question tool. Skipping test should be for feature we're gonna implement later. Not because it's hard to make the test pass or some dependency is missing. If a test doesn't pass because say a dependency is unreachable, the agent should ask the user a question using the ask question tool.
 - Assume the IRC test server is already running unless you see the test fail because of it.
+- If the feature was a bug fix and the agent says everything works correctly without any change, it means the agent failed to reproduce the bug. DO NOT accept this as success. Force the agent to ask me a question.
 
 ### Security
 
