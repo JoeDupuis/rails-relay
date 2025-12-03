@@ -8,12 +8,13 @@
 
   <div class="messages"
        data-controller="message-list"
+       data-message-list-target="messages"
        data-channel-target="messages"
        data-message-list-channel-id-value="<%= @channel.id %>">
-    <div id="messages">
+    <div id="messages" data-message-list-target="container">
       <%= render partial: "messages/message", collection: @messages %>
     </div>
-    <div class="new-messages-indicator hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
+    <div class="new-messages-indicator -hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
       New messages below
     </div>
   </div>

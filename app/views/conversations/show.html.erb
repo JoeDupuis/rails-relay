@@ -7,12 +7,15 @@
   </header>
 
   <div class="channel-content">
-    <div class="message-list-container" data-controller="message-list" data-message-list-conversation-id-value="<%= @conversation.id %>">
-      <div id="pm_messages" class="message-list" data-message-list-target="messages">
+    <div class="messages"
+         data-controller="message-list"
+         data-message-list-target="messages"
+         data-message-list-conversation-id-value="<%= @conversation.id %>">
+      <div id="pm_messages" data-message-list-target="container">
         <%= render partial: "messages/message", collection: @messages %>
       </div>
 
-      <div class="new-messages-indicator hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
+      <div class="new-messages-indicator -hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
         New messages below
       </div>
     </div>
@@ -20,8 +23,18 @@
 
   <div class="message-input">
     <% if @server.connected? %>
-      <%= form_with url: conversation_messages_path(@conversation), method: :post do |form| %>
-        <%= form.text_field :content, placeholder: "Message #{@conversation.target_nick}", autofocus: true, id: "content" %>
+      <%= form_with url: conversation_messages_path(@conversation),
+          method: :post,
+          data: {
+            controller: "message-form",
+            message_form_message_list_outlet: ".messages",
+            action: "submit->message-form#formSubmit"
+          } do |form| %>
+        <%= form.text_field :content,
+            placeholder: "Message #{@conversation.target_nick}",
+            autofocus: true,
+            id: "content",
+            data: { action: "keydown.enter->message-form#submit" } %>
         <%= form.submit "Send" %>
       <% end %>
     <% else %>

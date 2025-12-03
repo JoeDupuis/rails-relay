@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["messages", "newIndicator"]
+  static targets = ["messages", "container", "newIndicator"]
   static values = { channelId: Number }
 
   connect() {
@@ -32,7 +32,7 @@ export default class extends Controller {
   }
 
   observeNewMessages() {
-    if (!this.hasMessagesTarget) return
+    if (!this.hasContainerTarget) return
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -42,7 +42,7 @@ export default class extends Controller {
       }
     })
 
-    observer.observe(this.messagesTarget, { childList: true })
+    observer.observe(this.containerTarget, { childList: true })
   }
 
   messageAdded() {
@@ -55,14 +55,20 @@ export default class extends Controller {
 
   showNewIndicator() {
     if (this.hasNewIndicatorTarget) {
-      this.newIndicatorTarget.classList.remove("hidden")
+      this.newIndicatorTarget.classList.remove("-hidden")
     }
   }
 
   scrollToNew() {
     this.scrollToBottom()
+    this.atBottom = true
     if (this.hasNewIndicatorTarget) {
-      this.newIndicatorTarget.classList.add("hidden")
+      this.newIndicatorTarget.classList.add("-hidden")
     }
+  }
+
+  sent() {
+    this.scrollToBottom()
+    this.atBottom = true
   }
 }

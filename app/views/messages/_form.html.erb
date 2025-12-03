@@ -3,8 +3,10 @@
       class: "message-input",
       data: {
         controller: "message-form",
+        message_form_message_list_outlet: ".messages",
         message_form_upload_url_value: channel_uploads_path(channel),
-        message_form_channel_name_value: channel.name
+        message_form_channel_name_value: channel.name,
+        action: "submit->message-form#formSubmit"
       } do |f| %>
     <%= f.text_field :content,
         placeholder: "Message #{channel.name}",

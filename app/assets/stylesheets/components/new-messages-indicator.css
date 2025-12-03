@@ -1,0 +1,20 @@
+.new-messages-indicator {
+  position: sticky;
+  bottom: 0;
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  font-size: var(--font-sm);
+  border-radius: var(--radius-sm);
+  margin-top: 8px;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &.-hidden {
+    display: none;
+  }
+}

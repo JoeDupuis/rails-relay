@@ -3,11 +3,23 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["input", "fileInput"]
   static values = { uploadUrl: String, channelName: String }
+  static outlets = ["message-list"]
 
   submit(event) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       this.element.requestSubmit()
+      this.notifyMessageList()
+    }
+  }
+
+  formSubmit() {
+    this.notifyMessageList()
+  }
+
+  notifyMessageList() {
+    if (this.hasMessageListOutlet) {
+      this.messageListOutlet.sent()
     }
   }
 

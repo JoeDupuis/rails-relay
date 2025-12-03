@@ -2,17 +2,17 @@
 
 ## Current State
 
-New features added for Phase 9: UX Improvements & Mobile Support.
+Phase 9: UX Improvements & Mobile Support in progress.
 
 ## Suggested Next Feature
 
-Start with `34-fix-message-auto-scroll.md` - fixes the broken auto-scroll behavior.
+Start with `35-fix-sidebar-live-updates.md` - fixes sidebar not updating when channels join or DMs arrive.
 
 ## Pending Features
 
 ### Phase 9: UX Improvements & Mobile Support
 
-34. `34-fix-message-auto-scroll.md` - PENDING - Fix auto-scroll to bottom on new messages
+34. `34-fix-message-auto-scroll.md.done` - DONE - Fix auto-scroll to bottom on new messages
 35. `35-fix-sidebar-live-updates.md` - PENDING - Fix sidebar not updating when channels join or DMs arrive
 36. `36-fix-server-page-layout.md` - PENDING - Fix server page layout on mobile viewports
 37. `37-mobile-userlist-drawer.md` - PENDING - Add user list drawer for mobile
@@ -47,6 +47,7 @@ The application now has:
 - Connection timeout handling (graceful recovery on connect timeout)
 - Nick change live update (real-time nickname updates in UI)
 - User list live updates (join/part/quit/kick update user list in real-time)
+- Message auto-scroll (auto-scroll to bottom on new messages, preserve position when reading history)
 
 ---
 
@@ -85,6 +86,30 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-02 (continued)
+
+**Feature**: 34-fix-message-auto-scroll
+**Status**: Completed
+
+**What was done**:
+- Fixed channel view: added `data-message-list-target="messages"` and `data-message-list-target="container"` attributes
+- Updated MutationObserver to watch the inner container target instead of the outer messages div
+- Added `sent()` method to message-list controller for scroll-on-send behavior
+- Wired up message form to call message-list#sent via Stimulus outlet
+- Applied same fixes to conversation view for PM auto-scroll
+- Created RSCSS-compliant new-messages-indicator.css component with `-hidden` variant
+- Added 4 system tests covering all spec scenarios (auto-scroll at bottom, no scroll when reading history, click indicator to scroll, scroll on send)
+- All tests pass (413 unit tests, 29 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- The indicator uses `-hidden` variant class following RSCSS conventions
+- MutationObserver watches `containerTarget` (inner `#messages` div where Turbo appends)
+- Message form uses Stimulus outlet to communicate with message-list controller
+- Tests resize browser to 600px height to ensure scrollable content
+
+---
 
 ### Session 2025-12-02 (continued)
 
