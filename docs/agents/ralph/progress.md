@@ -2,15 +2,22 @@
 
 ## Current State
 
-Phase 9: UX Improvements & Mobile Support complete.
+Phase 10: DM & View Improvements ready to begin.
 
 ## Suggested Next Feature
 
-All Phase 9 features are complete. Check for any new features or wait for user direction.
+Start with `39-unify-dm-channel-views.md` - refactors DM view to use same partials as channel view. This is foundational for the other Phase 10 features.
 
 ## Pending Features
 
-### Phase 9: UX Improvements & Mobile Support
+### Phase 10: DM & View Improvements
+
+39. `39-unify-dm-channel-views.md` - Refactor DM view to share partials with channel view
+40. `40-dm-user-online-status.md` - Show online/offline indicator for DM users in sidebar
+41. `41-close-dm-conversations.md` - Add ability to close DMs (hide from sidebar, auto-reopen on new message)
+42. `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue)
+
+### Phase 9: UX Improvements & Mobile Support (DONE)
 
 34. `34-fix-message-auto-scroll.md.done` - DONE - Fix auto-scroll to bottom on new messages
 35. `35-fix-sidebar-live-updates.md.done` - DONE - Fix sidebar not updating when channels join or DMs arrive
