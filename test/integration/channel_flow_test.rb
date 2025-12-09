@@ -118,7 +118,7 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
 
     get channel_path(channel)
     assert_response :ok
-    assert_select ".user-list .header", text: /3 users/
+    assert_select ".user-list .drawer-header .title", text: /3 users/
   end
 
   test "names event populates user list" do

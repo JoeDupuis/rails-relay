@@ -1,5 +1,9 @@
 <div id="channel_<%= channel.id %>_user_list" class="user-list">
-  <div class="header"><%= channel.channel_users.size %> users</div>
-
-  <%= render "channels/user_list_content", channel: channel %>
+  <div class="drawer-header">
+    <span class="title"><%= channel.channel_users.size %> users</span>
+    <button class="close" data-action="userlist-drawer#close" aria-label="Close user list">&times;</button>
+  </div>
+  <div class="content">
+    <%= render "channels/user_list_content", channel: channel %>
+  </div>
 </div>

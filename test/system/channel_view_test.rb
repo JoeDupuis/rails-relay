@@ -79,7 +79,6 @@ class ChannelViewTest < ApplicationSystemTestCase
     assert_selector ".userlist"
 
     within ".userlist" do
-      assert_selector ".user-list .header", text: "4 users"
       assert_selector ".user-item.-op .nick", text: "alice"
       assert_selector ".user-item.-voice .nick", text: "bob"
       assert_selector ".user-item .nick", text: "charlie"

@@ -89,6 +89,7 @@ class MobileLayoutTest < ApplicationSystemTestCase
 
     assert main_width > viewport_width * 0.9, "Channel main content should fill nearly full viewport width"
 
-    assert_selector ".userlist", visible: :hidden
+    userlist_left = page.evaluate_script("document.querySelector('.userlist').getBoundingClientRect().left")
+    assert userlist_left >= viewport_width, "Userlist should be positioned off-screen on mobile"
   end
 end

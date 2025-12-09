@@ -33,7 +33,9 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
     visit channel_path(channel)
 
     assert_selector ".userlist-toggle", visible: true
-    assert_selector ".userlist", visible: :hidden
+    userlist_left = page.evaluate_script("document.querySelector('.userlist').getBoundingClientRect().left")
+    viewport_width = page.evaluate_script("window.innerWidth")
+    assert userlist_left >= viewport_width, "Userlist should be positioned off-screen on mobile"
   end
 
   test "toggle button hidden on desktop" do
@@ -52,12 +54,12 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
     sign_in_user
     visit channel_path(channel)
 
-    assert_no_selector ".userlist-drawer.-open"
+    assert_no_selector ".userlist.-open"
     assert_no_selector ".userlist-backdrop.-visible"
 
     find(".userlist-toggle").click
 
-    assert_selector ".userlist-drawer.-open"
+    assert_selector ".userlist.-open"
     assert_selector ".userlist-backdrop.-visible"
   end
 
@@ -68,11 +70,11 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
     visit channel_path(channel)
 
     find(".userlist-toggle").click
-    assert_selector ".userlist-drawer.-open"
+    assert_selector ".userlist.-open"
 
-    find(".userlist-drawer .close").click
+    find(".userlist .close").click
 
-    assert_no_selector ".userlist-drawer.-open"
+    assert_no_selector ".userlist.-open"
     assert_no_selector ".userlist-backdrop.-visible"
   end
 
@@ -83,11 +85,11 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
     visit channel_path(channel)
 
     find(".userlist-toggle").click
-    assert_selector ".userlist-drawer.-open"
+    assert_selector ".userlist.-open"
 
     find(".userlist-backdrop.-visible").click
 
-    assert_no_selector ".userlist-drawer.-open"
+    assert_no_selector ".userlist.-open"
     assert_no_selector ".userlist-backdrop.-visible"
   end
 
@@ -98,11 +100,11 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
     visit channel_path(channel)
 
     find(".userlist-toggle").click
-    assert_selector ".userlist-drawer.-open"
+    assert_selector ".userlist.-open"
 
-    find(".userlist-drawer .close").send_keys :escape
+    find(".userlist .close").send_keys :escape
 
-    assert_no_selector ".userlist-drawer.-open"
+    assert_no_selector ".userlist.-open"
     assert_no_selector ".userlist-backdrop.-visible"
   end
 
@@ -114,13 +116,53 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
 
     find(".userlist-toggle").click
 
-    within ".userlist-drawer" do
-      assert_text "Users (3)"
+    within ".userlist" do
+      assert_text "3 users"
       assert_text "Operators"
       assert_text "op_user"
       assert_text "Voiced"
       assert_text "voiced_user"
       assert_text "regular_user"
     end
+  end
+
+  test "user list not duplicated in HTML" do
+    _server, channel = create_server_with_channel_and_users
+    page.driver.browser.resize(width: 768, height: 1024)
+    sign_in_user
+    visit channel_path(channel)
+
+    user_list_count = page.all(".user-list", visible: :all).count
+    assert_equal 1, user_list_count, "Expected exactly one user list element, found #{user_list_count}"
+  end
+
+  test "live update works on mobile drawer open" do
+    server, channel = create_server_with_channel_and_users
+    page.driver.browser.resize(width: 768, height: 1024)
+    sign_in_user
+    visit channel_path(channel)
+
+    find(".userlist-toggle").click
+    assert_selector ".userlist.-open"
+
+    within ".userlist" do
+      assert_text "3 users"
+      assert_no_text "new_joiner"
+    end
+
+    ChannelUser.create!(channel: channel, nickname: "new_joiner", modes: "")
+    channel.broadcast_replace_to(
+      [ channel, :users ],
+      target: "channel_#{channel.id}_user_list",
+      partial: "channels/user_list",
+      locals: { channel: channel.reload }
+    )
+
+    within ".userlist" do
+      assert_text "4 users"
+      assert_text "new_joiner"
+    end
+
+    assert_selector ".userlist.-open"
   end
 end

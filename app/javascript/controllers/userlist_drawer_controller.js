@@ -12,6 +12,7 @@ export default class extends Controller {
   }
 
   open() {
+    if (!this.hasDrawerTarget) return
     this.drawerTarget.classList.add("-open")
     this.backdropTarget.classList.add("-visible")
     document.body.style.overflow = "hidden"
@@ -19,6 +20,7 @@ export default class extends Controller {
   }
 
   close() {
+    if (!this.hasDrawerTarget) return
     this.drawerTarget.classList.remove("-open")
     this.backdropTarget.classList.remove("-visible")
     document.body.style.overflow = ""

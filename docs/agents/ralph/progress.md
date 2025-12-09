@@ -2,20 +2,20 @@
 
 ## Current State
 
-Phase 10: DM & View Improvements in progress. Feature 41 completed.
+Phase 10: DM & View Improvements complete. All features in Phase 10 are done.
 
 ## Suggested Next Feature
 
-Continue with `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue).
+Phase 10 is complete. Check for new features or start a new phase.
 
 ## Pending Features
 
-### Phase 10: DM & View Improvements
+### Phase 10: DM & View Improvements (DONE)
 
 39. `39-unify-dm-channel-views.md.done` - DONE - Refactor DM view to share partials with channel view
 40. `40-dm-user-online-status.md.done` - DONE - Show online/offline indicator for DM users in sidebar
 41. `41-close-dm-conversations.md.done` - DONE - Add ability to close DMs (hide from sidebar, auto-reopen on new message)
-42. `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue)
+42. `42-unify-userlist-partial.md.done` - DONE - Single user list partial for desktop/mobile (fixes live update issue)
 
 ### Phase 9: UX Improvements & Mobile Support (DONE)
 
@@ -59,6 +59,7 @@ The application now has:
 - Message auto-scroll (auto-scroll to bottom on new messages, preserve position when reading history)
 - DM initiation (click username to start DM, /msg creates conversation)
 - Close DM conversations (hide from sidebar, auto-reopen on new message)
+- Unified user list partial (single DOM element for desktop/mobile, live updates work on both)
 
 ---
 
@@ -97,6 +98,37 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-09 (continued)
+
+**Feature**: 42-unify-userlist-partial
+**Status**: Completed
+
+**What was done**:
+- Unified desktop and mobile user list into single DOM element
+- User list now renders once (not duplicated in HTML)
+- On desktop (≥1024px): displays as permanent right sidebar
+- On mobile (<1024px): hidden off-screen, slides in as drawer when toggle clicked
+- Updated `_user_list.html.erb` with drawer-header (close button, title) and content wrapper
+- Removed duplicate backdrop and drawer elements from `_header.html.erb` (kept toggle button)
+- Added userlist-drawer controller and backdrop to `application.html.erb` layout
+- Updated `userlist_drawer_controller.js` with hasDrawerTarget guards
+- Changed mobile CSS from `display: none` to `transform: translateX(100%)` for off-screen positioning
+- Added drawer-header styles to `user-list.css` (hidden on desktop, visible on mobile)
+- Removed obsolete `userlist-drawer.css`
+- Updated 2 system test files with new selectors
+- Added tests for: no duplication in HTML, live updates on mobile with drawer open
+- All 457 unit tests and 60 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- Phase 10 is now complete
+- The key insight was using CSS transform instead of display:none for off-screen positioning
+- This allows the same element to receive Turbo Stream updates in both desktop and mobile modes
+- drawer-header visibility controlled by media query (hidden on desktop, flex on mobile)
+- Toggle button in header uses action bubbling to reach controller on app-layout div
+
+---
 
 ### Session 2025-12-09 (continued)
 

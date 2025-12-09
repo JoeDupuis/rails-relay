@@ -25,7 +25,7 @@
 
   <body>
     <% if authenticated? %>
-      <div class="app-layout <%= '-no-userlist' unless content_for?(:userlist) %>" data-controller="sidebar">
+      <div class="app-layout <%= '-no-userlist' unless content_for?(:userlist) %>" data-controller="sidebar userlist-drawer">
         <header class="app-header header">
           <%= render "shared/header" %>
         </header>
@@ -49,7 +49,8 @@
         </main>
 
         <% if content_for?(:userlist) %>
-          <aside class="userlist">
+          <div class="userlist-backdrop" data-userlist-drawer-target="backdrop" data-action="click->userlist-drawer#backdropClick"></div>
+          <aside class="userlist" data-userlist-drawer-target="drawer">
             <%= yield :userlist %>
           </aside>
         <% end %>

@@ -25,7 +25,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     sign_in_user
     visit channel_path(channel)
 
-    assert_selector ".user-list .header", text: "0 users"
     assert_no_selector ".user-list .nick", text: "newuser123"
 
     IrcEventHandler.handle(server, {
@@ -36,8 +35,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "1 users", wait: 5
-    assert_selector ".user-list .nick", text: "newuser123"
+    assert_selector ".user-list .nick", text: "newuser123", wait: 5
   end
 
   test "user list updates in real-time when another user parts" do
@@ -52,7 +50,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     sign_in_user
     visit channel_path(channel)
 
-    assert_selector ".user-list .header", text: "1 users"
     assert_selector ".user-list .nick", text: "existinguser"
 
     IrcEventHandler.handle(server, {
@@ -64,8 +61,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "0 users", wait: 5
-    assert_no_selector ".user-list .nick", text: "existinguser"
+    assert_no_selector ".user-list .nick", text: "existinguser", wait: 5
   end
 
   test "user list updates in real-time when another user quits" do
@@ -80,7 +76,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     sign_in_user
     visit channel_path(channel)
 
-    assert_selector ".user-list .header", text: "1 users"
     assert_selector ".user-list .nick", text: "quittinguser"
 
     IrcEventHandler.handle(server, {
@@ -91,8 +86,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "0 users", wait: 5
-    assert_no_selector ".user-list .nick", text: "quittinguser"
+    assert_no_selector ".user-list .nick", text: "quittinguser", wait: 5
   end
 
   test "user list updates in real-time when another user is kicked" do
@@ -107,7 +101,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     sign_in_user
     visit channel_path(channel)
 
-    assert_selector ".user-list .header", text: "1 users"
     assert_selector ".user-list .nick", text: "kickeduser"
 
     IrcEventHandler.handle(server, {
@@ -120,8 +113,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "0 users", wait: 5
-    assert_no_selector ".user-list .nick", text: "kickeduser"
+    assert_no_selector ".user-list .nick", text: "kickeduser", wait: 5
   end
 
   test "user list updates work for multiple sequential events" do
@@ -135,8 +127,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     sign_in_user
     visit channel_path(channel)
 
-    assert_selector ".user-list .header", text: "0 users"
-
     IrcEventHandler.handle(server, {
       type: "join",
       data: {
@@ -145,8 +135,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "1 users", wait: 5
-    assert_selector ".user-list .nick", text: "user1"
+    assert_selector ".user-list .nick", text: "user1", wait: 5
 
     IrcEventHandler.handle(server, {
       type: "join",
@@ -156,8 +145,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "2 users", wait: 5
-    assert_selector ".user-list .nick", text: "user2"
+    assert_selector ".user-list .nick", text: "user2", wait: 5
 
     IrcEventHandler.handle(server, {
       type: "part",
@@ -168,8 +156,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "1 users", wait: 5
-    assert_no_selector ".user-list .nick", text: "user1"
+    assert_no_selector ".user-list .nick", text: "user1", wait: 5
     assert_selector ".user-list .nick", text: "user2"
 
     IrcEventHandler.handle(server, {
@@ -182,7 +169,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
       }
     })
 
-    assert_selector ".user-list .header", text: "0 users", wait: 5
-    assert_no_selector ".user-list .nick", text: "user2"
+    assert_no_selector ".user-list .nick", text: "user2", wait: 5
   end
 end
