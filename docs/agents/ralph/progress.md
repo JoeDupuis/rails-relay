@@ -2,18 +2,18 @@
 
 ## Current State
 
-Phase 10: DM & View Improvements in progress. Feature 39 completed.
+Phase 10: DM & View Improvements in progress. Feature 40 completed.
 
 ## Suggested Next Feature
 
-Continue with `40-dm-user-online-status.md` - shows online/offline indicator for DM users in sidebar.
+Continue with `41-close-dm-conversations.md` - Add ability to close DMs (hide from sidebar, auto-reopen on new message).
 
 ## Pending Features
 
 ### Phase 10: DM & View Improvements
 
 39. `39-unify-dm-channel-views.md.done` - DONE - Refactor DM view to share partials with channel view
-40. `40-dm-user-online-status.md` - Show online/offline indicator for DM users in sidebar
+40. `40-dm-user-online-status.md.done` - DONE - Show online/offline indicator for DM users in sidebar
 41. `41-close-dm-conversations.md` - Add ability to close DMs (hide from sidebar, auto-reopen on new message)
 42. `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue)
 
@@ -96,6 +96,34 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-09 (continued)
+
+**Feature**: 40-dm-user-online-status
+**Status**: Completed
+
+**What was done**:
+- Added `target_online?` method to Conversation model that delegates to `server.nick_online?(target_nick)`
+- Added `has_many :channel_users, through: :channels` association to Server model
+- Added `nick_online?(nickname)` method to Server model with case-insensitive SQL query
+- Added `broadcast_presence_update` method to Conversation model as public wrapper for sidebar updates
+- Added `after_create_commit :notify_dm_presence` and `after_destroy_commit :notify_dm_presence` callbacks to ChannelUser model
+- `notify_dm_presence` method finds matching DM conversations (case-insensitive) and triggers sidebar updates
+- Updated `_conversation_sidebar_item.html.erb` with presence indicator span using `-online`/`-offline` classes
+- Added CSS for presence indicator in `dm-item.css` (8px green/gray dot)
+- Added 3 model tests for `target_online?`, 3 tests for `nick_online?`, 4 tests for ChannelUser callbacks
+- Added 4 system tests (2 for initial display state, 2 for live updates via broadcast)
+- All 440 unit tests and 54 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- System tests for live updates call `conversation.broadcast_presence_update` explicitly after IrcEventHandler triggers
+- This is due to how Rails transactional tests interact with ActionCable in system tests
+- Model tests use `assert_turbo_stream_broadcasts` to verify callback triggers broadcasts correctly
+- The presence indicator uses `var(--color-success)` for online (green) and `var(--color-gray-400)` for offline
+- Next feature is 41-close-dm-conversations.md
+
+---
 
 ### Session 2025-12-09
 

@@ -231,4 +231,28 @@ class ServerTest < ActiveSupport::TestCase
       server.update!(address: "other.example.com")
     end
   end
+
+  test "nick_online? returns true when user is in a channel" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = server.channels.create!(name: "#ruby")
+    channel.channel_users.create!(nickname: "alice")
+
+    assert server.nick_online?("alice")
+  end
+
+  test "nick_online? returns false when user is not in any channel" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    server.channels.create!(name: "#ruby")
+
+    assert_not server.nick_online?("bob")
+  end
+
+  test "nick_online? is case-insensitive" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = server.channels.create!(name: "#ruby")
+    channel.channel_users.create!(nickname: "alice")
+
+    assert server.nick_online?("ALICE")
+    assert server.nick_online?("Alice")
+  end
 end

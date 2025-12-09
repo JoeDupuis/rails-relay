@@ -5,6 +5,7 @@ class Server < ApplicationRecord
   encrypts :auth_password
 
   has_many :channels, dependent: :destroy
+  has_many :channel_users, through: :channels
   has_many :conversations, dependent: :destroy
   has_many :messages, dependent: :destroy
 
@@ -20,6 +21,10 @@ class Server < ApplicationRecord
 
   def connected?
     connected_at.present?
+  end
+
+  def nick_online?(nickname)
+    channel_users.where("LOWER(nickname) = LOWER(?)", nickname).exists?
   end
 
   def mark_disconnected!

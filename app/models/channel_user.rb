@@ -7,7 +7,9 @@ class ChannelUser < ApplicationRecord
   validates :nickname, uniqueness: { scope: :channel_id }
 
   after_create_commit :broadcast_user_list_on_create
+  after_create_commit :notify_dm_presence
   after_destroy_commit :broadcast_user_list_on_destroy
+  after_destroy_commit :notify_dm_presence
   after_update_commit :broadcast_user_list_on_update, if: :saved_change_to_modes?
 
   scope :ops, -> { where("modes LIKE ?", "%o%") }
@@ -45,5 +47,14 @@ class ChannelUser < ApplicationRecord
       partial: "channels/user_list",
       locals: { channel: channel }
     )
+  end
+
+  def notify_dm_presence
+    return unless Channel.exists?(channel_id)
+    server = channel.server
+    conversation = Conversation.where(server: server)
+                              .where("LOWER(target_nick) = LOWER(?)", nickname)
+                              .first
+    conversation&.broadcast_presence_update
   end
 end

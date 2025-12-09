@@ -225,4 +225,27 @@ class ConversationTest < ActiveSupport::TestCase
     conversation = Conversation.create!(server: @server, target_nick: "alice")
     assert_equal "Direct Message", conversation.subtitle
   end
+
+  test "target_online? returns true when user is in a shared channel" do
+    channel = Channel.create!(server: @server, name: "#ruby")
+    ChannelUser.create!(channel: channel, nickname: "alice")
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+
+    assert conversation.target_online?
+  end
+
+  test "target_online? returns false when user is not in any channel" do
+    Channel.create!(server: @server, name: "#ruby")
+    conversation = Conversation.create!(server: @server, target_nick: "bob")
+
+    assert_not conversation.target_online?
+  end
+
+  test "target_online? is case-insensitive" do
+    channel = Channel.create!(server: @server, name: "#ruby")
+    ChannelUser.create!(channel: channel, nickname: "alice")
+    conversation = Conversation.create!(server: @server, target_nick: "Alice")
+
+    assert conversation.target_online?
+  end
 end

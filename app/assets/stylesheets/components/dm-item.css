@@ -1,8 +1,28 @@
 .dm-item {
+  display: flex;
+  align-items: center;
+
+  & > .presence-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    margin-left: var(--space-md);
+    flex-shrink: 0;
+
+    &.-online {
+      background: var(--color-success);
+    }
+
+    &.-offline {
+      background: var(--color-gray-400);
+    }
+  }
+
   & > .link {
     display: flex;
     align-items: center;
-    padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-lg);
+    flex: 1;
+    padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-sm);
     color: var(--color-text);
     text-decoration: none;
   }

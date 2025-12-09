@@ -39,6 +39,14 @@ class Conversation < ApplicationRecord
     update!(last_read_message_id: messages.maximum(:id))
   end
 
+  def target_online?
+    server.nick_online?(target_nick)
+  end
+
+  def broadcast_presence_update
+    broadcast_sidebar_update
+  end
+
   private
 
   def broadcast_sidebar_add
