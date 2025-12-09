@@ -1,38 +1,43 @@
-<header class="header" id="<%= dom_id(channel, :header) %>" data-controller="userlist-drawer">
-  <span class="name"><%= channel.name %></span>
-  <% if channel.auto_join %>
+<% is_channel = messageable.is_a?(Channel) %>
+<header class="header" id="<%= dom_id(messageable, :header) %>" <%= "data-controller=userlist-drawer" if is_channel %>>
+  <span class="name"><%= messageable.display_name %></span>
+  <% if is_channel && messageable.auto_join %>
     <span class="auto-join-badge">auto</span>
   <% end %>
-  <%= form_with model: channel, class: "auto-join-form" do |f| %>
-    <label class="auto-join-toggle">
-      <%= f.check_box :auto_join, onchange: "this.form.requestSubmit()" %>
-      <span>Auto-join</span>
-    </label>
-  <% end %>
-  <span class="topic"><%= channel.topic %></span>
-  <% if channel.joined %>
-    <%= button_to "Leave", channel_path(channel), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{channel.name}?" } %>
-  <% else %>
-    <%= form_with url: server_channels_path(channel.server), class: "join-form" do |f| %>
-      <%= f.hidden_field :name, name: "channel[name]", value: channel.name %>
-      <%= f.submit "Join", class: "join" %>
+  <% if is_channel %>
+    <%= form_with model: messageable, class: "auto-join-form" do |f| %>
+      <label class="auto-join-toggle">
+        <%= f.check_box :auto_join, onchange: "this.form.requestSubmit()" %>
+        <span>Auto-join</span>
+      </label>
     <% end %>
   <% end %>
+  <span class="topic"><%= messageable.subtitle %></span>
+  <% if is_channel %>
+    <% if messageable.joined %>
+      <%= button_to "Leave", channel_path(messageable), method: :delete, class: "leave", data: { turbo_confirm: "Leave #{messageable.name}?" } %>
+    <% else %>
+      <%= form_with url: server_channels_path(messageable.server), class: "join-form" do |f| %>
+        <%= f.hidden_field :name, name: "channel[name]", value: messageable.name %>
+        <%= f.submit "Join", class: "join" %>
+      <% end %>
+    <% end %>
 
-  <button class="userlist-toggle" data-action="userlist-drawer#open" aria-label="Show user list">
-    <span class="icon">&#128101;</span>
-    <span class="count"><%= channel.channel_users.size %></span>
-  </button>
+    <button class="userlist-toggle" data-action="userlist-drawer#open" aria-label="Show user list">
+      <span class="icon">&#128101;</span>
+      <span class="count"><%= messageable.channel_users.size %></span>
+    </button>
 
-  <div class="userlist-backdrop" data-userlist-drawer-target="backdrop" data-action="click->userlist-drawer#backdropClick"></div>
+    <div class="userlist-backdrop" data-userlist-drawer-target="backdrop" data-action="click->userlist-drawer#backdropClick"></div>
 
-  <aside class="userlist-drawer" data-userlist-drawer-target="drawer">
-    <div class="header">
-      <span class="title">Users (<%= channel.channel_users.size %>)</span>
-      <button class="close" data-action="userlist-drawer#close" aria-label="Close user list">&times;</button>
-    </div>
-    <div class="content">
-      <%= render "channels/user_list_content", channel: channel %>
-    </div>
-  </aside>
+    <aside class="userlist-drawer" data-userlist-drawer-target="drawer">
+      <div class="header">
+        <span class="title">Users (<%= messageable.channel_users.size %>)</span>
+        <button class="close" data-action="userlist-drawer#close" aria-label="Close user list">&times;</button>
+      </div>
+      <div class="content">
+        <%= render "channels/user_list_content", channel: messageable %>
+      </div>
+    </aside>
+  <% end %>
 </header>

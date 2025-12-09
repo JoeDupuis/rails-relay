@@ -10,6 +10,14 @@ class Channel < ApplicationRecord
 
   scope :joined, -> { where(joined: true) }
 
+  def display_name
+    name
+  end
+
+  def subtitle
+    topic
+  end
+
   after_update_commit :broadcast_joined_status, if: :saved_change_to_joined?
   after_update_commit :broadcast_sidebar_joined_status, if: :saved_change_to_joined?
 
@@ -55,7 +63,7 @@ class Channel < ApplicationRecord
       self,
       target: ActionView::RecordIdentifier.dom_id(self, :header),
       partial: "channels/header",
-      locals: { channel: self }
+      locals: { messageable: self }
     )
 
     broadcast_replace_to(
@@ -69,7 +77,7 @@ class Channel < ApplicationRecord
       self,
       target: ActionView::RecordIdentifier.dom_id(self, :input),
       partial: "channels/input",
-      locals: { channel: self }
+      locals: { messageable: self }
     )
 
     broadcast_replace_to(

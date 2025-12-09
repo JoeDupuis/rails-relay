@@ -6,6 +6,14 @@ class Conversation < ApplicationRecord
   validates :target_nick, presence: true
   validates :target_nick, uniqueness: { scope: :server_id }
 
+  def display_name
+    target_nick
+  end
+
+  def subtitle
+    "Direct Message"
+  end
+
   after_create_commit :broadcast_sidebar_add
   after_update_commit :broadcast_sidebar_update, if: :saved_change_to_last_message_at?
 

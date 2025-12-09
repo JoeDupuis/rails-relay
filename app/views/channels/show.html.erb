@@ -2,7 +2,7 @@
 <%= turbo_stream_from @channel, :users %>
 
 <div class="channel-view" data-controller="channel">
-  <%= render "channels/header", channel: @channel %>
+  <%= render "channels/header", messageable: @channel %>
 
   <%= render "channels/banner", channel: @channel %>
 
@@ -19,7 +19,7 @@
     </div>
   </div>
 
-  <%= render "channels/input", channel: @channel %>
+  <%= render "channels/input", messageable: @channel %>
 </div>
 
 <% content_for :userlist do %>

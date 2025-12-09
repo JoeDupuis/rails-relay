@@ -218,4 +218,16 @@ class ChannelTest < ActiveSupport::TestCase
       channel.update!(joined: false)
     end
   end
+
+  test "display_name returns channel name" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    assert_equal "#ruby", channel.display_name
+  end
+
+  test "subtitle returns topic" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby", topic: "Ruby discussion")
+    assert_equal "Ruby discussion", channel.subtitle
+  end
 end

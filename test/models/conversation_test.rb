@@ -215,4 +215,14 @@ class ConversationTest < ActiveSupport::TestCase
       conversation.update!(last_message_at: Time.current)
     end
   end
+
+  test "display_name returns target_nick" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    assert_equal "alice", conversation.display_name
+  end
+
+  test "subtitle returns Direct Message" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    assert_equal "Direct Message", conversation.subtitle
+  end
 end

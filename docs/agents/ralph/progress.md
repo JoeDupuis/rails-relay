@@ -2,17 +2,17 @@
 
 ## Current State
 
-Phase 10: DM & View Improvements ready to begin.
+Phase 10: DM & View Improvements in progress. Feature 39 completed.
 
 ## Suggested Next Feature
 
-Start with `39-unify-dm-channel-views.md` - refactors DM view to use same partials as channel view. This is foundational for the other Phase 10 features.
+Continue with `40-dm-user-online-status.md` - shows online/offline indicator for DM users in sidebar.
 
 ## Pending Features
 
 ### Phase 10: DM & View Improvements
 
-39. `39-unify-dm-channel-views.md` - Refactor DM view to share partials with channel view
+39. `39-unify-dm-channel-views.md.done` - DONE - Refactor DM view to share partials with channel view
 40. `40-dm-user-online-status.md` - Show online/offline indicator for DM users in sidebar
 41. `41-close-dm-conversations.md` - Add ability to close DMs (hide from sidebar, auto-reopen on new message)
 42. `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue)
@@ -96,6 +96,35 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-09
+
+**Feature**: 39-unify-dm-channel-views
+**Status**: Completed
+
+**What was done**:
+- Added `display_name` and `subtitle` methods to Channel model (returns name and topic)
+- Added `display_name` and `subtitle` methods to Conversation model (returns target_nick and "Direct Message")
+- Refactored `channels/_header.html.erb` to accept polymorphic `messageable` local variable
+- Refactored `channels/_input.html.erb` to accept `messageable` local variable
+- Refactored `messages/_form.html.erb` to handle both Channel and Conversation contexts
+- Updated `conversations/show.html.erb` to use the shared partials from channels/
+- Updated `channels/show.html.erb` to pass `messageable:` instead of `channel:` to partials
+- Updated Channel model `broadcast_joined_status` to pass `messageable:` in locals
+- Added 2 model tests for Channel#display_name and Channel#subtitle
+- Added 2 model tests for Conversation#display_name and Conversation#subtitle
+- Added 3 system tests (DM view renders correctly, channel view still works, DM message sending works)
+- Updated dm_initiation_test.rb selectors to match new structure (.header .name instead of .channel-header h1)
+- All tests pass (430 unit tests, 50 system tests)
+- Passed QA review
+
+**Notes for next session**:
+- Header partial uses `is_channel = messageable.is_a?(Channel)` for conditional logic
+- For DMs: no userlist-toggle, no auto-join form, no leave button
+- For channels: all existing functionality preserved
+- Next feature is 40-dm-user-online-status.md
+
+---
 
 ### Session 2025-12-02 (continued)
 

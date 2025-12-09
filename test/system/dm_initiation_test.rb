@@ -39,8 +39,8 @@ class DmInitiationTest < ApplicationSystemTestCase
     end
 
     assert_current_path %r{/conversations/\d+}
-    assert_selector ".channel-view .channel-header h1", text: "alice"
-    assert_selector ".channel-topic", text: "Direct Message"
+    assert_selector ".channel-view .header .name", text: "alice"
+    assert_selector ".header .topic", text: "Direct Message"
   end
 
   test "click username in user list creates conversation in sidebar" do
@@ -69,7 +69,7 @@ class DmInitiationTest < ApplicationSystemTestCase
     end
 
     assert_current_path %r{/conversations/\d+}
-    assert_selector ".channel-view .channel-header h1", text: "alice"
-    assert_selector ".channel-topic", text: "Direct Message"
+    assert_selector ".channel-view .header .name", text: "alice"
+    assert_selector ".header .topic", text: "Direct Message"
   end
 end

@@ -1,30 +1,34 @@
-<% if channel.server.connected? && channel.joined %>
-  <%= form_with url: channel_messages_path(channel),
+<% is_channel = messageable.is_a?(Channel) %>
+<% can_send = messageable.server.connected? && (!is_channel || messageable.joined) %>
+<% if can_send %>
+  <%= form_with url: is_channel ? channel_messages_path(messageable) : conversation_messages_path(messageable),
       class: "message-input",
       data: {
         controller: "message-form",
         message_form_message_list_outlet: ".messages",
-        message_form_upload_url_value: channel_uploads_path(channel),
-        message_form_channel_name_value: channel.name,
+        message_form_upload_url_value: (is_channel ? channel_uploads_path(messageable) : nil),
+        message_form_channel_name_value: messageable.display_name,
         action: "submit->message-form#formSubmit"
-      } do |f| %>
+      }.compact do |f| %>
     <%= f.text_field :content,
-        placeholder: "Message #{channel.name}",
+        placeholder: "Message #{messageable.display_name}",
         class: "field",
         data: { message_form_target: "input", action: "keydown.enter->message-form#submit" } %>
-    <label class="upload">
-      📎
-      <input type="file"
-             accept="image/png,image/jpeg,image/gif,image/webp"
-             data-action="change->message-form#upload"
-             data-message-form-target="fileInput"
-             hidden>
-    </label>
+    <% if is_channel %>
+      <label class="upload">
+        📎
+        <input type="file"
+               accept="image/png,image/jpeg,image/gif,image/webp"
+               data-action="change->message-form#upload"
+               data-message-form-target="fileInput"
+               hidden>
+      </label>
+    <% end %>
     <%= f.submit "Send", class: "submit" %>
   <% end %>
-<% elsif channel.server.connected? && !channel.joined %>
+<% elsif is_channel && messageable.server.connected? && !messageable.joined %>
   <div class="message-input">
-    <%= text_field_tag :content, nil, placeholder: "Message #{channel.name}", class: "field", disabled: true %>
+    <%= text_field_tag :content, nil, placeholder: "Message #{messageable.display_name}", class: "field", disabled: true %>
   </div>
 <% else %>
   <div class="message-input">
