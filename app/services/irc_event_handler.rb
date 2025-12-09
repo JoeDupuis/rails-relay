@@ -94,11 +94,15 @@ class IrcEventHandler
 
       check_highlight(message)
     else
-      conversation = Conversation.find_or_create_by!(
+      conversation = Conversation.find_or_initialize_by(
         server: @server,
         target_nick: source_nick
       )
+      was_closed = conversation.persisted? && conversation.closed?
+      conversation.reopen! if was_closed
+      conversation.save! if conversation.new_record?
       conversation.touch(:last_message_at)
+      conversation.broadcast_sidebar_add if was_closed
 
       message = Message.create!(
         server: @server,

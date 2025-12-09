@@ -55,4 +55,24 @@
     background: white;
     color: var(--color-primary);
   }
+
+  & > .close-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    color: var(--color-text-muted);
+    font-size: var(--font-lg);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  & > .close-btn:hover {
+    color: var(--color-text);
+  }
+
+  &:hover > .close-btn {
+    opacity: 1;
+  }
 }

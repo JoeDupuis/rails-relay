@@ -16,6 +16,7 @@ Rails.application.routes.draw do
 
   resources :conversations, only: [ :show ] do
     resources :messages, only: [ :create ], controller: "conversation/messages"
+    resource :closure, only: [ :create ], controller: "conversation/closures"
   end
 
   namespace :internal do

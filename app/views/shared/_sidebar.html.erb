@@ -9,7 +9,7 @@
     <div class="dm-section" id="server_<%= server.id %>_dm_section">
       <div class="section-label">DMs</div>
       <ul class="dm-list" id="server_<%= server.id %>_dms">
-        <% server.conversations.order(last_message_at: :desc).each do |convo| %>
+        <% server.conversations.open.order(last_message_at: :desc).each do |convo| %>
           <%= render "shared/conversation_sidebar_item", conversation: convo %>
         <% end %>
       </ul>

@@ -128,4 +128,22 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
     post server_conversations_path(server), params: { target_nick: "bob" }
     assert_response :not_found
   end
+
+  test "POST /servers/:server_id/conversations reopens closed conversation" do
+    server = create_server
+    closed_conversation = Conversation.create!(
+      server: server,
+      target_nick: "bob",
+      closed_at: Time.current
+    )
+
+    assert closed_conversation.closed?
+
+    assert_no_difference -> { Conversation.count } do
+      post server_conversations_path(server), params: { target_nick: "bob" }
+    end
+
+    assert_not closed_conversation.reload.closed?
+    assert_redirected_to conversation_path(closed_conversation)
+  end
 end

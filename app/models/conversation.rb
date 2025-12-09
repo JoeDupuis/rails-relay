@@ -6,6 +6,9 @@ class Conversation < ApplicationRecord
   validates :target_nick, presence: true
   validates :target_nick, uniqueness: { scope: :server_id }
 
+  scope :open, -> { where(closed_at: nil) }
+  scope :closed, -> { where.not(closed_at: nil) }
+
   def display_name
     target_nick
   end
@@ -39,6 +42,19 @@ class Conversation < ApplicationRecord
     update!(last_read_message_id: messages.maximum(:id))
   end
 
+  def closed?
+    closed_at.present?
+  end
+
+  def close!
+    update!(closed_at: Time.current, last_read_message_id: messages.maximum(:id))
+  end
+
+  def reopen!
+    return unless closed?
+    update!(closed_at: nil)
+  end
+
   def target_online?
     server.nick_online?(target_nick)
   end
@@ -46,8 +62,6 @@ class Conversation < ApplicationRecord
   def broadcast_presence_update
     broadcast_sidebar_update
   end
-
-  private
 
   def broadcast_sidebar_add
     return unless server.user_id
@@ -59,6 +73,17 @@ class Conversation < ApplicationRecord
       locals: { conversation: self }
     )
   end
+
+  def broadcast_sidebar_remove
+    return unless server.user_id
+
+    broadcast_remove_to(
+      "sidebar_#{server.user_id}",
+      target: "conversation_#{id}_sidebar"
+    )
+  end
+
+  private
 
   def broadcast_sidebar_update
     return unless server.user_id

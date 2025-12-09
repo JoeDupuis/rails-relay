@@ -248,4 +248,81 @@ class ConversationTest < ActiveSupport::TestCase
 
     assert conversation.target_online?
   end
+
+  test "closed? returns false for new conversation" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    assert_not conversation.closed?
+  end
+
+  test "closed? returns true when closed_at set" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice", closed_at: Time.current)
+    assert conversation.closed?
+  end
+
+  test "close! sets closed_at" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    assert_nil conversation.closed_at
+
+    conversation.close!
+
+    assert_not_nil conversation.closed_at
+    assert conversation.closed?
+  end
+
+  test "close! also marks conversation as read" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    msg = Message.create!(
+      server: @server,
+      channel: nil,
+      target: "alice",
+      sender: "alice",
+      content: "Hello",
+      message_type: "privmsg"
+    )
+
+    assert_nil conversation.last_read_message_id
+    conversation.close!
+    assert_equal msg.id, conversation.last_read_message_id
+  end
+
+  test "reopen! clears closed_at" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice", closed_at: Time.current)
+    assert conversation.closed?
+
+    conversation.reopen!
+
+    assert_nil conversation.closed_at
+    assert_not conversation.closed?
+  end
+
+  test "reopen! does nothing if already open" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    assert_not conversation.closed?
+
+    conversation.reopen!
+
+    assert_nil conversation.closed_at
+  end
+
+  test "open scope excludes closed conversations" do
+    open1 = Conversation.create!(server: @server, target_nick: "alice")
+    open2 = Conversation.create!(server: @server, target_nick: "bob")
+    closed1 = Conversation.create!(server: @server, target_nick: "carol", closed_at: Time.current)
+
+    open_conversations = @server.conversations.open
+    assert_includes open_conversations, open1
+    assert_includes open_conversations, open2
+    assert_not_includes open_conversations, closed1
+  end
+
+  test "closed scope returns only closed conversations" do
+    open1 = Conversation.create!(server: @server, target_nick: "alice")
+    open2 = Conversation.create!(server: @server, target_nick: "bob")
+    closed1 = Conversation.create!(server: @server, target_nick: "carol", closed_at: Time.current)
+
+    closed_conversations = @server.conversations.closed
+    assert_not_includes closed_conversations, open1
+    assert_not_includes closed_conversations, open2
+    assert_includes closed_conversations, closed1
+  end
 end

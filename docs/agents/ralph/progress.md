@@ -2,11 +2,11 @@
 
 ## Current State
 
-Phase 10: DM & View Improvements in progress. Feature 40 completed.
+Phase 10: DM & View Improvements in progress. Feature 41 completed.
 
 ## Suggested Next Feature
 
-Continue with `41-close-dm-conversations.md` - Add ability to close DMs (hide from sidebar, auto-reopen on new message).
+Continue with `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue).
 
 ## Pending Features
 
@@ -14,7 +14,7 @@ Continue with `41-close-dm-conversations.md` - Add ability to close DMs (hide fr
 
 39. `39-unify-dm-channel-views.md.done` - DONE - Refactor DM view to share partials with channel view
 40. `40-dm-user-online-status.md.done` - DONE - Show online/offline indicator for DM users in sidebar
-41. `41-close-dm-conversations.md` - Add ability to close DMs (hide from sidebar, auto-reopen on new message)
+41. `41-close-dm-conversations.md.done` - DONE - Add ability to close DMs (hide from sidebar, auto-reopen on new message)
 42. `42-unify-userlist-partial.md` - Single user list partial for desktop/mobile (fixes live update issue)
 
 ### Phase 9: UX Improvements & Mobile Support (DONE)
@@ -58,6 +58,7 @@ The application now has:
 - Mobile user list drawer (slide-in drawer for viewports < 1024px)
 - Message auto-scroll (auto-scroll to bottom on new messages, preserve position when reading history)
 - DM initiation (click username to start DM, /msg creates conversation)
+- Close DM conversations (hide from sidebar, auto-reopen on new message)
 
 ---
 
@@ -96,6 +97,39 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-09 (continued)
+
+**Feature**: 41-close-dm-conversations
+**Status**: Completed
+
+**What was done**:
+- Added migration for `closed_at` datetime column to conversations table
+- Added `open` and `closed` scopes to Conversation model
+- Added `closed?`, `close!`, and `reopen!` methods to Conversation model
+- `close!` also marks conversation as read (sets last_read_message_id)
+- Added `broadcast_sidebar_add` (public) and `broadcast_sidebar_remove` methods
+- Created `Conversation::ClosuresController` with `create` action (follows Rails 7-actions convention)
+- Added route `resource :closure, only: [:create]` nested under conversations
+- Updated `ConversationsController#create` to reopen closed conversations when initiating DM
+- Updated sidebar to only show open conversations (`server.conversations.open`)
+- Added close button (X) to conversation sidebar item, visible on hover
+- Updated `IrcEventHandler#handle_message` to reopen closed conversations on new message
+- Added 8 model tests for close/reopen functionality
+- Added 3 controller tests for Conversation::ClosuresController
+- Added 1 test for reopening in ConversationsController
+- Added 5 integration tests for broadcasts and reopen behavior
+- Added 4 system tests for close button hover, clicking close, reopen on message, clicking username
+- All 457 unit tests and 58 system tests pass
+- Passed QA review (after refactoring to follow Rails conventions)
+
+**Notes for next session**:
+- Close button uses CSS `opacity: 0` by default, `opacity: 1` on hover
+- Closing a DM redirects to the server page
+- Auto-reopen broadcasts sidebar add so the DM reappears in real-time
+- Next feature is 42-unify-userlist-partial.md
+
+---
 
 ### Session 2025-12-09 (continued)
 

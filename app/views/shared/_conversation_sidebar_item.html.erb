@@ -6,4 +6,7 @@
       <span class="badge"><%= conversation.unread_count %></span>
     <% end %>
   <% end %>
+  <%= button_to conversation_closure_path(conversation), method: :post, class: "close-btn", data: { qa: "close-dm-btn" } do %>
+    <span aria-label="Close conversation">&times;</span>
+  <% end %>
 </li>

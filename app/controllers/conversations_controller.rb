@@ -9,7 +9,13 @@ class ConversationsController < ApplicationController
   end
 
   def create
-    @conversation = @server.conversations.find_or_create_by!(target_nick: params[:target_nick])
+    @conversation = @server.conversations.find_or_initialize_by(target_nick: params[:target_nick])
+    if @conversation.persisted? && @conversation.closed?
+      @conversation.reopen!
+      @conversation.broadcast_sidebar_add
+    elsif @conversation.new_record?
+      @conversation.save!
+    end
     redirect_to conversation_path(@conversation)
   end
 
