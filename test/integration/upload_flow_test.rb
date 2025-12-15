@@ -19,27 +19,22 @@ class UploadFlowTest < ActionDispatch::IntegrationTest
     @user.servers.create!(address: unique_address, nickname: "testnick", connected_at: Time.current)
   end
 
-  def json_headers
-    { "Accept" => "application/json" }
-  end
-
-  test "user uploads image and URL appears as message" do
+  test "user uploads image via message form and URL appears in content" do
     server = create_connected_server
     channel = Channel.create!(server: server, name: "#ruby", joined: true)
 
     file = fixture_file_upload("test.png", "image/png")
 
-    post channel_uploads_path(channel), params: { file: file }, headers: json_headers
+    post channel_messages_path(channel), params: { message: { file: file } }
 
     assert_response :ok
-    json = JSON.parse(response.body)
-    assert json["url"].present?
 
     message = Message.last
     assert_equal channel, message.channel
     assert_equal server, message.server
     assert_equal "testnick", message.sender
     assert_equal "privmsg", message.message_type
+    assert message.file.attached?
     assert_includes message.content, "/rails/active_storage/"
 
     assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands") do |req|
@@ -50,17 +45,18 @@ class UploadFlowTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "uploaded blob URL is accessible" do
+  test "uploaded file blob URL is accessible" do
     server = create_connected_server
     channel = Channel.create!(server: server, name: "#ruby", joined: true)
 
     file = fixture_file_upload("test.png", "image/png")
 
-    post channel_uploads_path(channel), params: { file: file }, headers: json_headers
+    post channel_messages_path(channel), params: { message: { file: file } }
 
     assert_response :ok
-    json = JSON.parse(response.body)
-    url = json["url"]
+
+    message = Message.last
+    url = message.content
 
     uri = URI.parse(url)
     get uri.path
@@ -73,12 +69,12 @@ class UploadFlowTest < ActionDispatch::IntegrationTest
     channel = Channel.create!(server: server, name: "#ruby", joined: true)
 
     file1 = fixture_file_upload("test.png", "image/png")
-    post channel_uploads_path(channel), params: { file: file1 }, headers: json_headers
-    url1 = JSON.parse(response.body)["url"]
+    post channel_messages_path(channel), params: { message: { file: file1 } }
+    url1 = Message.last.content
 
     file2 = fixture_file_upload("test.png", "image/png")
-    post channel_uploads_path(channel), params: { file: file2 }, headers: json_headers
-    url2 = JSON.parse(response.body)["url"]
+    post channel_messages_path(channel), params: { message: { file: file2 } }
+    url2 = Message.last.content
 
     assert_not_equal url1, url2
 

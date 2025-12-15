@@ -2,6 +2,11 @@ class MessagesController < ApplicationController
   before_action :set_target
 
   def create
+    if params[:message] && params[:message][:file].present?
+      handle_file_upload
+      return
+    end
+
     content = params[:content]
 
     case content
@@ -136,5 +141,22 @@ class MessagesController < ApplicationController
     flash[:alert] = "IRC service unavailable"
     redirect_back fallback_location: @channel || @server
     false
+  end
+
+  def handle_file_upload
+    @message = Message.new(
+      server: @server,
+      channel: @channel,
+      sender: @server.nickname,
+      message_type: "privmsg",
+      file: params[:message][:file]
+    )
+
+    if @message.save
+      head :ok
+    else
+      flash[:alert] = @message.errors.full_messages.join(", ")
+      redirect_back fallback_location: @channel || @server
+    end
   end
 end

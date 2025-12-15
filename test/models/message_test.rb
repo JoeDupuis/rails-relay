@@ -1,4 +1,5 @@
 require "test_helper"
+require "webmock/minitest"
 
 class MessageTest < ActiveSupport::TestCase
   setup do
@@ -178,5 +179,71 @@ class MessageTest < ActiveSupport::TestCase
     end
   ensure
     Current.user_id = nil
+  end
+
+  test "message with valid file attachment is saved" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 200)
+
+    message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+    message.file.attach(io: File.open(file_fixture("test.png")), filename: "test.png", content_type: "image/png")
+
+    assert message.valid?
+    assert message.save
+    assert message.file.attached?
+  end
+
+  test "message with invalid file type has error" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+    message.file.attach(io: File.open(file_fixture("test.pdf")), filename: "test.pdf", content_type: "application/pdf")
+
+    assert_not message.valid?
+    assert_includes message.errors[:file], "must be PNG, JPEG, GIF, or WebP"
+  end
+
+  test "message with file too large has error" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+    large_file = StringIO.new("x" * 15.megabytes)
+    message.file.attach(io: large_file, filename: "large.png", content_type: "image/png")
+
+    assert_not message.valid?
+    assert_includes message.errors[:file], "must be less than 10MB"
+  end
+
+  test "file upload generates URL in content" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 200)
+
+    message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+    message.file.attach(io: File.open(file_fixture("test.png")), filename: "test.png", content_type: "image/png")
+    message.save!
+
+    assert message.content.present?
+    assert_match %r{/rails/active_storage/blobs/}, message.content
+  end
+
+  test "file upload sends IRC command" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    stub = stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+             .with(body: hash_including("command" => "privmsg", "params" => hash_including("target" => "#ruby")))
+             .to_return(status: 200)
+
+    message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+    message.file.attach(io: File.open(file_fixture("test.png")), filename: "test.png", content_type: "image/png")
+    message.save!
+
+    assert_requested(stub)
   end
 end

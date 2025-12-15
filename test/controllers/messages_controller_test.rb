@@ -310,4 +310,51 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_in_delta Time.current, existing.reload.last_message_at, 2.seconds
   end
+
+  test "POST /channels/:id/messages with file creates message with file attached" do
+    server = create_server
+    channel = create_channel(server)
+
+    file = fixture_file_upload("test.png", "image/png")
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { message: { file: file } }
+    end
+
+    assert_response :ok
+    message = Message.last
+    assert message.file.attached?
+    assert_equal "image/png", message.file.content_type
+  end
+
+  test "POST /channels/:id/messages with invalid file type shows error" do
+    server = create_server
+    channel = create_channel(server)
+
+    file = fixture_file_upload("test.pdf", "application/pdf")
+
+    assert_no_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { message: { file: file } }
+    end
+
+    assert_redirected_to channel_path(channel)
+    follow_redirect!
+    assert_match "must be PNG, JPEG, GIF, or WebP", response.body
+  end
+
+  test "POST /channels/:id/messages with oversized file shows error" do
+    server = create_server
+    channel = create_channel(server)
+
+    large_data = "x" * 15.megabytes
+    file = Rack::Test::UploadedFile.new(StringIO.new(large_data), "image/png", true, original_filename: "large.png")
+
+    assert_no_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { message: { file: file } }
+    end
+
+    assert_redirected_to channel_path(channel)
+    follow_redirect!
+    assert_match "must be less than 10MB", response.body
+  end
 end

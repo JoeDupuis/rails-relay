@@ -2,17 +2,17 @@
 
 ## Current State
 
-Phase 11: Bug Fixes & Refactoring in progress. Feature 46 (services to models) complete.
+Phase 11: Bug Fixes & Refactoring in progress. Features 43 (file uploads) and 46 (services to models) complete.
 
 ## Suggested Next Feature
 
-Pick from `43-fix-file-uploads.md` or `44-fix-user-list-live-updates.md`.
+Pick `44-fix-user-list-live-updates.md` - the only remaining Phase 11 feature.
 
 ## Pending Features
 
 ### Phase 11: Bug Fixes & Refactoring
 
-43. `43-fix-file-uploads.md` - Fix broken file uploads by moving to Message model with has_one_attached
+43. `43-fix-file-uploads.md.done` - DONE - Fix broken file uploads by moving to Message model with has_one_attached
 44. `44-fix-user-list-live-updates.md` - Investigate and fix user list not updating in real-time
 46. `46-move-services-to-models.md.done` - DONE - Move app/services to app/models per conventions
 
@@ -109,6 +109,31 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-15 (continued)
+
+**Feature**: 43-fix-file-uploads
+**Status**: Completed
+
+**What was done**:
+- Added `has_one_attached :file` to Message model
+- Added file validations: type (PNG, JPEG, GIF, WebP) and size (max 10MB)
+- Added `process_file_upload` callback that generates blob URL and sends IRC PRIVMSG
+- Updated MessagesController with `handle_file_upload` method for file uploads via form
+- Changed message form file input name from `name="file"` to `name="message[file]"`
+- UploadsController kept but no longer used by the message form (could be deleted)
+- Added 5 model tests for file upload functionality
+- Added 3 controller tests for file upload via MessagesController
+- Updated 3 integration tests in upload_flow_test.rb to use new message-based flow
+- All 465 unit tests and 60 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- File processing happens in `after_create_commit` callback to ensure blob is persisted
+- IRC send errors are silently caught (message still saved with file)
+- The only remaining Phase 11 feature is 44-fix-user-list-live-updates.md
+
+---
 
 ### Session 2025-12-15
 
