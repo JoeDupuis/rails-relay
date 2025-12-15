@@ -2,13 +2,19 @@
 
 ## Current State
 
-Phase 10: DM & View Improvements complete. All features in Phase 10 are done.
+Phase 11: Bug Fixes & Refactoring ready to start.
 
 ## Suggested Next Feature
 
-Phase 10 is complete. Check for new features or start a new phase.
+Start with `46-move-services-to-models.md` - simplest change, no dependencies.
 
 ## Pending Features
+
+### Phase 11: Bug Fixes & Refactoring
+
+43. `43-fix-file-uploads.md` - Fix broken file uploads by moving to Message model with has_one_attached
+44. `44-fix-user-list-live-updates.md` - Investigate and fix user list not updating in real-time
+46. `46-move-services-to-models.md` - Move app/services to app/models per conventions
 
 ### Phase 10: DM & View Improvements (DONE)
 
@@ -94,6 +100,11 @@ The application now has:
 
 ### Phase 7: Media
 16. `16-media-upload.md` - Image upload via ActiveStorage
+
+### Phase 11: Bug Fixes & Refactoring
+43. `43-fix-file-uploads.md` - Fix broken file uploads (move to Message model)
+44. `44-fix-user-list-live-updates.md` - Fix user list live updates regression
+46. `46-move-services-to-models.md` - Move services/ to models/ per conventions
 
 ---
 
