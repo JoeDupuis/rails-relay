@@ -17,9 +17,9 @@ module SessionTestHelper
         Current.session&.destroy!
         page.driver.remove_cookie(:session_id)
 
-      else
+    else
         Current.session&.destroy!
         cookies.delete(:session_id)
-      end
+    end
   end
 end
