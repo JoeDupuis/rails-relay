@@ -117,4 +117,44 @@ class MessageScrollTest < ApplicationSystemTestCase
 
     assert scroll_position >= scroll_height - client_height - 50, "Should have scrolled to bottom after sending"
   end
+
+  test "scroll on send hides new messages indicator" do
+    channel = create_server_with_channel_and_many_messages
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    assert_selector ".message-item", minimum: 50
+
+    page.execute_script("document.querySelector('.messages').scrollTop = 0")
+    sleep 0.2
+
+    send_message_via_irc(channel.server, channel, "alice", "Message while reading history")
+
+    assert_selector ".new-messages-indicator:not(.-hidden)", text: "New messages below", wait: 5
+
+    fill_in "content", with: "My sent message"
+    click_button "Send"
+
+    assert_no_selector ".new-messages-indicator:not(.-hidden)", wait: 5
+  end
+
+  test "manual scroll to bottom hides new messages indicator" do
+    channel = create_server_with_channel_and_many_messages
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    assert_selector ".message-item", minimum: 50
+
+    page.execute_script("document.querySelector('.messages').scrollTop = 0")
+    sleep 0.2
+
+    send_message_via_irc(channel.server, channel, "alice", "Message while reading history")
+
+    assert_selector ".new-messages-indicator:not(.-hidden)", text: "New messages below", wait: 5
+
+    page.execute_script("const el = document.querySelector('.messages'); el.scrollTop = el.scrollHeight")
+    sleep 0.3
+
+    assert_no_selector ".new-messages-indicator:not(.-hidden)", wait: 5
+  end
 end

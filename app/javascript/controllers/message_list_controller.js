@@ -21,7 +21,16 @@ export default class extends Controller {
     if (this.hasMessagesTarget) {
       this.messagesTarget.addEventListener("scroll", () => {
         this.atBottom = this.isAtBottom()
+        if (this.atBottom) {
+          this.hideNewIndicator()
+        }
       })
+    }
+  }
+
+  hideNewIndicator() {
+    if (this.hasNewIndicatorTarget) {
+      this.newIndicatorTarget.classList.add("-hidden")
     }
   }
 
@@ -62,13 +71,10 @@ export default class extends Controller {
   scrollToNew() {
     this.scrollToBottom()
     this.atBottom = true
-    if (this.hasNewIndicatorTarget) {
-      this.newIndicatorTarget.classList.add("-hidden")
-    }
+    this.hideNewIndicator()
   }
 
   sent() {
-    this.scrollToBottom()
-    this.atBottom = true
+    this.scrollToNew()
   }
 }
