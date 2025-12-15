@@ -28,10 +28,7 @@ class MessagesController < ApplicationController
 
     return if performed?
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_back fallback_location: @channel || @server }
-    end
+    head :ok
   end
 
   private

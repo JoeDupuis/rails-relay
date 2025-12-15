@@ -21,10 +21,7 @@ class Conversation::MessagesController < ApplicationController
 
     @conversation.touch(:last_message_at)
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to @conversation }
-    end
+    head :ok
   rescue InternalApiClient::ConnectionNotFound
     flash[:alert] = "Server not connected"
     redirect_to @conversation

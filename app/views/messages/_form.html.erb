@@ -1,25 +1,23 @@
 <% is_channel = messageable.is_a?(Channel) %>
 <% can_send = messageable.server.connected? && (!is_channel || messageable.joined) %>
 <% if can_send %>
-  <%= form_with url: is_channel ? channel_messages_path(messageable) : conversation_messages_path(messageable),
-      class: "message-input",
-      data: {
-        controller: "message-form",
-        message_form_message_list_outlet: ".messages",
-        message_form_upload_url_value: (is_channel ? channel_uploads_path(messageable) : nil),
-        message_form_channel_name_value: messageable.display_name,
-        action: "submit->message-form#formSubmit"
-      }.compact do |f| %>
+<%= form_with url: is_channel ? channel_messages_path(messageable) : conversation_messages_path(messageable),
+              class: "message-input",
+              data: {
+                  controller: "message-form",
+                  message_form_message_list_outlet: ".messages",
+                  action: "keydown->message-form#preventShiftSubmit message-form#preventEmptySubmit turbo:submit-end->message-form#clearInput",
+              }.compact do |f| %>
     <%= f.text_field :content,
         placeholder: "Message #{messageable.display_name}",
         class: "field",
-        data: { message_form_target: "input", action: "keydown.enter->message-form#submit" } %>
+        data: { message_form_target: "input", action: "" } %>
     <% if is_channel %>
       <label class="upload">
         📎
         <input type="file"
                accept="image/png,image/jpeg,image/gif,image/webp"
-               data-action="change->message-form#upload"
+               data-action="change->message-form#submit"
                data-message-form-target="fileInput"
                hidden>
       </label>
