@@ -6,14 +6,6 @@ class ChannelViewTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_selector ".app-layout"
-  end
-
   def create_server_with_channel_and_messages
     server = @user.servers.create!(
       address: "#{@test_id}-irc.example.chat",
@@ -38,7 +30,7 @@ class ChannelViewTest < ApplicationSystemTestCase
 
   test "shows channel name and topic" do
     channel = create_server_with_channel_and_messages
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -49,7 +41,7 @@ class ChannelViewTest < ApplicationSystemTestCase
 
   test "shows message list" do
     channel = create_server_with_channel_and_messages
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -61,7 +53,7 @@ class ChannelViewTest < ApplicationSystemTestCase
 
   test "message types styled differently" do
     channel = create_server_with_channel_and_messages
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -73,7 +65,7 @@ class ChannelViewTest < ApplicationSystemTestCase
 
   test "shows users grouped by mode" do
     channel = create_server_with_channel_and_messages
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".userlist"
@@ -87,7 +79,7 @@ class ChannelViewTest < ApplicationSystemTestCase
 
   test "shows message input when connected" do
     channel = create_server_with_channel_and_messages
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -103,7 +95,7 @@ class ChannelViewTest < ApplicationSystemTestCase
       connected_at: nil
     )
     channel = Channel.create!(server: server, name: "#offline", joined: true)
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -121,7 +113,7 @@ class ChannelViewTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#test", joined: true)
     Message.create!(channel: channel, server: server, sender: "alice", message_type: "privmsg", content: "Hello")
     Message.create!(channel: channel, server: server, sender: "testnick", message_type: "privmsg", content: "Hi there!")
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -137,7 +129,7 @@ class ChannelViewTest < ApplicationSystemTestCase
       connected_at: Time.current
     )
     channel = Channel.create!(server: server, name: "#notjoined", joined: false)
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"

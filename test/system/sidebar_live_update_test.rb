@@ -6,14 +6,6 @@ class SidebarLiveUpdateTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   test "new DM conversation appears in sidebar" do
     server = @user.servers.create!(
       address: "#{@test_id}-dm.example.chat",
@@ -21,7 +13,7 @@ class SidebarLiveUpdateTest < ApplicationSystemTestCase
       connected_at: Time.current
     )
 
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     assert_no_selector ".dm-item", text: "alice"
@@ -46,7 +38,7 @@ class SidebarLiveUpdateTest < ApplicationSystemTestCase
     )
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: false)
 
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     within ".channels-section" do
@@ -74,7 +66,7 @@ class SidebarLiveUpdateTest < ApplicationSystemTestCase
     )
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
 
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     within ".channels-section" do
@@ -113,7 +105,7 @@ class SidebarLiveUpdateTest < ApplicationSystemTestCase
     )
     other_channel.update!(last_read_message_id: initial_message.id)
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".channel-item", text: "#other-#{@test_id}"

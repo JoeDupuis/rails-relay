@@ -6,14 +6,6 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   def create_server_with_channel_and_users
     server = @user.servers.create!(
       address: "#{@test_id}-irc.example.chat",
@@ -29,7 +21,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "toggle button visible on mobile" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".userlist-toggle", visible: true
@@ -41,7 +33,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "toggle button hidden on desktop" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 1200, height: 800)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".userlist-toggle", visible: :hidden
@@ -51,7 +43,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "open drawer" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_no_selector ".userlist.-open"
@@ -66,7 +58,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "close drawer with X button" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     find(".userlist-toggle").click
@@ -81,7 +73,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "close drawer by clicking backdrop" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     find(".userlist-toggle").click
@@ -96,7 +88,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "close drawer with Escape key" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     find(".userlist-toggle").click
@@ -111,7 +103,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "drawer shows user list content" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     find(".userlist-toggle").click
@@ -129,7 +121,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "user list not duplicated in HTML" do
     _server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     user_list_count = page.all(".user-list", visible: :all).count
@@ -139,7 +131,7 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
   test "live update works on mobile drawer open" do
     server, channel = create_server_with_channel_and_users
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     find(".userlist-toggle").click

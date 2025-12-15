@@ -9,7 +9,7 @@ class AccessControlTest < ActionDispatch::IntegrationTest
 
   test "authenticated user can visit protected page" do
     user = users(:joe)
-    post session_path, params: { email_address: user.email_address, password: "password123" }
+    sign_in_as(user)
 
     get root_path
 

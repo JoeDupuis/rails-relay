@@ -3,7 +3,7 @@ require "test_helper"
 class ConversationsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:joe)
-    post session_path, params: { email_address: @user.email_address, password: "password123" }
+    sign_in_as(@user)
     @test_id = SecureRandom.hex(4)
   end
 
@@ -78,9 +78,9 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
     server = create_server
     conversation = create_conversation(server)
 
-    delete session_path
+    sign_out
     other_user = users(:jane)
-    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+    sign_in_as(other_user)
 
     get conversation_path(conversation)
     assert_response :not_found
@@ -121,9 +121,9 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
   test "user can only create conversations on their own servers" do
     server = create_server
 
-    delete session_path
+    sign_out
     other_user = users(:jane)
-    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+    sign_in_as(other_user)
 
     post server_conversations_path(server), params: { target_nick: "bob" }
     assert_response :not_found

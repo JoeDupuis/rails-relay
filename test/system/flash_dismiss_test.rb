@@ -11,14 +11,6 @@ class FlashDismissTest < ApplicationSystemTestCase
       .to_return(status: 202, body: "", headers: {})
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   test "connecting flash disappears after connection completes" do
     server = @user.servers.create!(
       address: "#{@test_id}-flash.example.chat",
@@ -26,7 +18,7 @@ class FlashDismissTest < ApplicationSystemTestCase
       connected_at: nil
     )
 
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     click_button "Connect"

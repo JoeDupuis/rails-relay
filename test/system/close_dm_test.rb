@@ -6,14 +6,6 @@ class CloseDmTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_selector ".app-layout"
-  end
-
   def create_server_with_dm
     server = @user.servers.create!(
       address: "#{@test_id}-irc.example.chat",
@@ -37,7 +29,7 @@ class CloseDmTest < ApplicationSystemTestCase
 
   test "close button appears on DM item hover" do
     server, conversation = create_server_with_dm
-    sign_in_user
+    sign_in_as(@user)
 
     visit servers_path
     dm_item = find(".dm-item", text: "alice")
@@ -48,7 +40,7 @@ class CloseDmTest < ApplicationSystemTestCase
 
   test "clicking close removes DM from sidebar and redirects to server" do
     server, conversation = create_server_with_dm
-    sign_in_user
+    sign_in_as(@user)
 
     visit conversation_path(conversation)
     assert_selector ".channel-sidebar .dm-item", text: "alice"
@@ -66,7 +58,7 @@ class CloseDmTest < ApplicationSystemTestCase
   test "closed DM reappears on new message" do
     server, conversation = create_server_with_dm
     conversation.close!
-    sign_in_user
+    sign_in_as(@user)
 
     visit servers_path
     assert_no_selector ".dm-item", text: "alice"
@@ -87,7 +79,7 @@ class CloseDmTest < ApplicationSystemTestCase
   test "clicking username reopens closed DM" do
     server, channel = create_server_with_channel_and_user
     closed_convo = Conversation.create!(server: server, target_nick: "bob", closed_at: Time.current)
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_no_selector ".channel-sidebar .dm-item", text: "bob"

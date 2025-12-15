@@ -4,7 +4,7 @@ require "webmock/minitest"
 class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:joe)
-    post session_path, params: { email_address: @user.email_address, password: "password123" }
+    sign_in_as(@user)
     @test_id = SecureRandom.hex(4)
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
@@ -119,9 +119,9 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     server = create_server
     conversation = create_conversation(server)
 
-    delete session_path
+    sign_out
     other_user = users(:jane)
-    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+    sign_in_as(other_user)
 
     post conversation_messages_path(conversation), params: { content: "Hello" }
     assert_response :not_found

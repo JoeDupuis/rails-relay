@@ -6,14 +6,6 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   test "user list updates in real-time when another user joins" do
     server = @user.servers.create!(
       address: "#{@test_id}-join.example.chat",
@@ -22,7 +14,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     )
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_no_selector ".user-list .nick", text: "newuser123"
@@ -47,7 +39,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
     channel.channel_users.create!(nickname: "existinguser")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".user-list .nick", text: "existinguser"
@@ -73,7 +65,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
     channel.channel_users.create!(nickname: "quittinguser")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".user-list .nick", text: "quittinguser"
@@ -98,7 +90,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
     channel.channel_users.create!(nickname: "kickeduser")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".user-list .nick", text: "kickeduser"
@@ -124,7 +116,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     )
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     IrcEventHandler.handle(server, {
@@ -180,7 +172,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     )
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_no_selector ".user-list .nick"
@@ -212,7 +204,7 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
     channel_user = channel.channel_users.create!(nickname: "regularuser")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".user-list .user-item:not(.-op) .nick", text: "regularuser"

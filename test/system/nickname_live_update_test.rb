@@ -6,14 +6,6 @@ class NicknameLiveUpdateTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   test "nickname updates in real-time on server page" do
     server = @user.servers.create!(
       address: "#{@test_id}-nick.example.chat",
@@ -21,7 +13,7 @@ class NicknameLiveUpdateTest < ApplicationSystemTestCase
       connected_at: Time.current
     )
 
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     assert_selector ".nickname strong", text: "oldnick"

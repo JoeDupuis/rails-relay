@@ -6,11 +6,7 @@ class ServerFormTest < ApplicationSystemTestCase
   end
 
   def sign_in_and_visit_new_server
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
+    sign_in_as(@user)
     visit new_server_path
     assert_selector "input[id='server_address']"
   end

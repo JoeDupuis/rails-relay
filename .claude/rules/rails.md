@@ -162,6 +162,19 @@ test "descriptive name of what is being tested" do
 end
 ```
 
+### Authentication in Tests
+
+Use `SessionTestHelper` for sign in/out. Do NOT create ad-hoc helpers or use manual POST to session_path.
+
+```ruby
+sign_in_as(user)
+sign_out
+```
+
+Works in both integration/controller tests and system tests. No need to know passwords.
+
+For system tests, call `visit` after `sign_in_as` since it only sets the cookie.
+
 ### Yaic / irc events
 You can simulate events from yaic/irc servers by sending requests to the internal API directly.
 

@@ -6,14 +6,6 @@ class DmInitiationTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_selector ".app-layout"
-  end
-
   def create_server_with_channel
     server = @user.servers.create!(
       address: "#{@test_id}-irc.example.chat",
@@ -29,7 +21,7 @@ class DmInitiationTest < ApplicationSystemTestCase
 
   test "click username in user list opens DM" do
     server, channel = create_server_with_channel
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".user-list"
@@ -45,7 +37,7 @@ class DmInitiationTest < ApplicationSystemTestCase
 
   test "click username in user list creates conversation in sidebar" do
     server, channel = create_server_with_channel
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_no_selector ".channel-sidebar .dm-item", text: "alice"
@@ -59,7 +51,7 @@ class DmInitiationTest < ApplicationSystemTestCase
 
   test "click username in message opens DM" do
     server, channel = create_server_with_channel
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".message-item"

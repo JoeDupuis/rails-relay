@@ -3,7 +3,7 @@ require "test_helper"
 class NotificationsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:joe)
-    post session_path, params: { email_address: @user.email_address, password: "password123" }
+    sign_in_as(@user)
     @test_id = SecureRandom.hex(4)
   end
 
@@ -62,9 +62,9 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     message = create_message(server: server, channel: channel)
     create_notification(message: message, reason: "highlight")
 
-    delete session_path
+    sign_out
     other_user = users(:jane)
-    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+    sign_in_as(other_user)
 
     get notifications_path
     assert_response :ok
@@ -113,9 +113,9 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     message = create_message(server: server, channel: channel)
     notification = create_notification(message: message, reason: "highlight")
 
-    delete session_path
+    sign_out
     other_user = users(:jane)
-    post session_path, params: { email_address: other_user.email_address, password: "secret456" }
+    sign_in_as(other_user)
 
     patch notification_path(notification)
     assert_response :not_found

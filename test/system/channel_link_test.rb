@@ -13,11 +13,7 @@ class ChannelLinkTest < ApplicationSystemTestCase
   end
 
   def sign_in_and_visit_server(server)
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
+    sign_in_as(@user)
     visit server_path(server)
     assert_selector ".server-view"
   end

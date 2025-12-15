@@ -6,14 +6,6 @@ class UnifiedViewTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_selector ".app-layout"
-  end
-
   def create_server_with_channel
     server = @user.servers.create!(
       address: "#{@test_id}-irc.example.chat",
@@ -40,7 +32,7 @@ class UnifiedViewTest < ApplicationSystemTestCase
 
   test "DM view renders correctly" do
     server, conversation = create_server_with_conversation
-    sign_in_user
+    sign_in_as(@user)
 
     visit conversation_path(conversation)
     assert_selector ".channel-view"
@@ -55,7 +47,7 @@ class UnifiedViewTest < ApplicationSystemTestCase
 
   test "channel view still works" do
     server, channel = create_server_with_channel
-    sign_in_user
+    sign_in_as(@user)
 
     visit channel_path(channel)
     assert_selector ".channel-view"
@@ -74,7 +66,7 @@ class UnifiedViewTest < ApplicationSystemTestCase
     stub_request(:post, "http://localhost:3001/irc/commands")
       .to_return(status: 200, body: "")
 
-    sign_in_user
+    sign_in_as(@user)
 
     visit conversation_path(conversation)
     assert_selector ".message-input .field"

@@ -4,15 +4,7 @@ class MessageScrollTest < ApplicationSystemTestCase
   setup do
     @user = users(:joe)
     @test_id = SecureRandom.hex(4)
-  end
-
-  def sign_in_user
     page.driver.browser.resize(width: 1200, height: 600)
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
   end
 
   def create_server_with_channel_and_many_messages
@@ -51,7 +43,7 @@ class MessageScrollTest < ApplicationSystemTestCase
 
   test "auto-scroll on new message when at bottom" do
     channel = create_server_with_channel_and_many_messages
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".message-item", minimum: 50
@@ -63,7 +55,7 @@ class MessageScrollTest < ApplicationSystemTestCase
 
   test "no scroll when reading history" do
     channel = create_server_with_channel_and_many_messages
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".message-item", minimum: 50
@@ -81,7 +73,7 @@ class MessageScrollTest < ApplicationSystemTestCase
 
   test "click indicator to scroll" do
     channel = create_server_with_channel_and_many_messages
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".message-item", minimum: 50
@@ -106,7 +98,7 @@ class MessageScrollTest < ApplicationSystemTestCase
 
   test "scroll on send" do
     channel = create_server_with_channel_and_many_messages
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".message-item", minimum: 50

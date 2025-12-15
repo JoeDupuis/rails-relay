@@ -6,14 +6,6 @@ class MobileLayoutTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   def create_server
     @user.servers.create!(
       address: "#{@test_id}-irc.example.chat",
@@ -31,7 +23,7 @@ class MobileLayoutTest < ApplicationSystemTestCase
   test "server page layout on mobile viewport" do
     server = create_server
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     assert_selector ".app-layout.-no-userlist"
@@ -46,7 +38,7 @@ class MobileLayoutTest < ApplicationSystemTestCase
   test "server page layout on tablet viewport" do
     server = create_server
     page.driver.browser.resize(width: 900, height: 1200)
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     assert_selector ".app-layout.-no-userlist"
@@ -61,7 +53,7 @@ class MobileLayoutTest < ApplicationSystemTestCase
   test "server page layout on desktop viewport" do
     server = create_server
     page.driver.browser.resize(width: 1200, height: 800)
-    sign_in_user
+    sign_in_as(@user)
     visit server_path(server)
 
     assert_selector ".app-layout.-no-userlist"
@@ -79,7 +71,7 @@ class MobileLayoutTest < ApplicationSystemTestCase
     server = create_server_with_channel
     channel = server.channels.first
     page.driver.browser.resize(width: 768, height: 1024)
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     assert_selector ".channel-view"

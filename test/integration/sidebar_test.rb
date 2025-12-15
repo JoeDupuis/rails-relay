@@ -4,7 +4,7 @@ require "webmock/minitest"
 class SidebarTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:joe)
-    post session_path, params: { email_address: @user.email_address, password: "password123" }
+    sign_in_as(@user)
     @test_id = SecureRandom.hex(4)
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")

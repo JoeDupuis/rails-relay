@@ -6,14 +6,6 @@ class DmOnlineStatusTest < ApplicationSystemTestCase
     @test_id = SecureRandom.hex(4)
   end
 
-  def sign_in_user
-    visit new_session_path
-    fill_in "email_address", with: @user.email_address
-    fill_in "password", with: "password123"
-    click_button "Sign in"
-    assert_no_selector "input[id='password']", wait: 5
-  end
-
   test "DM shows online indicator when user is in shared channel" do
     server = @user.servers.create!(
       address: "#{@test_id}-online.example.chat",
@@ -24,7 +16,7 @@ class DmOnlineStatusTest < ApplicationSystemTestCase
     ChannelUser.create!(channel: channel, nickname: "alice")
     Conversation.create!(server: server, target_nick: "alice")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     within ".channel-sidebar" do
@@ -43,7 +35,7 @@ class DmOnlineStatusTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#ruby", joined: true)
     Conversation.create!(server: server, target_nick: "bob")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     within ".channel-sidebar" do
@@ -62,7 +54,7 @@ class DmOnlineStatusTest < ApplicationSystemTestCase
     channel = Channel.create!(server: server, name: "#ruby-#{@test_id}", joined: true)
     conversation = Conversation.create!(server: server, target_nick: "alice")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     within ".channel-sidebar" do
@@ -96,7 +88,7 @@ class DmOnlineStatusTest < ApplicationSystemTestCase
     ChannelUser.create!(channel: channel, nickname: "alice")
     conversation = Conversation.create!(server: server, target_nick: "alice")
 
-    sign_in_user
+    sign_in_as(@user)
     visit channel_path(channel)
 
     within ".channel-sidebar" do
