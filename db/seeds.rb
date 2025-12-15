@@ -9,7 +9,23 @@
 #   end
 
 if Rails.env.development?
-  User.find_or_create_by!(email_address: "dev@example.com") do |user|
+  dev_user = User.find_or_create_by!(email_address: "dev@example.com") do |user|
     user.password = "Xk9#mP7$qR2@"
+  end
+
+  test_user = User.find_or_create_by!(email_address: "test@example.com") do |user|
+    user.password = "123123"
+  end
+
+  Server.find_or_create_by!(user: dev_user, address: "localhost", port: 6667) do |server|
+    server.nickname = "devuser"
+    server.ssl = false
+    server.ssl_verify = false
+  end
+
+  Server.find_or_create_by!(user: test_user, address: "localhost", port: 6667) do |server|
+    server.nickname = "testuser"
+    server.ssl = false
+    server.ssl_verify = false
   end
 end

@@ -7,9 +7,10 @@
   <%= form.submit "Sign in" %>
 
   <% if Rails.env.development? %>
-    <div class="dev-signin" data-controller="dev-signin" data-dev-signin-email-value="dev@example.com" data-dev-signin-password-value="Xk9#mP7$qR2@">
+    <div class="dev-signin" data-controller="dev-signin">
       <h3>Development Sign In</h3>
-      <%= button_tag "Dev User", class: "dev-user-button", data: { action: "click->dev-signin#signIn" } %>
+      <%= button_tag "Dev User", class: "dev-user-button", data: { action: "click->dev-signin#signIn", email: "dev@example.com", password: "Xk9#mP7$qR2@" } %>
+      <%= button_tag "Test User", class: "dev-user-button", data: { action: "click->dev-signin#signIn", email: "test@example.com", password: "123123" } %>
     </div>
   <% end %>
 <% end %>
