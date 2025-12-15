@@ -171,4 +171,56 @@ class UserListLiveUpdateTest < ApplicationSystemTestCase
 
     assert_no_selector ".user-list .nick", text: "user2", wait: 5
   end
+
+  test "user list shows all users after NAMES event" do
+    server = @user.servers.create!(
+      address: "#{@test_id}-names.example.chat",
+      nickname: "testnick",
+      connected_at: Time.current
+    )
+    channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
+
+    sign_in_user
+    visit channel_path(channel)
+
+    assert_no_selector ".user-list .nick"
+
+    IrcEventHandler.handle(server, {
+      type: "names",
+      data: {
+        channel: channel.name,
+        names: [ "@opuser", "+voiceuser", "regular1", "regular2", "regular3", "testnick" ]
+      }
+    })
+
+    assert_selector ".user-list .nick", text: "opuser", wait: 5
+    assert_selector ".user-list .nick", text: "voiceuser"
+    assert_selector ".user-list .nick", text: "regular1"
+    assert_selector ".user-list .nick", text: "regular2"
+    assert_selector ".user-list .nick", text: "regular3"
+    assert_selector ".user-list .nick", text: "testnick"
+    assert_selector ".user-list .grouptitle", text: "Operators"
+    assert_selector ".user-list .grouptitle", text: "Voiced"
+  end
+
+  test "user list updates when user mode changes to operator" do
+    server = @user.servers.create!(
+      address: "#{@test_id}-mode.example.chat",
+      nickname: "testnick",
+      connected_at: Time.current
+    )
+    channel = Channel.create!(server: server, name: "#test-#{@test_id}", joined: true)
+    channel_user = channel.channel_users.create!(nickname: "regularuser")
+
+    sign_in_user
+    visit channel_path(channel)
+
+    assert_selector ".user-list .user-item:not(.-op) .nick", text: "regularuser"
+    assert_no_selector ".user-list .grouptitle", text: "Operators"
+
+    channel_user.update!(modes: "o")
+
+    assert_selector ".user-list .grouptitle", text: "Operators", wait: 5
+    assert_selector ".user-list .user-item.-op .nick", text: "regularuser"
+  end
 end

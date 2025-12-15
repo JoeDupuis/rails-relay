@@ -38,6 +38,15 @@ class Channel < ApplicationRecord
     update!(last_read_message_id: messages.maximum(:id))
   end
 
+  def broadcast_user_list
+    broadcast_replace_to(
+      [ self, :users ],
+      target: "channel_#{id}_user_list",
+      partial: "channels/user_list",
+      locals: { channel: self }
+    )
+  end
+
   private
 
   def broadcast_sidebar_joined_status

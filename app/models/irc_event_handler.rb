@@ -261,21 +261,25 @@ class IrcEventHandler
     channel = Channel.find_by(server: @server, name: data[:channel])
     return unless channel
 
-    channel.channel_users.destroy_all
-    data[:names].each do |name|
-      modes = ""
-      nick = name
+    ChannelUser.without_broadcasts do
+      channel.channel_users.destroy_all
+      data[:names].each do |name|
+        modes = ""
+        nick = name
 
-      if name.start_with?("@")
-        modes = "o"
-        nick = name[1..]
-      elsif name.start_with?("+")
-        modes = "v"
-        nick = name[1..]
+        if name.start_with?("@")
+          modes = "o"
+          nick = name[1..]
+        elsif name.start_with?("+")
+          modes = "v"
+          nick = name[1..]
+        end
+
+        channel.channel_users.create!(nickname: nick, modes: modes)
       end
-
-      channel.channel_users.create!(nickname: nick, modes: modes)
     end
+
+    channel.reload.broadcast_user_list
   end
 
   def channel_target?(target)

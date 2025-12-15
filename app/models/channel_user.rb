@@ -6,11 +6,20 @@ class ChannelUser < ApplicationRecord
   validates :nickname, presence: true
   validates :nickname, uniqueness: { scope: :channel_id }
 
+  thread_mattr_accessor :suppress_broadcasts
+
   after_create_commit :broadcast_user_list_on_create
   after_create_commit :notify_dm_presence
   after_destroy_commit :broadcast_user_list_on_destroy
   after_destroy_commit :notify_dm_presence
   after_update_commit :broadcast_user_list_on_update, if: :saved_change_to_modes?
+
+  def self.without_broadcasts
+    self.suppress_broadcasts = true
+    yield
+  ensure
+    self.suppress_broadcasts = false
+  end
 
   scope :ops, -> { where("modes LIKE ?", "%o%") }
   scope :voiced, -> { where("modes LIKE ?", "%v%") }
@@ -27,15 +36,18 @@ class ChannelUser < ApplicationRecord
   private
 
   def broadcast_user_list_on_create
+    return if self.class.suppress_broadcasts
     broadcast_user_list
   end
 
   def broadcast_user_list_on_destroy
+    return if self.class.suppress_broadcasts
     return unless Channel.exists?(channel_id)
     broadcast_user_list
   end
 
   def broadcast_user_list_on_update
+    return if self.class.suppress_broadcasts
     broadcast_user_list
   end
 
@@ -50,6 +62,7 @@ class ChannelUser < ApplicationRecord
   end
 
   def notify_dm_presence
+    return if self.class.suppress_broadcasts
     return unless Channel.exists?(channel_id)
     server = channel.server
     conversation = Conversation.where(server: server)

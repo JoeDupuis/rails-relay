@@ -2,18 +2,18 @@
 
 ## Current State
 
-Phase 11: Bug Fixes & Refactoring in progress. Features 43 (file uploads) and 46 (services to models) complete.
+Phase 11: Bug Fixes & Refactoring COMPLETE. All features done.
 
 ## Suggested Next Feature
 
-Pick `44-fix-user-list-live-updates.md` - the only remaining Phase 11 feature.
+No pending features. All phases complete (except deferred feature 33 which requires yaic LIST support).
 
 ## Pending Features
 
-### Phase 11: Bug Fixes & Refactoring
+### Phase 11: Bug Fixes & Refactoring (DONE)
 
 43. `43-fix-file-uploads.md.done` - DONE - Fix broken file uploads by moving to Message model with has_one_attached
-44. `44-fix-user-list-live-updates.md` - Investigate and fix user list not updating in real-time
+44. `44-fix-user-list-live-updates.md.done` - DONE - Fix NAMES event race condition by batching broadcasts
 46. `46-move-services-to-models.md.done` - DONE - Move app/services to app/models per conventions
 
 ### Phase 10: DM & View Improvements (DONE)
@@ -109,6 +109,28 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-15 (continued)
+
+**Feature**: 44-fix-user-list-live-updates
+**Status**: Completed
+
+**What was done**:
+- Investigated race condition: NAMES events triggered multiple broadcasts per user, causing some to be lost
+- Added `ChannelUser.without_broadcasts` class method with thread-safe `suppress_broadcasts` flag
+- Updated ChannelUser callbacks to check suppress flag before broadcasting
+- Updated `IrcEventHandler#handle_names` to wrap bulk operations in `without_broadcasts` block
+- Added `Channel#broadcast_user_list` public method for manual broadcast after bulk ops
+- Added 2 system tests: NAMES event test (verifies all 6 users appear) and mode change test
+- All 465 unit tests and 62 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- Phase 11 is now complete
+- All phases complete except deferred feature 33 (requires yaic LIST support)
+- The `thread_mattr_accessor` ensures thread-safety for the suppress flag
+
+---
 
 ### Session 2025-12-15 (continued)
 
