@@ -2,11 +2,11 @@
 
 ## Current State
 
-Phase 11: Bug Fixes & Refactoring ready to start.
+Phase 11: Bug Fixes & Refactoring in progress. Feature 46 (services to models) complete.
 
 ## Suggested Next Feature
 
-Start with `46-move-services-to-models.md` - simplest change, no dependencies.
+Pick from `43-fix-file-uploads.md` or `44-fix-user-list-live-updates.md`.
 
 ## Pending Features
 
@@ -14,7 +14,7 @@ Start with `46-move-services-to-models.md` - simplest change, no dependencies.
 
 43. `43-fix-file-uploads.md` - Fix broken file uploads by moving to Message model with has_one_attached
 44. `44-fix-user-list-live-updates.md` - Investigate and fix user list not updating in real-time
-46. `46-move-services-to-models.md` - Move app/services to app/models per conventions
+46. `46-move-services-to-models.md.done` - DONE - Move app/services to app/models per conventions
 
 ### Phase 10: DM & View Improvements (DONE)
 
@@ -109,6 +109,26 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-15
+
+**Feature**: 46-move-services-to-models
+**Status**: Completed
+
+**What was done**:
+- Moved 4 files from `app/services/` to `app/models/` (internal_api_client.rb, irc_connection.rb, irc_connection_manager.rb, irc_event_handler.rb)
+- Moved 4 test files from `test/services/` to `test/models/`
+- Removed empty `app/services/` and `test/services/` directories
+- Used `git mv` for proper tracking as renames
+- All 457 unit tests and 60 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- No code changes were needed, only file moves
+- Rails autoloading handles both directories identically
+- Remaining Phase 11 features: 43-fix-file-uploads.md, 44-fix-user-list-live-updates.md
+
+---
 
 ### Session 2025-12-09 (continued)
 
