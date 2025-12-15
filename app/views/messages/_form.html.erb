@@ -3,6 +3,7 @@
 <% if can_send %>
 <%= form_with url: is_channel ? channel_messages_path(messageable) : conversation_messages_path(messageable),
               class: "message-input",
+              multipart: true,
               data: {
                   controller: "message-form",
                   message_form_message_list_outlet: ".messages",
@@ -16,6 +17,7 @@
       <label class="upload">
         📎
         <input type="file"
+               name="file"
                accept="image/png,image/jpeg,image/gif,image/webp"
                data-action="change->message-form#submit"
                data-message-form-target="fileInput"
