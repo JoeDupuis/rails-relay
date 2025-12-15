@@ -11,7 +11,6 @@ EXIT_SCRIPT: .claude/ralph/bin/kill-claude
 ## Project Context
 
 - **Data model**: See `docs/agents/data-model.md`
-- **Conventions**: See `docs/agents/conventions/rails.md` and `docs/agents/conventions/rscss.md`
 - **Features**: See `docs/agents/ralph/features/`
 - **Progress**: See `docs/agents/ralph/progress.md`
 

@@ -33,11 +33,7 @@ For now test need to be ran unsandboxed else you'll get an error about a websock
 
 ### Code Quality
 
-Read and apply rules from `docs/agents/conventions/rails.md`.
-
-### CSS (only if views/CSS changed)
-
-Read and apply rules from `docs/agents/conventions/rscss.md`.
+Read and apply rules from all rule files in `.claude/rules/`.
 
 ### Testing
 
