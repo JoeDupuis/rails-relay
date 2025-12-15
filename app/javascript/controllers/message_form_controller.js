@@ -9,12 +9,18 @@ export default class extends Controller {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       this.element.requestSubmit()
+      this.clearInput()
       this.notifyMessageList()
     }
   }
 
   formSubmit() {
+    this.clearInput()
     this.notifyMessageList()
+  }
+
+  clearInput() {
+    this.inputTarget.value = ""
   }
 
   notifyMessageList() {
