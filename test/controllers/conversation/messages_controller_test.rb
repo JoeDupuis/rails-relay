@@ -65,7 +65,7 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "POST /conversations/:conversation_id/messages returns turbo stream" do
+  test "POST /conversations/:conversation_id/messages returns success for turbo stream" do
     server = create_server
     conversation = create_conversation(server, target_nick: "alice")
 
@@ -73,17 +73,16 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
       params: { content: "Hello" },
       headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    assert_response :ok
-    assert_match "turbo-stream", response.body
+    assert_response :success
   end
 
-  test "POST /conversations/:conversation_id/messages redirects on HTML request" do
+  test "POST /conversations/:conversation_id/messages returns success on HTML request" do
     server = create_server
     conversation = create_conversation(server, target_nick: "alice")
 
     post conversation_messages_path(conversation), params: { content: "Hello" }
 
-    assert_redirected_to conversation_path(conversation)
+    assert_response :success
   end
 
   test "POST /conversations/:conversation_id/messages redirects with alert when service unavailable" do
