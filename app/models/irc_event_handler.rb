@@ -45,6 +45,8 @@ class IrcEventHandler
       handle_topic
     when "names"
       handle_names
+    when "no_such_nick"
+      handle_no_such_nick
     end
   end
 
@@ -280,6 +282,17 @@ class IrcEventHandler
     end
 
     channel.reload.broadcast_user_list
+  end
+
+  def handle_no_such_nick
+    nick = data[:nick]
+    return unless nick
+
+    conversation = Conversation.find_by(server: @server, target_nick: nick)
+    return unless conversation&.online?
+
+    conversation.update!(online: false)
+    conversation.broadcast_presence_update
   end
 
   def channel_target?(target)

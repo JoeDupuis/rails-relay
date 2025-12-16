@@ -1,4 +1,5 @@
 require "test_helper"
+require "webmock/minitest"
 
 class IsonsControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -97,6 +98,26 @@ class IsonsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert_not conversation.reload.online?
+  end
+
+  test "GET /ison only marks offline user as offline not all users" do
+    server = create_server
+    alice = Conversation.create!(server: server, target_nick: "alice", online: true)
+    bob = Conversation.create!(server: server, target_nick: "bob", online: true)
+
+    received_query = nil
+    stub_request(:get, /internal\/irc\/ison/).to_return do |request|
+      received_query = request.uri.query
+      { status: 200, body: { online: ["alice"] }.to_json }
+    end
+
+    get ison_path, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :ok
+    assert_includes received_query, "alice", "query should include alice"
+    assert_includes received_query, "bob", "query should include bob"
+    assert alice.reload.online?, "alice should stay online"
+    assert_not bob.reload.online?, "only bob should be offline"
   end
 
   test "GET /ison requires authentication" do

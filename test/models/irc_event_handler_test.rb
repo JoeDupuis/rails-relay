@@ -74,6 +74,22 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert conversation.reload.online?
   end
 
+  test "handle_no_such_nick marks online conversation as offline and broadcasts" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    conversation = Conversation.create!(server: server, target_nick: "john", online: true)
+
+    event = {
+      type: "no_such_nick",
+      data: { nick: "john" }
+    }
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      IrcEventHandler.handle(server, event)
+    end
+
+    assert_not conversation.reload.online?
+  end
+
   test "handle_message detects highlight" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
 

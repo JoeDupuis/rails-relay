@@ -45,7 +45,8 @@ class InternalApiClient
     end
 
     def ison(server_id:, nicks:)
-      query = URI.encode_www_form(server_id: server_id, nicks: nicks)
+      params = [["server_id", server_id]] + nicks.map { |n| ["nicks[]", n] }
+      query = URI.encode_www_form(params)
       response = get(irc_service_url("/internal/irc/ison?#{query}"))
 
       case response.code.to_i

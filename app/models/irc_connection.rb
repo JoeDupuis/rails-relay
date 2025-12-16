@@ -78,6 +78,7 @@ class IrcConnection
     @client.on(:nick) { |e| @on_event.call(type: "nick", data: serialize_nick_event(e)) }
     @client.on(:kick) { |e| @on_event.call(type: "kick", data: serialize_kick_event(e)) }
     @client.on(:names) { |e| @on_event.call(type: "names", data: serialize_names_event(e)) }
+    @client.on(:error) { |e| handle_error_event(e) }
   end
 
   def event_loop
@@ -188,5 +189,13 @@ class IrcConnection
       channel: event.channel,
       names: names
     }
+  end
+
+  def handle_error_event(event)
+    case event.numeric
+    when 401
+      nick = event.params[1]
+      @on_event.call(type: "no_such_nick", data: { nick: nick })
+    end
   end
 end
