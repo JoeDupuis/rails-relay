@@ -56,6 +56,24 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     assert_equal "dm", message.notification.reason
   end
 
+  test "handle_message marks offline conversation as online when receiving PM" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    conversation = Conversation.create!(server: server, target_nick: "john", online: false)
+
+    event = {
+      type: "message",
+      data: {
+        source: "john!john@example.com",
+        target: "testnick",
+        text: "Hey there"
+      }
+    }
+
+    IrcEventHandler.handle(server, event)
+
+    assert conversation.reload.online?
+  end
+
   test "handle_message detects highlight" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
 
