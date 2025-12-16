@@ -115,4 +115,25 @@ class InternalApiClientTest < ActiveSupport::TestCase
     assert_equal "ok", json["status"]
     assert_equal [ 1, 2, 3 ], json["connections"]
   end
+
+  test "ison sends GET with query params and returns online nicks" do
+    query = URI.encode_www_form(server_id: 42, nicks: [ "alice", "bob" ])
+    stub_request(:get, "http://localhost:3000/internal/irc/ison?#{query}")
+      .with(headers: { "Authorization" => "Bearer #{@secret}" })
+      .to_return(status: 200, body: { online: [ "alice" ] }.to_json)
+
+    result = InternalApiClient.ison(server_id: 42, nicks: [ "alice", "bob" ])
+
+    assert_equal [ "alice" ], result
+  end
+
+  test "ison returns nil on 404" do
+    query = URI.encode_www_form(server_id: 99, nicks: [ "alice" ])
+    stub_request(:get, "http://localhost:3000/internal/irc/ison?#{query}")
+      .to_return(status: 404)
+
+    result = InternalApiClient.ison(server_id: 99, nicks: [ "alice" ])
+
+    assert_nil result
+  end
 end

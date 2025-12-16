@@ -88,7 +88,7 @@ class InternalApiClient
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
 
-      request = Net::HTTP::Get.new(uri.path)
+      request = Net::HTTP::Get.new(uri.request_uri)
       request["Authorization"] = "Bearer #{secret}"
 
       http.request(request)

@@ -231,5 +231,4 @@ class ServerTest < ActiveSupport::TestCase
       server.update!(address: "other.example.com")
     end
   end
-
 end
