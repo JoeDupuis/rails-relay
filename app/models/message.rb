@@ -9,7 +9,7 @@ class Message < ApplicationRecord
   validate :validate_file_type, if: -> { file.attached? }
   validate :validate_file_size, if: -> { file.attached? }
 
-  after_create_commit :broadcast_message, :broadcast_sidebar_update, :process_file_upload
+  after_create_commit :set_content_from_file, :broadcast_message, :broadcast_sidebar_update, :send_file_to_irc
 
   ALLOWED_FILE_TYPES = %w[image/png image/jpeg image/gif image/webp].freeze
   MAX_FILE_SIZE = 10.megabytes
@@ -65,20 +65,22 @@ class Message < ApplicationRecord
     end
   end
 
-  def process_file_upload
+  def set_content_from_file
     return unless file.attached?
     return unless channel
 
-    url = Rails.application.routes.url_helpers.rails_blob_url(file)
-    update_column(:content, url)
+    update_column(:content, Rails.application.routes.url_helpers.rails_blob_url(file))
+  end
 
-    begin
-      InternalApiClient.send_command(
-        server_id: server_id,
-        command: "privmsg",
-        params: { target: channel.name, message: url }
-      )
-    rescue InternalApiClient::ConnectionNotFound, InternalApiClient::ServiceUnavailable
-    end
+  def send_file_to_irc
+    return unless file.attached?
+    return unless channel
+
+    InternalApiClient.send_command(
+      server_id: server_id,
+      command: "privmsg",
+      params: { target: channel.name, message: content }
+    )
+  rescue InternalApiClient::ConnectionNotFound, InternalApiClient::ServiceUnavailable
   end
 end
