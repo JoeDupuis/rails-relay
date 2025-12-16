@@ -1,0 +1,5 @@
+<% @conversations.each do |conversation| %>
+  <%= turbo_stream.replace "conversation_#{conversation.id}_sidebar" do %>
+    <%= render "shared/conversation_sidebar_item", conversation: conversation %>
+  <% end %>
+<% end %>

@@ -41,6 +41,12 @@ class IrcConnectionManager
     end
   end
 
+  def ison(server_id, nicks)
+    connection = @mutex.synchronize { @connections[server_id] }
+    return nil unless connection
+    connection.ison(nicks)
+  end
+
   def active_connections
     @mutex.synchronize { @connections.keys }
   end

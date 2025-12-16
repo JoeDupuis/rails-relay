@@ -1,5 +1,5 @@
 <li id="conversation_<%= conversation.id %>_sidebar" class="dm-item <%= '-unread' if conversation.unread? %> <%= '-active' if current_conversation == conversation %>" data-qa="dm-item">
-  <span class="presence-indicator <%= conversation.target_online? ? '-online' : '-offline' %>" data-qa="presence-indicator"></span>
+  <span class="presence-indicator <%= conversation.online? ? '-online' : '-offline' %>" data-qa="presence-indicator"></span>
   <%= link_to conversation_path(conversation), class: "link", data: { qa: "dm-link" } do %>
     <%= conversation.target_nick %>
     <% if conversation.unread_count > 0 %>

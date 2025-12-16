@@ -23,10 +23,6 @@ class Server < ApplicationRecord
     connected_at.present?
   end
 
-  def nick_online?(nickname)
-    channel_users.where("LOWER(nickname) = LOWER(?)", nickname).exists?
-  end
-
   def mark_disconnected!
     transaction do
       update!(connected_at: nil)

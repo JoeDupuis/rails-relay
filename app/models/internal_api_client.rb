@@ -44,6 +44,20 @@ class InternalApiClient
       get(irc_service_url("/internal/irc/status"))
     end
 
+    def ison(server_id:, nicks:)
+      query = URI.encode_www_form(server_id: server_id, nicks: nicks)
+      response = get(irc_service_url("/internal/irc/ison?#{query}"))
+
+      case response.code.to_i
+      when 200
+        JSON.parse(response.body)["online"]
+      when 404
+        nil
+      else
+        raise ServiceUnavailable, "IRC service error: #{response.code}"
+      end
+    end
+
     private
 
     def irc_service_url(path)

@@ -160,50 +160,6 @@ class ChannelUserTest < ActiveSupport::TestCase
     end
   end
 
-  test "broadcasts DM sidebar update when user joins and has conversation" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
-    channel = Channel.create!(server: server, name: "#ruby")
-    Conversation.create!(server: server, target_nick: "alice")
-
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
-      ChannelUser.create!(channel: channel, nickname: "alice")
-    end
-  end
-
-  test "broadcasts DM sidebar update when user leaves and has conversation" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
-    channel = Channel.create!(server: server, name: "#ruby")
-    Conversation.create!(server: server, target_nick: "alice")
-    channel_user = ChannelUser.create!(channel: channel, nickname: "alice")
-
-    ActionCable.server.pubsub.clear_messages(stream_name_for(channel, :users))
-
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
-      channel_user.destroy
-    end
-  end
-
-  test "does not broadcast DM sidebar update when user has no conversation" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
-    channel = Channel.create!(server: server, name: "#ruby")
-
-    ActionCable.server.pubsub.clear_messages("sidebar_#{@user.id}")
-
-    assert_no_turbo_stream_broadcasts "sidebar_#{@user.id}" do
-      ChannelUser.create!(channel: channel, nickname: "alice")
-    end
-  end
-
-  test "broadcasts DM sidebar update case-insensitively" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
-    channel = Channel.create!(server: server, name: "#ruby")
-    Conversation.create!(server: server, target_nick: "Alice")
-
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
-      ChannelUser.create!(channel: channel, nickname: "alice")
-    end
-  end
-
   private
 
   def stream_name_for(*streamables)

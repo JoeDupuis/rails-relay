@@ -34,6 +34,11 @@ class IrcConnection
     @thread&.alive? || false
   end
 
+  def ison(nicks)
+    return [] unless @client&.connected?
+    @client.ison(nicks)
+  end
+
   private
 
   def run

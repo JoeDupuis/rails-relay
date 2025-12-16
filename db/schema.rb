@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_09_213623) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_16_044947) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -67,6 +67,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_09_213623) do
     t.datetime "created_at", null: false
     t.datetime "last_message_at"
     t.integer "last_read_message_id"
+    t.boolean "online", default: false, null: false
     t.integer "server_id", null: false
     t.string "target_nick", null: false
     t.datetime "updated_at", null: false

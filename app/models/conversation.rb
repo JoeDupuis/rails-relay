@@ -55,10 +55,6 @@ class Conversation < ApplicationRecord
     update!(closed_at: nil)
   end
 
-  def target_online?
-    server.nick_online?(target_nick)
-  end
-
   def broadcast_presence_update
     broadcast_sidebar_update
   end

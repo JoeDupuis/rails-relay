@@ -19,12 +19,15 @@ Rails.application.routes.draw do
     resource :closure, only: [ :create ], controller: "conversation/closures"
   end
 
+  resource :ison, only: [ :show ]
+
   namespace :internal do
     namespace :irc do
       resources :connections, only: [ :create, :destroy ]
       resources :commands, only: [ :create ]
       resources :events, only: [ :create ]
       resource :status, only: [ :show ], controller: "status"
+      resource :ison, only: [ :show ]
     end
   end
 
