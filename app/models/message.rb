@@ -69,7 +69,7 @@ class Message < ApplicationRecord
     return unless file.attached?
     return unless channel
 
-    url = Rails.application.routes.url_helpers.rails_blob_url(file, host: default_url_host)
+    url = Rails.application.routes.url_helpers.rails_blob_url(file)
     update_column(:content, url)
 
     begin
@@ -80,9 +80,5 @@ class Message < ApplicationRecord
       )
     rescue InternalApiClient::ConnectionNotFound, InternalApiClient::ServiceUnavailable
     end
-  end
-
-  def default_url_host
-    Rails.application.config.action_mailer.default_url_options&.dig(:host) || "localhost:3000"
   end
 end
