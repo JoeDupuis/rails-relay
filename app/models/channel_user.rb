@@ -59,6 +59,11 @@ class ChannelUser < ApplicationRecord
       partial: "channels/user_list",
       locals: { channel: channel }
     )
+    broadcast_update_to(
+      [ channel, :users ],
+      target: "channel_#{channel.id}_user_count",
+      html: channel.channel_users.size.to_s
+    )
   end
 
   def notify_dm_presence

@@ -45,6 +45,11 @@ class Channel < ApplicationRecord
       partial: "channels/user_list",
       locals: { channel: self }
     )
+    broadcast_update_to(
+      [ self, :users ],
+      target: "channel_#{id}_user_count",
+      html: channel_users.size.to_s
+    )
   end
 
   private

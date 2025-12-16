@@ -157,4 +157,43 @@ class MobileUserlistDrawerTest < ApplicationSystemTestCase
 
     assert_selector ".userlist.-open"
   end
+
+  test "toggle button count updates live when user joins" do
+    server, channel = create_server_with_channel_and_users
+    page.driver.browser.resize(width: 768, height: 1024)
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    assert_selector ".userlist-toggle .count", text: "3"
+
+    IrcEventHandler.handle(server, {
+      type: "join",
+      data: {
+        target: channel.name,
+        source: "newuser!user@host.example.com"
+      }
+    })
+
+    assert_selector ".userlist-toggle .count", text: "4", wait: 5
+  end
+
+  test "toggle button count updates live when user parts" do
+    server, channel = create_server_with_channel_and_users
+    page.driver.browser.resize(width: 768, height: 1024)
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    assert_selector ".userlist-toggle .count", text: "3"
+
+    IrcEventHandler.handle(server, {
+      type: "part",
+      data: {
+        target: channel.name,
+        source: "regular_user!user@host.example.com",
+        text: "Leaving"
+      }
+    })
+
+    assert_selector ".userlist-toggle .count", text: "2", wait: 5
+  end
 end
