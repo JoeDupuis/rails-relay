@@ -73,6 +73,8 @@ class InternalApiClient
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
+      http.open_timeout = 5
+      http.read_timeout = 10
 
       request = Net::HTTP::Post.new(uri.path)
       request["Authorization"] = "Bearer #{secret}"
@@ -88,6 +90,8 @@ class InternalApiClient
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
+      http.open_timeout = 5
+      http.read_timeout = 10
 
       request = Net::HTTP::Get.new(uri.request_uri)
       request["Authorization"] = "Bearer #{secret}"
@@ -101,6 +105,8 @@ class InternalApiClient
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
+      http.open_timeout = 5
+      http.read_timeout = 10
 
       request = Net::HTTP::Delete.new(uri.path)
       request["Authorization"] = "Bearer #{secret}"

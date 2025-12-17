@@ -1,0 +1,1 @@
+irc: bin/rails s -p $IRC_PORT -P tmp/pids/irc.pid

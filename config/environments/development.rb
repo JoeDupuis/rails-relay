@@ -78,6 +78,6 @@ Rails.application.configure do
 
   Rails.application.routes.default_url_options = { host: "localhost", port: 3000 }
 
-  config.irc_service_url = "http://localhost:3000"
-  config.web_service_url = "http://localhost:3000"
+  config.irc_service_url = ENV.fetch("IRC_SERVICE_URL", "http://localhost:3000")
+  config.web_service_url = ENV.fetch("WEB_SERVICE_URL", "http://localhost:3000")
 end

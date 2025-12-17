@@ -70,7 +70,7 @@ class IrcConnectionManager
       user_id: user_id,
       event: event
     )
-  rescue InternalApiClient::ServiceUnavailable => e
-    Rails.logger.error "Failed to post event: #{e.message}"
+  rescue StandardError => e
+    Rails.logger.error "[IRC-#{server_id}] Event delivery failed: #{e.message}"
   end
 end

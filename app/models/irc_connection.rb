@@ -10,9 +10,12 @@ class IrcConnection
     @command_queue = Queue.new
   end
 
+  THREAD_PREFIX = "rails_relay_irc_"
+
   def start
     @running = true
     @thread = Thread.new { run }
+    @thread.name = "#{THREAD_PREFIX}#{@server_id}"
   end
 
   def stop
@@ -117,6 +120,7 @@ class IrcConnection
   def cleanup
     @client&.quit if @client&.connected?
     @on_event.call(type: "disconnected")
+  rescue StandardError
   end
 
   def serialize_event(event)

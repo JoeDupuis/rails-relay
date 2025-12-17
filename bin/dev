@@ -1,2 +1,52 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+if system(*%w[gem list --no-installed --exact --silent overmind])
+  puts "Installing overmind..."
+  system(*%w[gem install overmind])
+end
+
+def find_port_arg
+  ARGV.each_with_index do |arg, i|
+    return $1 if arg =~ /^-p(\d+)$/
+    return ARGV[i + 1] if arg == "-p" && ARGV[i + 1] =~ /^\d+$/
+  end
+  nil
+end
+
+PORT = (ENV["PORT"] || find_port_arg || "3000").to_i
+IRC_PORT = PORT + 1
+
+ENV["PORT"] = PORT.to_s
+ENV["IRC_PORT"] = IRC_PORT.to_s
+ENV["IRC_SERVICE_URL"] = "http://localhost:#{IRC_PORT}"
+ENV["WEB_SERVICE_URL"] = "http://localhost:#{PORT}"
+
+VERBOSE = ARGV.include?("--verbose") || ARGV.include?("-v") || ENV["VERBOSE"]
+RAILS_ARGS = ARGV.reject.with_index { |a, i| a =~ /^(-v|--verbose|-p\d+|-p)$/ || (ARGV[i - 1] == "-p" && a =~ /^\d+$/) }
+PROCFILE = "Procfile.dev"
+
+unless File.exist?(PROCFILE)
+  Process.exec(*%w[bundle exec rails server], *RAILS_ARGS)
+end
+
+Signal.trap("INT") { }
+
+begin
+  overmind_pid = Process.spawn(
+    *%w[overmind start -f Procfile.dev -l irc -N],
+    out: (VERBOSE ? STDOUT : File::NULL),
+    err: (VERBOSE ? STDERR : File::NULL),
+    pgroup: true,
+  )
+  overmind_pgid = Process.getpgid(overmind_pid)
+
+  sleep 0.5
+
+  pid = Process.spawn(*%w[bundle exec rails server -p], PORT.to_s, *RAILS_ARGS)
+  Process.wait(pid)
+  pid = nil
+ensure
+  system("overmind stop > /dev/null 2>&1")
+  Process.kill("INT", -overmind_pgid) rescue nil
+  Process.waitpid(-overmind_pgid, Process::WNOHANG) rescue nil
+  Process.kill("KILL", pid) if pid rescue nil
+end
