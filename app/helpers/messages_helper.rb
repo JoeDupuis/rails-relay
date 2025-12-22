@@ -1,6 +1,8 @@
 module MessagesHelper
+  URL_REGEX = %r{(https?://[^\s<>\[\]]+)}i
+
   def format_message(message)
-    case message.message_type
+    content = case message.message_type
     when "join"
       "#{message.sender} joined"
     when "part"
@@ -16,9 +18,23 @@ module MessagesHelper
     else
       message.content
     end
+
+    linkify(content)
   end
 
   def current_nickname
     @channel&.server&.nickname
+  end
+
+  private
+
+  def linkify(text)
+    return text if text.blank?
+
+    escaped = ERB::Util.html_escape(text)
+    linked = escaped.gsub(URL_REGEX) do |url|
+      %(<a href="#{url}" target="_blank" rel="noopener noreferrer">#{url}</a>)
+    end
+    linked.html_safe
   end
 end

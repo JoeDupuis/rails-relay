@@ -6,14 +6,14 @@ Phase 12: UX Polish & Bug Fixes in progress.
 
 ## Suggested Next Feature
 
-Start with `48-clickable-links-in-messages.md` - Make URLs in chat messages clickable.
+Start with `49-sidebar-connection-indicator-update.md` - Server list green dot live update.
 
 ## Pending Features
 
 ### Phase 12: UX Polish & Bug Fixes
 
 47. `47-fix-flash-clearing-on-disconnect.md.done` - DONE - Removed unnecessary "Disconnecting..." flash (disconnect is instant)
-48. `48-clickable-links-in-messages.md` - Make URLs in chat messages clickable
+48. `48-clickable-links-in-messages.md.done` - DONE - Make URLs in chat messages clickable
 49. `49-sidebar-connection-indicator-update.md` - Server list green dot live update
 50. `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled
 51. `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user
@@ -117,6 +117,30 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-22 (continued)
+
+**Feature**: 48-clickable-links-in-messages
+**Status**: Completed
+
+**What was done**:
+- Added URL_REGEX constant to MessagesHelper for detecting http/https URLs
+- Added linkify private helper that HTML escapes content first, then converts URLs to anchor tags
+- Updated format_message to use linkify for all message types
+- Links open in new tab with target="_blank" and rel="noopener noreferrer" for security
+- Added CSS styling for links in messages (color: primary, underline)
+- Created 12 helper tests covering URL conversion, XSS prevention, multiple URLs, etc.
+- Created 5 system tests for browser verification of clickable links
+- All 484 unit tests pass (2 pre-existing ISON errors unrelated)
+- All 74 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- The URL regex may capture trailing punctuation (acceptable per spec for IRC context)
+- HTML is escaped before URL substitution to prevent XSS
+- Next feature is 49-sidebar-connection-indicator-update.md
+
+---
 
 ### Session 2025-12-22
 
