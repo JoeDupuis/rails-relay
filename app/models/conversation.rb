@@ -57,6 +57,16 @@ class Conversation < ApplicationRecord
 
   def broadcast_presence_update
     broadcast_sidebar_update
+    broadcast_input_update
+  end
+
+  def broadcast_input_update
+    broadcast_replace_to(
+      [ server, :dm, target_nick.downcase ],
+      target: ActionView::RecordIdentifier.dom_id(self, :input),
+      partial: "channels/input",
+      locals: { messageable: self }
+    )
   end
 
   def broadcast_sidebar_add

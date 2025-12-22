@@ -4,6 +4,12 @@ class UnifiedViewTest < ApplicationSystemTestCase
   setup do
     @user = users(:joe)
     @test_id = SecureRandom.hex(4)
+
+    stub_request(:get, %r{#{Rails.configuration.irc_service_url}/internal/irc/ison})
+      .to_return(status: 200, body: { online: [ "alice" ] }.to_json, headers: { "Content-Type" => "application/json" })
+
+    stub_request(:post, %r{#{Rails.configuration.irc_service_url}/internal/irc/commands})
+      .to_return(status: 202, body: "", headers: {})
   end
 
   def create_server_with_channel
@@ -25,7 +31,7 @@ class UnifiedViewTest < ApplicationSystemTestCase
       nickname: "testnick",
       connected_at: Time.current
     )
-    conversation = Conversation.create!(server: server, target_nick: "alice")
+    conversation = Conversation.create!(server: server, target_nick: "alice", online: true)
     Message.create!(server: server, channel: nil, target: "alice", sender: "alice", message_type: "privmsg", content: "Hello")
     [ server, conversation ]
   end

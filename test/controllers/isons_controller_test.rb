@@ -108,7 +108,7 @@ class IsonsControllerTest < ActionDispatch::IntegrationTest
     received_query = nil
     stub_request(:get, /internal\/irc\/ison/).to_return do |request|
       received_query = request.uri.query
-      { status: 200, body: { online: ["alice"] }.to_json }
+      { status: 200, body: { online: [ "alice" ] }.to_json }
     end
 
     get ison_path, headers: { "Accept" => "text/vnd.turbo-stream.html" }

@@ -2,4 +2,7 @@
   <%= turbo_stream.replace "conversation_#{conversation.id}_sidebar" do %>
     <%= render "shared/conversation_sidebar_item", conversation: conversation %>
   <% end %>
+  <%= turbo_stream.replace dom_id(conversation, :input) do %>
+    <%= render "channels/input", messageable: conversation %>
+  <% end %>
 <% end %>

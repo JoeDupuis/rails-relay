@@ -1,5 +1,7 @@
 <% is_channel = messageable.is_a?(Channel) %>
-<% can_send = messageable.server.connected? && (!is_channel || messageable.joined) %>
+<% is_conversation = messageable.is_a?(Conversation) %>
+<% target_offline = is_conversation && !messageable.online? %>
+<% can_send = messageable.server.connected? && (!is_channel || messageable.joined) && !target_offline %>
 <% if can_send %>
 <%= form_with url: is_channel ? channel_messages_path(messageable) : conversation_messages_path(messageable),
               class: "message-input",
@@ -26,6 +28,10 @@
     <% end %>
     <%= f.submit "Send", class: "submit" %>
   <% end %>
+<% elsif target_offline %>
+  <div class="message-input">
+    <span class="disabled"><%= messageable.target_nick %> is offline.</span>
+  </div>
 <% elsif is_channel && messageable.server.connected? && !messageable.joined %>
   <div class="message-input">
     <%= text_field_tag :content, nil, placeholder: "Message #{messageable.display_name}", class: "field", disabled: true %>

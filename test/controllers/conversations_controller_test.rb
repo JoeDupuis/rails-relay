@@ -146,4 +146,26 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
     assert_not closed_conversation.reload.closed?
     assert_redirected_to conversation_path(closed_conversation)
   end
+
+  test "conversation show with offline user shows disabled input" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+    conversation.update!(online: false)
+
+    get conversation_path(conversation)
+    assert_response :ok
+    assert_match "alice is offline.", response.body
+    assert_no_match /<input[^>]*type="text"[^>]*name="content"/, response.body
+  end
+
+  test "conversation show with online user shows enabled input" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+    conversation.update!(online: true)
+
+    get conversation_path(conversation)
+    assert_response :ok
+    assert_no_match "alice is offline.", response.body
+    assert_match /<input[^>]*type="text"[^>]*name="content"/, response.body
+  end
 end

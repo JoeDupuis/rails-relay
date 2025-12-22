@@ -2,21 +2,21 @@
 
 ## Current State
 
-Phase 12: UX Polish & Bug Fixes in progress.
+Phase 12: UX Polish & Bug Fixes complete.
 
 ## Suggested Next Feature
 
-Start with `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user.
+All Phase 12 features complete. No pending features.
 
 ## Pending Features
 
-### Phase 12: UX Polish & Bug Fixes
+### Phase 12: UX Polish & Bug Fixes (DONE)
 
 47. `47-fix-flash-clearing-on-disconnect.md.done` - DONE - Removed unnecessary "Disconnecting..." flash (disconnect is instant)
 48. `48-clickable-links-in-messages.md.done` - DONE - Make URLs in chat messages clickable
 49. `49-sidebar-connection-indicator-update.md.done` - DONE - Sidebar connection indicator live update
 50. `50-fix-dm-close-button-styling.md.done` - DONE - Fix DM close button always visible, unstyled
-51. `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user
+51. `51-dm-offline-user-feedback.md.done` - DONE - Gray out input when DMing offline user
 
 ### Phase 11: Bug Fixes & Refactoring (DONE)
 
@@ -117,6 +117,30 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-22 (continued)
+
+**Feature**: 51-dm-offline-user-feedback
+**Status**: Completed
+
+**What was done**:
+- Added offline user check to `messages/_form.html.erb` - shows "X is offline." message when DM target is offline
+- Added `broadcast_input_update` method to Conversation model for real-time input updates
+- Updated `isons/show.turbo_stream.erb` to update input area when ISON polling returns new status
+- Fixed pre-existing ISON test failures in `internal_api_client_test.rb` (incorrect URL encoding with `nicks[]` notation)
+- Added 2 controller tests for offline/online input display
+- Added 4 integration tests for broadcast functionality
+- Added 5 system tests for browser verification of disabled input
+- Updated existing `unified_view_test.rb` tests to stub ISON and set conversation online
+- All 494 unit tests and 84 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- Phase 12 is now complete (all 5 features done)
+- All phases complete except deferred feature 33 (requires yaic LIST support)
+- The `broadcast_input_update` is called from `broadcast_presence_update` which handles both sidebar and input updates
+
+---
 
 ### Session 2025-12-22 (continued)
 

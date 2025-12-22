@@ -117,7 +117,8 @@ class InternalApiClientTest < ActiveSupport::TestCase
   end
 
   test "ison sends GET with query params and returns online nicks" do
-    query = URI.encode_www_form(server_id: 42, nicks: [ "alice", "bob" ])
+    params = [ [ "server_id", 42 ] ] + [ "alice", "bob" ].map { |n| [ "nicks[]", n ] }
+    query = URI.encode_www_form(params)
     stub_request(:get, "http://localhost:3000/internal/irc/ison?#{query}")
       .with(headers: { "Authorization" => "Bearer #{@secret}" })
       .to_return(status: 200, body: { online: [ "alice" ] }.to_json)
@@ -128,7 +129,8 @@ class InternalApiClientTest < ActiveSupport::TestCase
   end
 
   test "ison returns nil on 404" do
-    query = URI.encode_www_form(server_id: 99, nicks: [ "alice" ])
+    params = [ [ "server_id", 99 ] ] + [ "alice" ].map { |n| [ "nicks[]", n ] }
+    query = URI.encode_www_form(params)
     stub_request(:get, "http://localhost:3000/internal/irc/ison?#{query}")
       .to_return(status: 404)
 
