@@ -1,0 +1,181 @@
+# Fix DM Close Button Styling and Hover Behavior
+
+## Description
+
+The close button (×) to leave a DM conversation was intended to appear only on hover and be styled. Currently it always shows and looks like a default HTML button.
+
+## Current Behavior
+2
+1. Close button is always visible in the DM sidebar item
+2. Button has default browser styling (looks like a gray button)
+3. Hover behavior doesn't work as intended
+
+## Expected Behavior
+
+1. Close button should be hidden by default
+2. Close button should appear only when hovering over the DM item
+3. Button should be styled as a simple × icon without button chrome
+
+## Root Cause
+
+The `button_to` helper generates a `<form>` element with the class, not a `<button>`. The structure is:
+
+```html
+<form class="close-btn" method="post" action="...">
+  <button type="submit">
+    <span>×</span>
+  </button>
+</form>
+```
+
+The CSS targets `.close-btn` which is the form, but:
+1. The form itself has no visible styles, but the button inside has default browser styling
+2. The opacity is applied to the form, but the button inside still renders with its default appearance
+
+## Files to Modify
+
+- `app/views/shared/_conversation_sidebar_item.html.erb` - Fix button markup
+- `app/assets/stylesheets/components/dm-item.css` - Update styles for nested button
+
+## Solution Options
+
+### Option A: Style the nested button (Recommended)
+
+Keep the `button_to` helper but add CSS to style the actual button element inside the form:
+
+```css
+.dm-item {
+  & > .close-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    & > button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: var(--space-xs) var(--space-sm);
+      color: var(--color-text-muted);
+      font-size: var(--font-lg);
+      line-height: 1;
+    }
+
+    & > button:hover {
+      color: var(--color-text);
+    }
+  }
+
+  &:hover > .close-btn {
+    opacity: 1;
+  }
+}
+```
+
+### Option B: Use link_to with Turbo method
+
+Replace `button_to` with `link_to` that uses Turbo for the POST request:
+
+```erb
+<%= link_to "×", conversation_closure_path(conversation),
+    data: { turbo_method: :post },
+    class: "close-btn",
+    aria: { label: "Close conversation" } %>
+```
+
+Then update CSS to style the link directly.
+
+## Implementation
+
+Use Option A to maintain POST semantics while fixing the styling.
+
+### Updated CSS
+
+```css
+.dm-item {
+  & > .close-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+
+    & > button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: var(--space-xs) var(--space-sm);
+      color: var(--color-text-muted);
+      font-size: var(--font-lg);
+      line-height: 1;
+    }
+
+    & > button:hover {
+      color: var(--color-text);
+    }
+  }
+
+  &:hover > .close-btn {
+    opacity: 1;
+  }
+}
+```
+
+### Updated HTML (if using Option B)
+
+```erb
+<%= link_to conversation_closure_path(conversation),
+    data: { turbo_method: :post },
+    class: "close-btn",
+    aria: { label: "Close conversation" } do %>
+  ×
+<% end %>
+```
+
+## Tests
+
+### System Tests
+
+**Close button hidden by default**
+1. Sign in
+2. Navigate to page with DM in sidebar
+3. Verify close button is not visible (opacity 0 or visibility hidden)
+
+**Close button appears on hover**
+1. Sign in
+2. Navigate to page with DM in sidebar
+3. Hover over DM item
+4. Verify close button becomes visible
+
+**Close button styled correctly**
+1. Sign in
+2. Navigate to page with DM in sidebar
+3. Hover over DM item
+4. Verify close button has no button chrome (no border, no background)
+5. Verify close button is × character in muted color
+
+**Close button hover state**
+1. Sign in
+2. Hover over DM item
+3. Hover over close button
+4. Verify button color changes to darker text color
+
+**Close button functions**
+1. Sign in
+2. Navigate to page with DM in sidebar
+3. Hover and click close button
+4. Verify DM is removed from sidebar
+5. Verify redirect to server page
+
+## Dependencies
+
+41-close-dm-conversations.md.done (close button functionality already implemented)
+
+## Implementation Notes
+
+- The `button_to` helper is Rails convention for POST/DELETE actions. Option A preserves this while fixing styling.
+- If Option B is used, the `data-turbo-method` attribute makes Turbo handle the POST request.
+- Test the hover behavior carefully - CSS `:hover` on parent selectors can be tricky.
+- The close button should remain accessible via keyboard (tab navigation).

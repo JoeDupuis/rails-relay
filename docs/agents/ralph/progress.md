@@ -2,13 +2,21 @@
 
 ## Current State
 
-Phase 11: Bug Fixes & Refactoring COMPLETE. All features done.
+Phase 12: UX Polish & Bug Fixes pending.
 
 ## Suggested Next Feature
 
-No pending features. All phases complete (except deferred feature 33 which requires yaic LIST support).
+Start with `47-fix-flash-clearing-on-disconnect.md` - simplest fix, adds fallback timeout for flash messages.
 
 ## Pending Features
+
+### Phase 12: UX Polish & Bug Fixes
+
+47. `47-fix-flash-clearing-on-disconnect.md` - Fix flash messages not clearing on disconnect
+48. `48-clickable-links-in-messages.md` - Make URLs in chat messages clickable
+49. `49-sidebar-connection-indicator-update.md` - Server list green dot live update
+50. `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled
+51. `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user
 
 ### Phase 11: Bug Fixes & Refactoring (DONE)
 
