@@ -231,4 +231,20 @@ class ServerTest < ActiveSupport::TestCase
       server.update!(address: "other.example.com")
     end
   end
+
+  test "broadcasts connection status to sidebar stream when connected" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: nil)
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      server.update!(connected_at: Time.current)
+    end
+  end
+
+  test "broadcasts connection status to sidebar stream when disconnected" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      server.update!(connected_at: nil)
+    end
+  end
 end

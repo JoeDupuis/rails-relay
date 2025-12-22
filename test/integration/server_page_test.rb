@@ -247,4 +247,20 @@ class ServerPageTest < ActionDispatch::IntegrationTest
       })
     end
   end
+
+  test "connected event broadcasts to sidebar stream" do
+    server = @user.servers.create!(address: unique_address("sidebarconnect"), nickname: "testnick", connected_at: nil)
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      IrcEventHandler.handle(server, { type: "connected", data: {} })
+    end
+  end
+
+  test "disconnected event broadcasts to sidebar stream" do
+    server = @user.servers.create!(address: unique_address("sidebardisconnect"), nickname: "testnick", connected_at: Time.current)
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      IrcEventHandler.handle(server, { type: "disconnected", data: {} })
+    end
+  end
 end

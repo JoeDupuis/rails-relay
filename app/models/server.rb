@@ -57,5 +57,12 @@ class Server < ApplicationRecord
 
     broadcast_replace_to(self, target: "flash_notice", html: "")
     broadcast_replace_to(self, target: "flash_alert", html: "")
+
+    broadcast_replace_to(
+      "sidebar_#{user_id}",
+      target: "server_#{id}_indicator",
+      partial: "shared/connection_indicator",
+      locals: { server: self }
+    )
   end
 end

@@ -2,7 +2,7 @@
 <% current_user_servers.each do |server| %>
   <div class="servergroup" data-qa="server-group">
     <div class="servername">
-      <span class="connection-indicator <%= server.connected? ? '-connected' : '-disconnected' %>"></span>
+      <%= render "shared/connection_indicator", server: server %>
       <%= link_to server.address, server_path(server), class: "link", data: { qa: "server-link" } %>
     </div>
 

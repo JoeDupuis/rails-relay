@@ -6,7 +6,7 @@ Phase 12: UX Polish & Bug Fixes in progress.
 
 ## Suggested Next Feature
 
-Start with `49-sidebar-connection-indicator-update.md` - Server list green dot live update.
+Start with `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled.
 
 ## Pending Features
 
@@ -14,7 +14,7 @@ Start with `49-sidebar-connection-indicator-update.md` - Server list green dot l
 
 47. `47-fix-flash-clearing-on-disconnect.md.done` - DONE - Removed unnecessary "Disconnecting..." flash (disconnect is instant)
 48. `48-clickable-links-in-messages.md.done` - DONE - Make URLs in chat messages clickable
-49. `49-sidebar-connection-indicator-update.md` - Server list green dot live update
+49. `49-sidebar-connection-indicator-update.md.done` - DONE - Sidebar connection indicator live update
 50. `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled
 51. `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user
 
@@ -117,6 +117,28 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-22 (continued)
+
+**Feature**: 49-sidebar-connection-indicator-update
+**Status**: Completed
+
+**What was done**:
+- Created `_connection_indicator.html.erb` partial with Turbo Stream target ID
+- Updated `_sidebar.html.erb` to use the new partial
+- Added sidebar broadcast to `Server#broadcast_connection_status` using `user_id` (works in background job context)
+- Added 2 model tests for sidebar broadcast on connect/disconnect
+- Added 2 integration tests for IrcEventHandler broadcasting to sidebar stream
+- Created system test file with 2 tests for real-time sidebar indicator updates
+- All 488 unit tests pass (2 pre-existing ISON errors unrelated)
+- All 76 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- Pre-existing ISON test failures in internal_api_client_test.rb (test stubs use incorrect URL format)
+- Next feature is 50-fix-dm-close-button-styling.md
+
+---
 
 ### Session 2025-12-22 (continued)
 
