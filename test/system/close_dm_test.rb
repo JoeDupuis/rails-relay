@@ -27,6 +27,17 @@ class CloseDmTest < ApplicationSystemTestCase
     [ server, channel ]
   end
 
+  test "close button hidden by default" do
+    server, conversation = create_server_with_dm
+    sign_in_as(@user)
+
+    visit servers_path
+    close_btn = find(".dm-item .close-btn", visible: :all)
+
+    opacity = close_btn.evaluate_script("window.getComputedStyle(this).opacity")
+    assert_equal "0", opacity, "Close button should have opacity: 0 by default"
+  end
+
   test "close button appears on DM item hover" do
     server, conversation = create_server_with_dm
     sign_in_as(@user)
@@ -35,7 +46,40 @@ class CloseDmTest < ApplicationSystemTestCase
     dm_item = find(".dm-item", text: "alice")
 
     dm_item.hover
-    assert_selector ".dm-item .close-btn"
+    close_btn = find(".dm-item .close-btn", visible: :all)
+    opacity = close_btn.evaluate_script("window.getComputedStyle(this).opacity")
+    assert_equal "1", opacity, "Close button should have opacity: 1 on hover"
+  end
+
+  test "close button styled without button chrome" do
+    server, conversation = create_server_with_dm
+    sign_in_as(@user)
+
+    visit servers_path
+    close_btn = find(".dm-item .close-btn", visible: :all)
+
+    background = close_btn.evaluate_script("window.getComputedStyle(this).background")
+    border_style = close_btn.evaluate_script("window.getComputedStyle(this).borderStyle")
+
+    assert_includes background, "none", "Close button should have no background"
+    assert_equal "none", border_style, "Close button should have no border"
+  end
+
+  test "close button changes color on hover" do
+    server, conversation = create_server_with_dm
+    sign_in_as(@user)
+
+    visit servers_path
+    dm_item = find(".dm-item", text: "alice")
+
+    dm_item.hover
+    close_btn = find(".dm-item .close-btn", visible: :all)
+
+    initial_color = close_btn.evaluate_script("window.getComputedStyle(this).color")
+    close_btn.hover
+    hover_color = close_btn.evaluate_script("window.getComputedStyle(this).color")
+
+    refute_equal initial_color, hover_color, "Close button color should change on hover"
   end
 
   test "clicking close removes DM from sidebar and redirects to server" do

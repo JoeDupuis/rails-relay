@@ -6,7 +6,7 @@ Phase 12: UX Polish & Bug Fixes in progress.
 
 ## Suggested Next Feature
 
-Start with `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled.
+Start with `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user.
 
 ## Pending Features
 
@@ -15,7 +15,7 @@ Start with `50-fix-dm-close-button-styling.md` - Fix DM close button always visi
 47. `47-fix-flash-clearing-on-disconnect.md.done` - DONE - Removed unnecessary "Disconnecting..." flash (disconnect is instant)
 48. `48-clickable-links-in-messages.md.done` - DONE - Make URLs in chat messages clickable
 49. `49-sidebar-connection-indicator-update.md.done` - DONE - Sidebar connection indicator live update
-50. `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled
+50. `50-fix-dm-close-button-styling.md.done` - DONE - Fix DM close button always visible, unstyled
 51. `51-dm-offline-user-feedback.md` - Gray out input when DMing offline user
 
 ### Phase 11: Bug Fixes & Refactoring (DONE)
@@ -117,6 +117,31 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-22 (continued)
+
+**Feature**: 50-fix-dm-close-button-styling
+**Status**: Completed
+
+**What was done**:
+- Fixed CSS selectors in `dm-item.css` to target close button through form wrapper
+- Added `& > form { display: contents; }` to preserve flex layout
+- Updated selectors from `& > .close-btn` to `& > form > .close-btn`
+- Added 4 system tests for styling behavior:
+  - `test_close_button_hidden_by_default` (opacity: 0)
+  - `test_close_button_appears_on_DM_item_hover` (opacity: 1)
+  - `test_close_button_styled_without_button_chrome` (no background/border)
+  - `test_close_button_changes_color_on_hover` (color changes)
+- All 79 system tests pass
+- Pre-existing ISON test failures and rubocop errors unrelated
+- Passed QA review
+
+**Notes for next session**:
+- The root cause was `button_to` generating a `<form>` wrapper, breaking direct child selectors
+- `display: contents` makes the form invisible to flex layout
+- Next feature is 51-dm-offline-user-feedback.md
+
+---
 
 ### Session 2025-12-22 (continued)
 

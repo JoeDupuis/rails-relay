@@ -56,7 +56,11 @@
     color: var(--color-primary);
   }
 
-  & > .close-btn {
+  & > form {
+    display: contents;
+  }
+
+  & > form > .close-btn {
     opacity: 0;
     background: none;
     border: none;
@@ -68,11 +72,11 @@
     flex-shrink: 0;
   }
 
-  & > .close-btn:hover {
+  & > form > .close-btn:hover {
     color: var(--color-text);
   }
 
-  &:hover > .close-btn {
+  &:hover > form > .close-btn {
     opacity: 1;
   }
 }
