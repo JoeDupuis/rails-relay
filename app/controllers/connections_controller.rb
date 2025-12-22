@@ -22,7 +22,7 @@ class ConnectionsController < ApplicationController
 
   def destroy
     InternalApiClient.stop_connection(server_id: @server.id)
-    redirect_to @server, notice: "Disconnecting..."
+    redirect_to @server
   rescue InternalApiClient::ServiceUnavailable
     redirect_to @server, alert: "IRC service unavailable"
   end

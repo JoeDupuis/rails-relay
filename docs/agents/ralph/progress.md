@@ -2,17 +2,17 @@
 
 ## Current State
 
-Phase 12: UX Polish & Bug Fixes pending.
+Phase 12: UX Polish & Bug Fixes in progress.
 
 ## Suggested Next Feature
 
-Start with `47-fix-flash-clearing-on-disconnect.md` - simplest fix, adds fallback timeout for flash messages.
+Start with `48-clickable-links-in-messages.md` - Make URLs in chat messages clickable.
 
 ## Pending Features
 
 ### Phase 12: UX Polish & Bug Fixes
 
-47. `47-fix-flash-clearing-on-disconnect.md` - Fix flash messages not clearing on disconnect
+47. `47-fix-flash-clearing-on-disconnect.md.done` - DONE - Removed unnecessary "Disconnecting..." flash (disconnect is instant)
 48. `48-clickable-links-in-messages.md` - Make URLs in chat messages clickable
 49. `49-sidebar-connection-indicator-update.md` - Server list green dot live update
 50. `50-fix-dm-close-button-styling.md` - Fix DM close button always visible, unstyled
@@ -117,6 +117,30 @@ The application now has:
 ---
 
 ## Session History
+
+### Session 2025-12-22
+
+**Feature**: 47-fix-flash-clearing-on-disconnect
+**Status**: Completed
+
+**What was done**:
+- Investigated the flash clearing issue: connect clears flash but disconnect doesn't
+- Found that disconnect is essentially instant (just socket close, no network handshake)
+- Used AskUserQuestion to get user preference: user chose to remove the flash entirely
+- Removed "Disconnecting..." flash from ConnectionsController#destroy
+- Updated controller test to verify no flash on disconnect
+- Updated integration test to verify no flash element rendered
+- Updated system test to verify full flow (click Disconnect, no flash, indicator updates)
+- All 472 unit tests pass (2 pre-existing ISON errors unrelated)
+- All 69 system tests pass
+- Passed QA review
+
+**Notes for next session**:
+- Connect still shows "Connecting..." flash (appropriate due to network latency)
+- Disconnect has no flash (instant operation)
+- Pre-existing ISON test failures need fixing (WebMock stub URL mismatch)
+
+---
 
 ### Session 2025-12-15 (continued)
 

@@ -53,7 +53,7 @@ class ConnectionsControllerTest < ActionDispatch::IntegrationTest
 
     delete server_connection_path(@server)
     assert_redirected_to server_path(@server)
-    assert_equal "Disconnecting...", flash[:notice]
+    assert_nil flash[:notice]
   end
 
   test "DELETE /servers/:id/connection handles service unavailable" do

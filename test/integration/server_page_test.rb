@@ -207,12 +207,12 @@ class ServerPageTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "flash is cleared when disconnection completes" do
+  test "disconnect redirects without flash message" do
     server = @user.servers.create!(address: unique_address("flashdisconnect"), nickname: "testnick", connected_at: Time.current)
 
     delete server_connection_path(server)
     follow_redirect!
-    assert_select "#flash_notice .notice", text: "Disconnecting..."
+    assert_select "#flash_notice .notice", false
 
     assert_turbo_stream_broadcasts(server) do
       IrcEventHandler.handle(server, { type: "disconnected", data: {} })
