@@ -15,7 +15,7 @@ servers:
 
 logging:
   driver: journald
-
+  options: {}
 
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
 # If used with Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
@@ -33,6 +33,8 @@ proxy:
   ssl: true
   host: rrc.dupuis.io
   forward_headers: true
+  run:
+    log_max_size: ""
   logging:
     request_headers:
       - X-Forwarded-Proto
@@ -111,7 +113,7 @@ builder:
 
 accessories:
   internal:
-    image: rails_relay
+    image: joedupuis/rails-relay
     host: rails-relay
     port: "127.0.0.1:3001:3001"
     env:
@@ -121,6 +123,6 @@ accessories:
         PORT: 3001
         WEB_SERVICE_URL: http://rails-relay-web:3000
     options:
-      network: kamal
+      log-driver: journald
     volumes:
       - "rails_relay_storage:/rails/storage"
