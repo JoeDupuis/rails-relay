@@ -12,7 +12,8 @@ class ConnectionsController < ApplicationController
         ssl_verify: @server.ssl_verify,
         nickname: @server.nickname,
         username: @server.username,
-        realname: @server.realname
+        realname: @server.realname,
+        password: @server.auth_method == "pass" ? @server.auth_password : nil
       }
     )
     redirect_to @server, notice: "Connecting..."

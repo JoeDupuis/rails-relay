@@ -48,7 +48,7 @@
 
   <div data-controller="auth-method">
     <%= form.label :auth_method, "Auth Method" %>
-    <%= form.select :auth_method, [["None", "none"], ["NickServ", "nickserv"], ["SASL", "sasl"]], { selected: server.auth_method || "none" }, { data: { action: "change->auth-method#toggle" } } %>
+    <%= form.select :auth_method, [["None", "none"], ["Server Password", "pass"]], { selected: server.auth_method || "none" }, { data: { action: "change->auth-method#toggle" } } %>
 
     <div data-auth-method-target="passwordField">
       <%= form.label :auth_password, "Auth Password" %>

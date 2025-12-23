@@ -11,8 +11,8 @@ class Server < ApplicationRecord
 
   validates :address, presence: true, uniqueness: { scope: [ :user_id, :port ] }
   validates :port, presence: true, numericality: { only_integer: true, in: 1..65535 }
-  validates :nickname, presence: true, format: { with: /\A[a-zA-Z][a-zA-Z0-9_\-\[\]\\`^{}]{0,8}\z/ }
-  validates :auth_method, inclusion: { in: %w[none nickserv sasl] }
+  validates :nickname, presence: true, format: { with: /\A[a-zA-Z][a-zA-Z0-9_\-\[\]\\`^{}]+\z/ }
+  validates :auth_method, inclusion: { in: %w[none pass] }
   validates :auth_password, presence: true, if: -> { auth_method.present? && auth_method != "none" }
 
   before_validation :set_defaults
