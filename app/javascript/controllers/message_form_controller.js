@@ -7,6 +7,9 @@ export default class extends Controller {
 
   clearInput(event) {
     this.inputTarget.value = ""
+    if (this.hasFileInputTarget) {
+      this.fileInputTarget.value = ""
+    }
     if (this.hasMessageListOutlet) {
       this.messageListOutlet.sent()
     }

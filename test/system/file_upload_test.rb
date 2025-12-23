@@ -5,7 +5,7 @@ class FileUploadTest < ApplicationSystemTestCase
     @user = users(:joe)
     @test_id = SecureRandom.hex(4)
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 200, body: { success: true }.to_json)
+      .to_return(status: 202, body: { success: true }.to_json)
   end
 
   def create_connected_channel
@@ -31,6 +31,32 @@ class FileUploadTest < ApplicationSystemTestCase
 
     within ".message-item" do
       assert_selector ".content", text: /active_storage/
+    end
+  end
+
+  test "text message after image upload sends text not image link" do
+    channel = create_connected_channel
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    assert_selector ".message-input"
+
+    file_path = file_fixture("test.png")
+    find("input[name='message[file]']", visible: false).attach_file(file_path)
+
+    assert_selector ".message-item", wait: 5
+    within first(".message-item") do
+      assert_selector ".content", text: /active_storage/
+    end
+
+    fill_in "Message #uploads", with: "lol"
+    click_button "Send"
+
+    assert_selector ".message-item", count: 2, wait: 5
+
+    within all(".message-item").last do
+      assert_selector ".content", text: "lol"
+      assert_no_selector ".content", text: /active_storage/
     end
   end
 end
