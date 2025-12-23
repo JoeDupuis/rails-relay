@@ -57,9 +57,10 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - INTERNAL_API_SECRET
   clear:
     SOLID_QUEUE_IN_PUMA: true
-    IRC_SERVICE_URL: http://rails-relay-internal:3001
+    IRC_SERVICE_URL: http://rails-relay-internal:3000
 
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
@@ -115,13 +116,12 @@ accessories:
   internal:
     image: joedupuis/rails-relay
     host: rails-relay
-    port: "127.0.0.1:3001:3001"
     env:
       secret:
         - RAILS_MASTER_KEY
+        - INTERNAL_API_SECRET
       clear:
-        PORT: 3001
-        WEB_SERVICE_URL: http://rails-relay-web:3000
+        WEB_SERVICE_URL: https://rrc.dupuis.io
     options:
       log-driver: journald
     volumes:
