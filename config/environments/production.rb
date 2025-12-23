@@ -79,8 +79,8 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  config.irc_service_url = ENV.fetch("IRC_SERVICE_URL")
-  config.web_service_url = ENV.fetch("WEB_SERVICE_URL")
+  config.irc_service_url = ENV["IRC_SERVICE_URL"]
+  config.web_service_url = ENV["WEB_SERVICE_URL"]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
