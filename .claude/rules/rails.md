@@ -162,6 +162,9 @@ test "descriptive name of what is being tested" do
 end
 ```
 
+### Jobs in tests
+You can call `perform_enqueued_jobs` (i prefer without the block) where relevant if a test needs the enqueued jobs to run.
+
 ### Authentication in Tests
 
 Use `SessionTestHelper` for sign in/out. Do NOT create ad-hoc helpers or use manual POST to session_path.
