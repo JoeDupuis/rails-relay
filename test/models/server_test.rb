@@ -80,14 +80,8 @@ class ServerTest < ActiveSupport::TestCase
     assert server.valid?
   end
 
-  test "validates auth_password present when auth_method is nickserv" do
-    server = @user.servers.build(address: "irc.example.com", nickname: "testnick", auth_method: "nickserv")
-    assert_not server.valid?
-    assert_includes server.errors[:auth_password], "can't be blank"
-  end
-
-  test "validates auth_password present when auth_method is sasl" do
-    server = @user.servers.build(address: "irc.example.com", nickname: "testnick", auth_method: "sasl")
+  test "validates auth_password present when auth_method is pass" do
+    server = @user.servers.build(address: "irc.example.com", nickname: "testnick", auth_method: "pass")
     assert_not server.valid?
     assert_includes server.errors[:auth_password], "can't be blank"
   end
@@ -126,7 +120,7 @@ class ServerTest < ActiveSupport::TestCase
     server = @user.servers.create!(
       address: "irc.example.com",
       nickname: "testnick",
-      auth_method: "nickserv",
+      auth_method: "pass",
       auth_password: "secretpassword"
     )
     server.reload
