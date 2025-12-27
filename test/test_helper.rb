@@ -18,5 +18,13 @@ module ActiveSupport
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
+
+    def sop
+      save_and_open_page
+    end
+
+    def sos
+      save_and_open_screenshot
+    end
   end
 end
