@@ -27,6 +27,7 @@ class FlashDismissTest < ApplicationSystemTestCase
     assert_selector ".indicator.-disconnected"
 
     server.update!(connected_at: Time.current)
+    perform_enqueued_jobs
 
     assert_no_selector ".notice", text: "Connecting...", wait: 5
     assert_selector ".indicator.-connected"
@@ -47,6 +48,7 @@ class FlashDismissTest < ApplicationSystemTestCase
     assert_no_selector ".notice"
 
     server.mark_disconnected!
+    perform_enqueued_jobs
 
     assert_selector ".indicator.-disconnected"
   end

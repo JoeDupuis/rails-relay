@@ -19,6 +19,7 @@ class NicknameLiveUpdateTest < ApplicationSystemTestCase
     assert_selector ".nickname strong", text: "oldnick"
 
     server.update!(nickname: "newnick")
+    perform_enqueued_jobs
 
     assert_selector ".nickname strong", text: "newnick", wait: 5
   end

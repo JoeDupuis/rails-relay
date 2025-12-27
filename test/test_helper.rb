@@ -9,8 +9,9 @@ require "turbo/broadcastable/test_helper"
 
 module ActiveSupport
   class TestCase
-    include Turbo::Broadcastable::TestHelper
     include SessionTestHelper
+    include ActiveJob::TestHelper
+    include Turbo::Broadcastable::TestHelper
 
     # Run tests in parallel with specified workers
     parallelize(workers: :number_of_processors)

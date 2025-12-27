@@ -26,6 +26,7 @@ class SidebarConnectionIndicatorTest < ApplicationSystemTestCase
     end
 
     server.update!(connected_at: Time.current)
+    perform_enqueued_jobs
 
     within "[data-qa='server-group']" do
       assert_selector ".connection-indicator.-connected", wait: 5
@@ -47,6 +48,7 @@ class SidebarConnectionIndicatorTest < ApplicationSystemTestCase
     end
 
     server.mark_disconnected!
+    perform_enqueued_jobs
 
     within "[data-qa='server-group']" do
       assert_selector ".connection-indicator.-disconnected", wait: 5

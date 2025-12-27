@@ -1,4 +1,12 @@
 GIT
+  remote: https://github.com/hotwired/turbo-rails.git
+  revision: 16f76133cbef0cfec65a3c8693d795670fb725ac
+  specs:
+    turbo-rails (2.0.20)
+      actionpack (>= 7.1.0)
+      railties (>= 7.1.0)
+
+GIT
   remote: https://github.com/joedupuis/yaic.git
   revision: 55c9364257d108f6bc1d6650e47a9560132f3617
   branch: main
@@ -378,9 +386,6 @@ GEM
     thruster (0.1.16-x86_64-linux)
     timeout (0.4.4)
     tsort (0.2.0)
-    turbo-rails (2.0.20)
-      actionpack (>= 7.1.0)
-      railties (>= 7.1.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.2.0)
@@ -440,7 +445,7 @@ DEPENDENCIES
   sqlite3 (>= 2.1)
   stimulus-rails
   thruster
-  turbo-rails
+  turbo-rails!
   tzinfo-data
   web-console
   webmock

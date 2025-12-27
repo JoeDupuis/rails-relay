@@ -144,27 +144,12 @@ class ServerTest < ActiveSupport::TestCase
     assert_equal false, server.ssl_verify
   end
 
-  test "broadcasts connection status when connected_at is set" do
+  test "broadcasts refresh when updated" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: nil)
 
     assert_turbo_stream_broadcasts server do
       server.update!(connected_at: Time.current)
-    end
-  end
-
-  test "broadcasts connection status when connected_at is cleared" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
-
-    assert_turbo_stream_broadcasts server do
-      server.update!(connected_at: nil)
-    end
-  end
-
-  test "does not broadcast connection status when connected_at unchanged" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
-
-    assert_no_turbo_stream_broadcasts server do
-      server.update!(address: "other.example.com")
+      perform_enqueued_jobs
     end
   end
 
@@ -207,38 +192,7 @@ class ServerTest < ActiveSupport::TestCase
 
     assert_turbo_stream_broadcasts server do
       server.mark_disconnected!
-    end
-  end
-
-  test "broadcasts nickname change when nickname is updated" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "oldnick")
-
-    assert_turbo_stream_broadcasts server do
-      server.update!(nickname: "newnick")
-    end
-  end
-
-  test "does not broadcast nickname change when nickname unchanged" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
-
-    assert_no_turbo_stream_broadcasts server do
-      server.update!(address: "other.example.com")
-    end
-  end
-
-  test "broadcasts connection status to sidebar stream when connected" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: nil)
-
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
-      server.update!(connected_at: Time.current)
-    end
-  end
-
-  test "broadcasts connection status to sidebar stream when disconnected" do
-    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
-
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
-      server.update!(connected_at: nil)
+      perform_enqueued_jobs
     end
   end
 end

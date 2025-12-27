@@ -1,5 +1,6 @@
 <%= turbo_stream_from "sidebar_#{Current.user.id}" %>
 <% current_user_servers.each do |server| %>
+  <%= turbo_stream_from server %>
   <div class="servergroup" data-qa="server-group">
     <div class="servername">
       <%= render "shared/connection_indicator", server: server %>

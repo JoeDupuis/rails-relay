@@ -204,6 +204,7 @@ class ServerPageTest < ActionDispatch::IntegrationTest
 
     assert_turbo_stream_broadcasts(server) do
       IrcEventHandler.handle(server, { type: "connected", data: {} })
+      perform_enqueued_jobs
     end
   end
 
@@ -216,6 +217,7 @@ class ServerPageTest < ActionDispatch::IntegrationTest
 
     assert_turbo_stream_broadcasts(server) do
       IrcEventHandler.handle(server, { type: "disconnected", data: {} })
+      perform_enqueued_jobs
     end
   end
 
@@ -245,22 +247,25 @@ class ServerPageTest < ActionDispatch::IntegrationTest
         type: "nick",
         data: { source: "joe!joe@host", new_nick: "joe_" }
       })
+      perform_enqueued_jobs
     end
   end
 
-  test "connected event broadcasts to sidebar stream" do
+  test "connected event broadcasts refresh to server stream" do
     server = @user.servers.create!(address: unique_address("sidebarconnect"), nickname: "testnick", connected_at: nil)
 
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+    assert_turbo_stream_broadcasts server do
       IrcEventHandler.handle(server, { type: "connected", data: {} })
+      perform_enqueued_jobs
     end
   end
 
-  test "disconnected event broadcasts to sidebar stream" do
+  test "disconnected event broadcasts refresh to server stream" do
     server = @user.servers.create!(address: unique_address("sidebardisconnect"), nickname: "testnick", connected_at: Time.current)
 
-    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+    assert_turbo_stream_broadcasts server do
       IrcEventHandler.handle(server, { type: "disconnected", data: {} })
+      perform_enqueued_jobs
     end
   end
 end
