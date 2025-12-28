@@ -41,7 +41,7 @@ begin
 
   sleep 0.5
 
-  pid = Process.spawn(*%w[bundle exec rails server -p], PORT.to_s, *RAILS_ARGS)
+  pid = Process.spawn({ "SOLID_QUEUE_IN_PUMA" => "1" }, *%w[bundle exec rails server -p], PORT.to_s, *RAILS_ARGS)
   Process.wait(pid)
   pid = nil
 ensure
