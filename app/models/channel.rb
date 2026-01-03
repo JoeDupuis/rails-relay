@@ -20,6 +20,7 @@ class Channel < ApplicationRecord
 
   after_update_commit :broadcast_joined_status, if: :saved_change_to_joined?
   after_update_commit :broadcast_sidebar_joined_status, if: :saved_change_to_joined?
+  after_update_commit :broadcast_sidebar_read_status, if: :saved_change_to_last_read_message_id?
 
   def unread_count
     return 0 unless last_read_message_id
@@ -70,6 +71,17 @@ class Channel < ApplicationRecord
         target: "channel_#{id}_sidebar"
       )
     end
+  end
+
+  def broadcast_sidebar_read_status
+    return unless server.user_id
+
+    broadcast_replace_to(
+      "sidebar_#{server.user_id}",
+      target: "channel_#{id}_sidebar",
+      partial: "shared/channel_sidebar_item",
+      locals: { channel: self }
+    )
   end
 
   def broadcast_joined_status

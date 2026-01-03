@@ -230,4 +230,14 @@ class ChannelTest < ActiveSupport::TestCase
     channel = Channel.create!(server: server, name: "#ruby", topic: "Ruby discussion")
     assert_equal "Ruby discussion", channel.subtitle
   end
+
+  test "mark_as_read! broadcasts sidebar update" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    channel.messages.create!(server: server, sender: "user1", content: "Hello", message_type: "privmsg")
+
+    assert_turbo_stream_broadcasts "sidebar_#{@user.id}" do
+      channel.mark_as_read!
+    end
+  end
 end
