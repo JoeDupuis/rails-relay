@@ -52,14 +52,17 @@ class MessagesController < ApplicationController
 
     return unless send_irc_command("privmsg", target: target_name, message: content)
 
-    @message = Message.create!(
-      server: @server,
-      channel: target.is_a?(Channel) ? target : nil,
-      target: target.is_a?(Channel) ? nil : target,
-      sender: @server.nickname,
-      content: content,
-      message_type: "privmsg"
-    )
+    ActiveRecord::Base.transaction do
+      @message = Message.create!(
+        server: @server,
+        channel: target.is_a?(Channel) ? target : nil,
+        target: target.is_a?(Channel) ? nil : target,
+        sender: @server.nickname,
+        content: content,
+        message_type: "privmsg"
+      )
+      @channel&.update!(last_read_message_id: @message.id)
+    end
   end
 
   def send_irc_action(target, action_text)
@@ -67,14 +70,17 @@ class MessagesController < ApplicationController
 
     return unless send_irc_command("action", target: target_name, message: action_text)
 
-    @message = Message.create!(
-      server: @server,
-      channel: target.is_a?(Channel) ? target : nil,
-      target: target.is_a?(Channel) ? nil : target,
-      sender: @server.nickname,
-      content: action_text,
-      message_type: "action"
-    )
+    ActiveRecord::Base.transaction do
+      @message = Message.create!(
+        server: @server,
+        channel: target.is_a?(Channel) ? target : nil,
+        target: target.is_a?(Channel) ? nil : target,
+        sender: @server.nickname,
+        content: action_text,
+        message_type: "action"
+      )
+      @channel&.update!(last_read_message_id: @message.id)
+    end
   end
 
   def send_pm(nick, content)
@@ -152,7 +158,16 @@ class MessagesController < ApplicationController
       file: params[:message][:file]
     )
 
-    if @message.save
+    saved = ActiveRecord::Base.transaction do
+      if @message.save
+        @channel&.update!(last_read_message_id: @message.id)
+        true
+      else
+        false
+      end
+    end
+
+    if saved
       head :ok
     else
       flash[:alert] = @message.errors.full_messages.join(", ")
