@@ -14,7 +14,7 @@ class IrcConnectionManager
         server_id: server_id,
         user_id: user_id,
         config: config,
-        on_event: ->(event) { notify_web_service(server_id, user_id, event) }
+        on_event: ->(event) { handle_event(server_id, user_id, event) }
       )
 
       @connections[server_id] = connection
@@ -63,6 +63,14 @@ class IrcConnectionManager
   end
 
   private
+
+  def handle_event(server_id, user_id, event)
+    if event[:type] == "disconnected" || event[:type] == "error"
+      @mutex.synchronize { @connections.delete(server_id) }
+    end
+
+    notify_web_service(server_id, user_id, event)
+  end
 
   def notify_web_service(server_id, user_id, event)
     InternalApiClient.post_event(

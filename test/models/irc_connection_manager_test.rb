@@ -111,4 +111,68 @@ class IrcConnectionManagerTest < ActiveSupport::TestCase
       assert_equal [ 1, 2, 3 ], @manager.active_connections.sort
     end
   end
+
+  test "connection is removed when disconnected event is received" do
+    captured_on_event = nil
+    mock_connection = MockIrcConnection.new
+
+    fake_new = ->(**kwargs) {
+      captured_on_event = kwargs[:on_event]
+      mock_connection
+    }
+
+    IrcConnection.stub :new, fake_new do
+      InternalApiClient.stub :post_event, nil do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+        assert_includes @manager.active_connections, 1
+
+        captured_on_event.call(type: "disconnected")
+
+        assert_not_includes @manager.active_connections, 1
+      end
+    end
+  end
+
+  test "connection is removed when error event is received" do
+    captured_on_event = nil
+    mock_connection = MockIrcConnection.new
+
+    fake_new = ->(**kwargs) {
+      captured_on_event = kwargs[:on_event]
+      mock_connection
+    }
+
+    IrcConnection.stub :new, fake_new do
+      InternalApiClient.stub :post_event, nil do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+        assert_includes @manager.active_connections, 1
+
+        captured_on_event.call(type: "error", message: "SSL_write failed")
+
+        assert_not_includes @manager.active_connections, 1
+      end
+    end
+  end
+
+  test "send_command returns false after connection disconnects" do
+    captured_on_event = nil
+    mock_connection = MockIrcConnection.new
+
+    fake_new = ->(**kwargs) {
+      captured_on_event = kwargs[:on_event]
+      mock_connection
+    }
+
+    IrcConnection.stub :new, fake_new do
+      InternalApiClient.stub :post_event, nil do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+        assert @manager.send_command(1, "privmsg", { target: "#test", message: "hello" })
+
+        captured_on_event.call(type: "disconnected")
+
+        assert_not @manager.send_command(1, "privmsg", { target: "#test", message: "hello" })
+      end
+    end
+  end
 end
