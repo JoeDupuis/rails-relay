@@ -26,7 +26,7 @@
                hidden>
       </label>
     <% end %>
-    <%= f.submit "Send", class: "submit" %>
+    <%= f.submit "Send", class: "submit", data: { action: "mousedown->message-form#preventFocusLoss" } %>
   <% end %>
 <% elsif target_offline %>
   <div class="message-input">
