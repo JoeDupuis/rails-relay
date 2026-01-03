@@ -1,3 +1,7 @@
+body {
+  margin: 0;
+}
+
 :root {
   --color-primary: #3490dc;
   --color-secondary: #6574cd;
