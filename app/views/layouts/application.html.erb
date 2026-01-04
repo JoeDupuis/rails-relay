@@ -24,7 +24,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body data-controller="visibility-refresh">
     <% if authenticated? %>
       <div class="app-layout <%= '-no-userlist' unless content_for?(:userlist) %>" data-controller="sidebar userlist-drawer">
         <header class="app-header header">
