@@ -19,7 +19,6 @@ class IrcConnection
   end
 
   def stop
-    @running = false
     @command_queue << { command: "quit" }
     @thread&.join(5)
     @thread&.kill if @thread&.alive?

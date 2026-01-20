@@ -24,11 +24,9 @@ class IrcConnectionManager
   end
 
   def stop(server_id)
-    @mutex.synchronize do
-      connection = @connections.delete(server_id)
-      connection&.stop
-      connection.present?
-    end
+    connection = @mutex.synchronize { @connections.delete(server_id) }
+    connection&.stop
+    connection.present?
   end
 
   def send_command(server_id, command, params)
