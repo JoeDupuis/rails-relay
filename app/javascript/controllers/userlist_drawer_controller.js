@@ -5,6 +5,10 @@ export default class extends Controller {
 
   connect() {
     this.boundKeydown = this.handleKeydown.bind(this)
+    if (this.hasDrawerTarget && this.drawerTarget.classList.contains("-open")) {
+      document.body.style.overflow = "hidden"
+      document.addEventListener("keydown", this.boundKeydown)
+    }
   }
 
   disconnect() {

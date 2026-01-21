@@ -4,7 +4,6 @@ export default class extends Controller {
   connect() {
     this.boundRefresh = this.refresh.bind(this)
     document.addEventListener("visibilitychange", this.boundRefresh)
-    this.refresh()
   }
 
   disconnect() {

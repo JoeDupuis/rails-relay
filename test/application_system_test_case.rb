@@ -16,4 +16,9 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     headless: true,
     process_timeout: 20
   }
+
+  setup do
+    stub_request(:get, %r{#{Rails.configuration.irc_service_url}/internal/irc/ison})
+      .to_return(status: 200, body: { online: [] }.to_json, headers: { "Content-Type" => "application/json" })
+  end
 end

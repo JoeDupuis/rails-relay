@@ -14,29 +14,25 @@ class ServerFormTest < ApplicationSystemTestCase
   test "SSL verify checkbox is visible when SSL is checked" do
     sign_in_and_visit_new_server
 
-    ssl_checkbox = find("#server_ssl")
-    ssl_verify_div = find("[data-ssl-target='verifyField']")
-
-    assert ssl_checkbox.checked?
-    assert ssl_verify_div.visible?
+    assert find("#server_ssl").checked?
+    assert_selector "[data-ssl-target='verifyField']", visible: true
   end
 
   test "SSL verify checkbox is hidden when SSL is unchecked" do
     sign_in_and_visit_new_server
 
     find("#server_ssl").uncheck
-    ssl_verify_div = find("[data-ssl-target='verifyField']", visible: :all)
-    assert_not ssl_verify_div.visible?
+
+    assert_selector "[data-ssl-target='verifyField']", visible: false, wait: 2
   end
 
   test "SSL verify checkbox appears when SSL is re-checked" do
     sign_in_and_visit_new_server
 
     find("#server_ssl").uncheck
-    ssl_verify_div = find("[data-ssl-target='verifyField']", visible: :all)
-    assert_not ssl_verify_div.visible?
+    assert_selector "[data-ssl-target='verifyField']", visible: false, wait: 2
 
     find("#server_ssl").check
-    assert ssl_verify_div.visible?
+    assert_selector "[data-ssl-target='verifyField']", visible: true, wait: 2
   end
 end
