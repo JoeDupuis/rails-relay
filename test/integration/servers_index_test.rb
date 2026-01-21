@@ -65,8 +65,8 @@ class ServersIndexTest < ActionDispatch::IntegrationTest
     get root_path
     assert_response :ok
 
-    assert_select ".server-section .channels .row .name", text: "#ruby"
-    assert_select ".server-section .channels .row .users", text: /2 users/
+    assert_select ".server-section .channels .list .row .name", text: "#ruby"
+    assert_select ".server-section .channels .list .row .status", text: /2 users/
   end
 
   test "connected server shows join channel form" do
