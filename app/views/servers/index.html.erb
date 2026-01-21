@@ -1,12 +1,17 @@
-<h1>Servers</h1>
-
-<ul>
-  <% @servers.each do |server| %>
-    <li data-address="<%= server.address %>">
-      <%= link_to server.address, server %>
-      (<%= server.connected_at ? "Connected" : "Disconnected" %>)
-    </li>
+<div class="servers-index">
+  <% if @servers.any? %>
+    <% @servers.each do |server| %>
+      <%= turbo_stream_from server %>
+      <%= render "servers/index_server_section", server: server %>
+    <% end %>
+    <%= link_to new_server_path, class: "add-server" do %>
+      <span class="icon">+</span>
+      Add Server
+    <% end %>
+  <% else %>
+    <div class="empty">
+      <p>No servers yet.</p>
+      <%= link_to "Add your first server", new_server_path, class: "button -primary" %>
+    </div>
   <% end %>
-</ul>
-
-<%= link_to "Add Server", new_server_path %>
+</div>

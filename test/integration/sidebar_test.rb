@@ -90,8 +90,8 @@ class SidebarTest < ActionDispatch::IntegrationTest
 
     get servers_path
     assert_response :ok
-    assert_match "#joined", response.body
-    assert_no_match "#notjoined", response.body
+    assert_select ".channel-sidebar .channel-item", text: /#joined/
+    assert_select ".channel-sidebar .channel-item", text: /#notjoined/, count: 0
   end
 
   test "sidebar only shows current user servers" do

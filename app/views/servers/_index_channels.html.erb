@@ -1,0 +1,39 @@
+<div class="channels" id="<%= dom_id(server, :index_channels) %>">
+  <% if server.connected? %>
+    <div class="join">
+      <%= form_with url: server_channels_path(server), class: "form" do |f| %>
+        <%= f.text_field :name, name: "channel[name]", placeholder: "#channel", class: "field" %>
+        <%= f.submit "Join", class: "button -primary" %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% channels = server.channels.sort_by(&:name) %>
+  <% if channels.any? %>
+    <ul class="list">
+      <% channels.each do |channel| %>
+        <li class="row<%= ' -joined' if channel.joined %>">
+          <span class="icon">#</span>
+          <div class="info">
+            <%= link_to channel.name, channel_path(channel), class: "name" %>
+            <% if channel.joined %>
+              <span class="status -joined">Joined &bull; <%= channel.channel_users.size %> users</span>
+            <% else %>
+              <span class="status">Not joined</span>
+            <% end %>
+          </div>
+          <span class="actions">
+            <% if channel.joined %>
+              <%= button_to "Leave", channel_path(channel), method: :delete, class: "link -danger" %>
+            <% else %>
+              <%= form_with url: server_channels_path(server), class: "inline-form" do |f| %>
+                <%= f.hidden_field :name, name: "channel[name]", value: channel.name %>
+                <%= f.submit "Join", class: "join-button" %>
+              <% end %>
+            <% end %>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

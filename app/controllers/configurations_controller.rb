@@ -6,7 +6,7 @@ class ConfigurationsController < ApplicationController
       settings: {},
       rules: [
         {
-          patterns: [".*"],
+          patterns: [ ".*" ],
           properties: {
             context: "default",
             uri: "hotwire://fragment/web",
@@ -14,13 +14,13 @@ class ConfigurationsController < ApplicationController
           }
         },
         {
-          patterns: ["^$", "^/$"],
+          patterns: [ "^$", "^/$" ],
           properties: {
             presentation: "clear_all"
           }
         },
         {
-          patterns: ["/new$", "/edit$"],
+          patterns: [ "/new$", "/edit$" ],
           properties: {
             context: "modal",
             pull_to_refresh_enabled: false

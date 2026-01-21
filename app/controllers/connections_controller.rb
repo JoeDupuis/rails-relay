@@ -16,16 +16,16 @@ class ConnectionsController < ApplicationController
         password: @server.auth_method == "pass" ? @server.auth_password : nil
       }
     )
-    redirect_to @server, notice: "Connecting..."
+    redirect_back fallback_location: @server, notice: "Connecting..."
   rescue InternalApiClient::ServiceUnavailable
-    redirect_to @server, alert: "IRC service unavailable"
+    redirect_back fallback_location: @server, alert: "IRC service unavailable"
   end
 
   def destroy
     InternalApiClient.stop_connection(server_id: @server.id)
-    redirect_to @server
+    redirect_back fallback_location: @server
   rescue InternalApiClient::ServiceUnavailable
-    redirect_to @server, alert: "IRC service unavailable"
+    redirect_back fallback_location: @server, alert: "IRC service unavailable"
   end
 
   private
