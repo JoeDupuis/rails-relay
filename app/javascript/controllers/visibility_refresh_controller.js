@@ -13,7 +13,7 @@ export default class extends Controller {
 
   refresh() {
     if (document.visibilityState === "visible") {
-      Turbo.visit(window.location.href, { action: "replace" })
+      Turbo.session.refresh(window.location.href)
     }
   }
 }
