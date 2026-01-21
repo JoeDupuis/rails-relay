@@ -1,0 +1,13 @@
+<header class="header">
+  <div class="info">
+    <%= render "shared/connection_indicator", server: server %>
+    <%= link_to server.address, server_path(server), class: "address" %>
+  </div>
+  <div class="actions">
+    <% if server.connected? %>
+      <%= button_to "Disconnect", server_connection_path(server), method: :delete, class: "link -danger" %>
+    <% else %>
+      <%= button_to "Connect", server_connection_path(server), method: :post, class: "link -primary" %>
+    <% end %>
+  </div>
+</header>

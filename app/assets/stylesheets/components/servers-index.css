@@ -1,0 +1,184 @@
+.servers-index {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  max-width: 800px;
+  margin: 0 auto;
+
+  & > .empty {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--color-text-muted);
+
+    & > p {
+      margin-bottom: var(--space-md);
+    }
+  }
+
+  & > .button {
+    align-self: flex-start;
+  }
+
+  & > .server-section {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+
+    & > .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md);
+      background: var(--color-surface-raised);
+      border-bottom: 1px solid var(--color-border);
+
+      & > .info {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+
+        & > .address {
+          font-weight: 600;
+          color: var(--color-text);
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+
+      & > .actions {
+        & > form {
+          display: inline;
+        }
+
+        & > .link,
+        & > form > .link {
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: var(--font-sm);
+          padding: var(--space-xs) var(--space-sm);
+        }
+
+        & > .link.-primary,
+        & > form > .link.-primary {
+          color: var(--color-primary);
+        }
+
+        & > .link.-danger,
+        & > form > .link.-danger {
+          color: var(--color-danger);
+        }
+      }
+    }
+
+    & > .channels {
+      padding: var(--space-md);
+
+      & > .join {
+        margin-bottom: var(--space-md);
+
+        & > .form {
+          display: flex;
+          gap: var(--space-sm);
+
+          & > .field {
+            flex: 1;
+            padding: var(--space-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+          }
+        }
+      }
+
+      & > .list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        & > .row {
+          display: flex;
+          align-items: center;
+          gap: var(--space-md);
+          padding: var(--space-sm) 0;
+          border-bottom: 1px solid var(--color-border);
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          & > .name {
+            font-weight: 500;
+            color: var(--color-text);
+            text-decoration: none;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+
+          & > .users {
+            font-size: var(--font-sm);
+            color: var(--color-text-muted);
+          }
+
+          & > .status {
+            font-size: var(--font-sm);
+            color: var(--color-text-muted);
+            font-style: italic;
+          }
+
+          & > .actions {
+            margin-left: auto;
+            display: flex;
+            gap: var(--space-sm);
+
+            & > form {
+              display: inline;
+            }
+
+            & > .link,
+            & > form > .link {
+              background: none;
+              border: none;
+              cursor: pointer;
+              font-size: var(--font-sm);
+              padding: var(--space-xs) var(--space-sm);
+            }
+
+            & > .link.-danger,
+            & > form > .link.-danger {
+              color: var(--color-danger);
+            }
+          }
+
+          &.-not-joined {
+            opacity: 0.7;
+          }
+        }
+      }
+    }
+  }
+}
+
+.button {
+  display: inline-block;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  cursor: pointer;
+
+  &.-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+}

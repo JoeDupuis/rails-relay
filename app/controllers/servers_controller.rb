@@ -2,7 +2,7 @@ class ServersController < ApplicationController
   before_action :set_server, only: %i[show edit update destroy]
 
   def index
-    @servers = Current.user.servers
+    @servers = Current.user.servers.includes(channels: :channel_users).order(:address)
   end
 
   def show
