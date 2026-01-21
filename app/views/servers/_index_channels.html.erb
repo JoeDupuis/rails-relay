@@ -12,22 +12,26 @@
   <% if channels.any? %>
     <ul class="list">
       <% channels.each do |channel| %>
-        <li class="row<%= ' -not-joined' unless channel.joined %>">
-          <%= link_to channel.name, channel_path(channel), class: "name" %>
-          <% if channel.joined %>
-            <span class="users"><%= channel.channel_users.size %> users</span>
-            <span class="actions">
+        <li class="row<%= ' -joined' if channel.joined %>">
+          <span class="icon">#</span>
+          <div class="info">
+            <%= link_to channel.name, channel_path(channel), class: "name" %>
+            <% if channel.joined %>
+              <span class="status -joined">Joined &bull; <%= channel.channel_users.size %> users</span>
+            <% else %>
+              <span class="status">Not joined</span>
+            <% end %>
+          </div>
+          <span class="actions">
+            <% if channel.joined %>
               <%= button_to "Leave", channel_path(channel), method: :delete, class: "link -danger" %>
-            </span>
-          <% else %>
-            <span class="status">(not joined)</span>
-            <span class="actions">
+            <% else %>
               <%= form_with url: server_channels_path(server), class: "inline-form" do |f| %>
                 <%= f.hidden_field :name, name: "channel[name]", value: channel.name %>
-                <%= f.submit "Join", class: "link" %>
+                <%= f.submit "Join", class: "join-button" %>
               <% end %>
-            </span>
-          <% end %>
+            <% end %>
+          </span>
         </li>
       <% end %>
     </ul>
