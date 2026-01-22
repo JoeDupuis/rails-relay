@@ -41,12 +41,25 @@ begin
 
   sleep 0.5
 
-  pid = Process.spawn({ "SOLID_QUEUE_IN_PUMA" => "1" }, *%w[bundle exec rails server -p], PORT.to_s, *RAILS_ARGS)
-  Process.wait(pid)
-  pid = nil
+  rails_pid = Process.spawn({ "SOLID_QUEUE_IN_PUMA" => "1" }, *%w[bundle exec rails server -p], PORT.to_s, *RAILS_ARGS)
+
+  loop do
+    exited_pid, = Process.wait2(-1)
+    if exited_pid == overmind_pid
+      overmind_pid = nil
+      Process.kill("INT", rails_pid) rescue Errno::ESRCH
+      $stderr.puts "\n\e[31m!! Overmind crashed !!\e[0m\nRun bin/dev --verbose to debug or check for zombie sockets with: overmind echo"
+      break
+    elsif exited_pid == rails_pid
+      rails_pid = nil
+      break
+    end
+  end
 ensure
   system("overmind stop > /dev/null 2>&1")
-  Process.kill("INT", -overmind_pgid) rescue nil
-  Process.waitpid(-overmind_pgid, Process::WNOHANG) rescue nil
-  Process.kill("KILL", pid) if pid rescue nil
+  if overmind_pid
+    Process.kill("INT", -overmind_pgid) rescue nil
+    Process.waitpid(-overmind_pgid, Process::WNOHANG) rescue nil
+  end
+  Process.kill("KILL", rails_pid) if rails_pid rescue nil
 end
