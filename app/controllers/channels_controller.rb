@@ -4,7 +4,9 @@ class ChannelsController < ApplicationController
 
   def show
     @channel.mark_as_read!
-    @messages = @channel.messages.order(:created_at)
+    @messages = @channel.messages.order(created_at: :desc).limit(50).reverse
+    @has_more = @messages.size == 50
+    @oldest_id = @messages.first&.id
   end
 
   def create

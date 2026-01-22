@@ -1,6 +1,20 @@
 class MessagesController < ApplicationController
   before_action :set_target
 
+  def index
+    messages = @channel.messages
+                       .where("id < ?", params[:before_id])
+                       .order(created_at: :desc)
+                       .limit(50)
+                       .reverse
+
+    render partial: "messages/history", locals: {
+      messages: messages,
+      has_more: messages.size == 50,
+      oldest_id: messages.first&.id
+    }
+  end
+
   def create
     if params[:message] && params[:message][:file].present?
       handle_file_upload

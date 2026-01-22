@@ -5,7 +5,9 @@ class ConversationsController < ApplicationController
   def show
     @conversation.mark_as_read!
     @server = @conversation.server
-    @messages = @conversation.messages
+    @messages = @conversation.messages.order(created_at: :desc).limit(50).reverse
+    @has_more = @messages.size == 50
+    @oldest_id = @messages.first&.id
   end
 
   def create

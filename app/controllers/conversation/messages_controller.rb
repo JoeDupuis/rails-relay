@@ -1,6 +1,20 @@
 class Conversation::MessagesController < ApplicationController
   before_action :set_conversation
 
+  def index
+    messages = @conversation.messages
+                            .where("id < ?", params[:before_id])
+                            .order(created_at: :desc)
+                            .limit(50)
+                            .reverse
+
+    render partial: "messages/history", locals: {
+      messages: messages,
+      has_more: messages.size == 50,
+      oldest_id: messages.first&.id
+    }
+  end
+
   def create
     content = params[:content]
 

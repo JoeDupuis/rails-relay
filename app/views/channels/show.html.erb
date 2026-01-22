@@ -10,7 +10,13 @@
        data-controller="message-list"
        data-message-list-target="messages"
        data-channel-target="messages"
-       data-message-list-channel-id-value="<%= @channel.id %>">
+       data-message-list-channel-id-value="<%= @channel.id %>"
+       data-message-list-history-url-value="<%= channel_messages_path(@channel) %>"
+       data-message-list-has-more-value="<%= @has_more %>"
+       data-message-list-oldest-id-value="<%= @oldest_id %>">
+    <div class="loading-indicator -hidden" data-message-list-target="loadingIndicator">
+      Loading older messages...
+    </div>
     <div id="messages" data-message-list-target="container">
       <%= render partial: "messages/message", collection: @messages %>
     </div>
