@@ -21,7 +21,7 @@ class ConfigurationsController < ApplicationController
         {
           patterns: [ "^$", "^/$" ],
           properties: {
-            presentation: "clear_all"
+            presentation: "replace_root"
           }
         },
         {
@@ -29,6 +29,14 @@ class ConfigurationsController < ApplicationController
           properties: {
             context: "modal",
             pull_to_refresh_enabled: false
+          }
+        },
+        {
+          patterns: [ "/session/new$" ],
+          properties: {
+            context: "default",
+            presentation: "replace_root",
+            pull_to_refresh_enabled: true
           }
         }
       ]
