@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/joedupuis/yaic.git
-  revision: 55c9364257d108f6bc1d6650e47a9560132f3617
+  revision: 625c18c388168fc089a064023a350b054cf40dd9
   branch: main
   specs:
     yaic (0.2.0)

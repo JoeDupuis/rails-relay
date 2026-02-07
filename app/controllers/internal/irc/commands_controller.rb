@@ -9,7 +9,7 @@ module Internal
         )
 
         if result
-          head :accepted
+          render json: { parts: result }, status: :accepted
         else
           head :not_found
         end

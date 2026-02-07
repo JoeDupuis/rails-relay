@@ -24,20 +24,13 @@ class Conversation::MessagesController < ApplicationController
     end
 
     lines.each do |line|
-      Message.create!(
-        server: @server,
-        channel: nil,
-        target: @conversation.target_nick,
-        sender: @server.nickname,
-        content: line,
-        message_type: "privmsg"
-      )
-
-      InternalApiClient.send_command(
+      result = InternalApiClient.send_command(
         server_id: @server.id,
         command: "privmsg",
         params: { target: @conversation.target_nick, message: line }
       )
+
+      Message.create_outgoing!(server: @server, parts: result, target: @conversation.target_nick, message_type: "privmsg")
     end
 
     @conversation.touch(:last_message_at)

@@ -26,7 +26,9 @@ class InternalApiClient
       })
 
       case response.code.to_i
-      when 202 then true
+      when 202
+        body = JSON.parse(response.body) rescue {}
+        body["parts"]
       when 404 then raise ConnectionNotFound, "Server #{server_id} not connected"
       else raise ServiceUnavailable, "IRC service error: #{response.code}"
       end

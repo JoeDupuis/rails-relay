@@ -8,7 +8,12 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     @test_id = SecureRandom.hex(4)
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: "", headers: {})
+      .to_return do |request|
+        body = JSON.parse(request.body)
+        message = body.dig("params", "message")
+        parts = message ? [ message ] : true
+        { status: 202, body: { parts: parts }.to_json, headers: { "Content-Type" => "application/json" } }
+      end
   end
 
   def unique_address(base = "irc.example")
@@ -37,6 +42,25 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "alice", message.target
     assert_equal "testnick", message.sender
     assert_nil message.channel
+  end
+
+  test "POST /conversations/:conversation_id/messages splits long messages" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+
+    WebMock.reset!
+    parts = [ "a" * 300, "a" * 300 ]
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: { parts: parts }.to_json, headers: { "Content-Type" => "application/json" })
+
+    long_text = "a" * 600
+
+    assert_difference -> { Message.count }, 2 do
+      post conversation_messages_path(conversation), params: { content: long_text }
+    end
+
+    messages = Message.order(:id).last(2)
+    assert_equal parts, messages.map(&:content)
   end
 
   test "POST /conversations/:conversation_id/messages sends IRC command" do

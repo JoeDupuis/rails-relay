@@ -34,9 +34,9 @@ class InternalApiClientTest < ActiveSupport::TestCase
     assert_equal "200", response.code
   end
 
-  test "send_command returns true on 202" do
+  test "send_command returns parts array on 202" do
     stub_request(:post, "http://localhost:3000/internal/irc/commands")
-      .to_return(status: 202)
+      .to_return(status: 202, body: { parts: [ "Hello" ] }.to_json, headers: { "Content-Type" => "application/json" })
 
     result = InternalApiClient.send_command(
       server_id: 1,
@@ -44,7 +44,7 @@ class InternalApiClientTest < ActiveSupport::TestCase
       params: { target: "#ruby", message: "Hello" }
     )
 
-    assert result
+    assert_equal [ "Hello" ], result
   end
 
   test "send_command raises ConnectionNotFound on 404" do

@@ -8,7 +8,12 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     @test_id = SecureRandom.hex(4)
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: "", headers: {})
+      .to_return do |request|
+        body = JSON.parse(request.body)
+        message = body.dig("params", "message")
+        parts = message ? [ message ] : true
+        { status: 202, body: { parts: parts }.to_json, headers: { "Content-Type" => "application/json" } }
+      end
   end
 
   def unique_address(base = "irc.example")
@@ -40,6 +45,25 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "privmsg", message.message_type
   end
 
+  test "POST /channels/:channel_id/messages splits long messages into multiple records" do
+    server = create_server
+    channel = create_channel(server)
+
+    WebMock.reset!
+    parts = [ "a" * 300, "a" * 300 ]
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: { parts: parts }.to_json, headers: { "Content-Type" => "application/json" })
+
+    long_text = "a" * 600
+
+    assert_difference -> { Message.count }, 2 do
+      post channel_messages_path(channel), params: { content: long_text }
+    end
+
+    messages = Message.order(:id).last(2)
+    assert_equal parts, messages.map(&:content)
+  end
+
   test "POST /channels/:channel_id/messages calls InternalApiClient.send_command" do
     server = create_server
     channel = create_channel(server)
@@ -61,6 +85,24 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     post channel_messages_path(channel), params: { content: "Hello world" }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     assert_response :ok
+  end
+
+  test "POST with /me command splits long actions into multiple records" do
+    server = create_server
+    channel = create_channel(server)
+
+    WebMock.reset!
+    parts = [ "waves at everyone in the chan", "nel very enthusiastically" ]
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: { parts: parts }.to_json, headers: { "Content-Type" => "application/json" })
+
+    assert_difference -> { Message.count }, 2 do
+      post channel_messages_path(channel), params: { content: "/me waves at everyone in the channel very enthusiastically" }
+    end
+
+    messages = Message.order(:id).last(2)
+    assert_equal parts, messages.map(&:content)
+    assert messages.all? { |m| m.message_type == "action" }
   end
 
   test "POST with /me command creates message with type action" do
@@ -299,6 +341,36 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_in_delta Time.current, conversation.reload.last_message_at, 2.seconds
   end
 
+  test "POST with /msg command splits long messages into multiple records" do
+    server = create_server
+    channel = create_channel(server)
+
+    WebMock.reset!
+    parts = [ "a" * 300, "a" * 300 ]
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: { parts: parts }.to_json, headers: { "Content-Type" => "application/json" })
+
+    long_text = "a" * 600
+
+    assert_difference -> { Message.count }, 2 do
+      assert_difference -> { Conversation.count } do
+        post channel_messages_path(channel), params: { content: "/msg somenick #{long_text}" }
+      end
+    end
+
+    messages = Message.order(:id).last(2)
+    assert_equal parts, messages.map(&:content)
+    messages.each do |message|
+      assert_equal "somenick", message.target
+      assert_nil message.channel
+    end
+
+    conversation = Conversation.last
+    assert_equal server, conversation.server
+    assert_equal "somenick", conversation.target_nick
+    assert_in_delta Time.current, conversation.last_message_at, 2.seconds
+  end
+
   test "POST with /msg command finds existing conversation" do
     server = create_server
     channel = create_channel(server)
@@ -387,7 +459,7 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
 
     WebMock.reset!
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: "", headers: {})
+      .to_return(status: 202, body: { parts: ["line one"] }.to_json, headers: { "Content-Type" => "application/json" })
       .then.to_return(status: 404, body: "", headers: {})
 
     assert_difference -> { Message.count }, 1 do

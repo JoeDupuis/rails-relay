@@ -30,13 +30,10 @@ class IrcConnectionManager
   end
 
   def send_command(server_id, command, params)
-    @mutex.synchronize do
-      connection = @connections[server_id]
-      return false unless connection
+    connection = @mutex.synchronize { @connections[server_id] }
+    return false unless connection
 
-      connection.execute(command, params)
-      true
-    end
+    connection.execute(command, params) || true
   end
 
   def ison(server_id, nicks)

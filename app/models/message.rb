@@ -14,6 +14,19 @@ class Message < ApplicationRecord
   ALLOWED_FILE_TYPES = %w[image/png image/jpeg image/gif image/webp].freeze
   MAX_FILE_SIZE = 10.megabytes
 
+  def self.create_outgoing!(server:, parts:, target:, message_type:)
+    parts.map do |part|
+      create!(
+        server: server,
+        channel: target.is_a?(Channel) ? target : nil,
+        target: target.is_a?(Channel) ? nil : target,
+        sender: server.nickname,
+        content: part,
+        message_type: message_type
+      )
+    end
+  end
+
   def from_me?(current_nickname)
     return false if current_nickname.blank?
     sender.downcase == current_nickname.downcase

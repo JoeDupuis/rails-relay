@@ -78,53 +78,35 @@ class MessagesController < ApplicationController
   def send_message(target, content)
     target_name = target.is_a?(Channel) ? target.name : target
 
-    return unless send_irc_command("privmsg", target: target_name, message: content)
+    parts = send_irc_command("privmsg", target: target_name, message: content)
+    return unless parts
 
     ActiveRecord::Base.transaction do
-      @message = Message.create!(
-        server: @server,
-        channel: target.is_a?(Channel) ? target : nil,
-        target: target.is_a?(Channel) ? nil : target,
-        sender: @server.nickname,
-        content: content,
-        message_type: "privmsg"
-      )
-      @channel&.update!(last_read_message_id: @message.id)
+      messages = Message.create_outgoing!(server: @server, parts: parts, target: target, message_type: "privmsg")
+      @channel&.update!(last_read_message_id: messages.last.id)
     end
   end
 
   def send_irc_action(target, action_text)
     target_name = target.is_a?(Channel) ? target.name : target
 
-    return unless send_irc_command("action", target: target_name, message: action_text)
+    parts = send_irc_command("action", target: target_name, message: action_text)
+    return unless parts
 
     ActiveRecord::Base.transaction do
-      @message = Message.create!(
-        server: @server,
-        channel: target.is_a?(Channel) ? target : nil,
-        target: target.is_a?(Channel) ? nil : target,
-        sender: @server.nickname,
-        content: action_text,
-        message_type: "action"
-      )
-      @channel&.update!(last_read_message_id: @message.id)
+      messages = Message.create_outgoing!(server: @server, parts: parts, target: target, message_type: "action")
+      @channel&.update!(last_read_message_id: messages.last.id)
     end
   end
 
   def send_pm(nick, content)
-    return unless send_irc_command("privmsg", target: nick, message: content)
+    parts = send_irc_command("privmsg", target: nick, message: content)
+    return unless parts
 
     conversation = Conversation.find_or_create_by!(server: @server, target_nick: nick)
     conversation.touch(:last_message_at)
 
-    @message = Message.create!(
-      server: @server,
-      channel: nil,
-      target: nick,
-      sender: @server.nickname,
-      content: content,
-      message_type: "privmsg"
-    )
+    Message.create_outgoing!(server: @server, parts: parts, target: nick, message_type: "privmsg")
 
     @created_conversation = conversation
   end
@@ -165,7 +147,6 @@ class MessagesController < ApplicationController
       command: command,
       params: params
     )
-    true
   rescue InternalApiClient::ConnectionNotFound
     @server.mark_disconnected!
     flash[:alert] = "Connection lost"

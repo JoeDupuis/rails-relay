@@ -7,7 +7,6 @@ class IrcConnection
     @running = false
     @thread = nil
     @client = nil
-    @command_queue = Queue.new
   end
 
   THREAD_PREFIX = "rails_relay_irc_"
@@ -19,13 +18,13 @@ class IrcConnection
   end
 
   def stop
-    @command_queue << { command: "quit" }
+    execute("quit", {})
     @thread&.join(5)
     @thread&.kill if @thread&.alive?
   end
 
   def execute(command, params)
-    @command_queue << { command: command, params: params }
+    execute_command(command: command, params: params)
   end
 
   def running?
@@ -86,34 +85,32 @@ class IrcConnection
 
   def event_loop
     while @running && @client.connected?
-      process_commands
       sleep 0.1
     end
   end
 
-  def process_commands
-    while (cmd = @command_queue.pop(true) rescue nil)
-      execute_command(cmd)
-    end
-  end
-
-  def execute_command(cmd)
-    case cmd[:command]
+  def execute_command(command:, params:)
+    case command
     when "join"
-      @client.join(cmd[:params][:channel])
+      @client.join(params[:channel])
+      nil
     when "part"
-      @client.part(cmd[:params][:channel], cmd[:params][:message])
+      @client.part(params[:channel], params[:message])
+      nil
     when "privmsg"
-      @client.privmsg(cmd[:params][:target], cmd[:params][:message])
+      @client.privmsg(params[:target], params[:message])
     when "notice"
-      @client.notice(cmd[:params][:target], cmd[:params][:message])
+      @client.notice(params[:target], params[:message])
     when "action"
-      @client.privmsg(cmd[:params][:target], "\x01ACTION #{cmd[:params][:message]}\x01")
+      parts = @client.privmsg(params[:target], "\x01ACTION #{params[:message]}\x01")
+      parts&.map { |part| part.delete_prefix("\x01ACTION ").delete_suffix("\x01") }
     when "nick"
-      @client.nick(cmd[:params][:nickname])
+      @client.nick(params[:nickname])
+      nil
     when "quit"
       @running = false
-      @client.quit(cmd[:params]&.[](:message))
+      @client.quit(params[:message])
+      nil
     end
   end
 
