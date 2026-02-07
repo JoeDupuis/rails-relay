@@ -32,8 +32,6 @@ bin/rails test test/controllers/servers_controller_test.rb -n "test_name"
 
 DO NOT refix with RAILS_ENV, this is not needed.
 
-For now test need to be ran unsandboxed else you'll get an error about a websocket.
-
 ## IRC Test Server
 
 Tests require a running IRC server. Check status / start / stop:
@@ -177,7 +175,7 @@ git commit --no-gpg-sign -m "Implement [feature-name]"
 
 ### 8. Exit
 
-**ONLY after QA has approved and the feature is marked complete**, exit by running (must be unsandboxed):
+**ONLY after QA has approved and the feature is marked complete**, exit by running:
 
 ```bash
 .claude/ralph/bin/kill-claude
