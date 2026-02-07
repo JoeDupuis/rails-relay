@@ -21,6 +21,19 @@ class Server < ApplicationRecord
     connected_at.present?
   end
 
+  def connection_config
+    {
+      address: address,
+      port: port,
+      ssl: ssl,
+      ssl_verify: ssl_verify,
+      nickname: nickname,
+      username: username,
+      realname: realname,
+      password: auth_method == "pass" ? auth_password : nil
+    }
+  end
+
   def mark_disconnected!
     transaction do
       update!(connected_at: nil)

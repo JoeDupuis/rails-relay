@@ -5,16 +5,7 @@ class ConnectionsController < ApplicationController
     InternalApiClient.start_connection(
       server_id: @server.id,
       user_id: Current.user.id,
-      config: {
-        address: @server.address,
-        port: @server.port,
-        ssl: @server.ssl,
-        ssl_verify: @server.ssl_verify,
-        nickname: @server.nickname,
-        username: @server.username,
-        realname: @server.realname,
-        password: @server.auth_method == "pass" ? @server.auth_password : nil
-      }
+      config: @server.connection_config
     )
     redirect_back fallback_location: @server, notice: "Connecting..."
   rescue InternalApiClient::ServiceUnavailable

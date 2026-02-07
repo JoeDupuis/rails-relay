@@ -187,6 +187,43 @@ class ServerTest < ActiveSupport::TestCase
     assert_equal 0, channel.channel_users.count
   end
 
+  test "connection_config returns config hash for IRC connection" do
+    server = @user.servers.create!(
+      address: "irc.example.com",
+      port: 6667,
+      ssl: false,
+      ssl_verify: false,
+      nickname: "testnick",
+      username: "testuser",
+      realname: "Test User",
+      auth_method: "none"
+    )
+
+    config = server.connection_config
+
+    assert_equal "irc.example.com", config[:address]
+    assert_equal 6667, config[:port]
+    assert_equal false, config[:ssl]
+    assert_equal false, config[:ssl_verify]
+    assert_equal "testnick", config[:nickname]
+    assert_equal "testuser", config[:username]
+    assert_equal "Test User", config[:realname]
+    assert_nil config[:password]
+  end
+
+  test "connection_config includes password when auth_method is pass" do
+    server = @user.servers.create!(
+      address: "irc.example.com",
+      nickname: "testnick",
+      auth_method: "pass",
+      auth_password: "secretpass"
+    )
+
+    config = server.connection_config
+
+    assert_equal "secretpass", config[:password]
+  end
+
   test "mark_disconnected! broadcasts connection status change" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick", connected_at: Time.current)
 
