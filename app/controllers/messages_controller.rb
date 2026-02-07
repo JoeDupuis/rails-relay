@@ -21,8 +21,30 @@ class MessagesController < ApplicationController
       return
     end
 
-    content = params[:content]
+    lines = params[:content].to_s.split("\n").map(&:chomp).reject(&:blank?)
 
+    if lines.empty?
+      head :ok
+      return
+    end
+
+    if lines.one?
+      process_single_line(lines.first)
+    else
+      lines.each do |line|
+        send_message(@channel || params[:target], line)
+        break if performed?
+      end
+    end
+
+    return if performed?
+
+    head :ok
+  end
+
+  private
+
+  def process_single_line(content)
     case content
     when /\A\/me (.+)/
       send_irc_action(@channel || params[:target], $1)
@@ -36,21 +58,13 @@ class MessagesController < ApplicationController
       set_topic($1)
     when /\A\/part/
       part_channel
-      return
     when /\A\//
       flash[:alert] = "Unknown command"
       redirect_back fallback_location: @channel || @server
-      return
     else
       send_message(@channel || params[:target], content)
     end
-
-    return if performed?
-
-    head :ok
   end
-
-  private
 
   def set_target
     if params[:channel_id]

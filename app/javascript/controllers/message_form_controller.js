@@ -13,17 +13,22 @@ export default class extends Controller {
     if (this.hasMessageListOutlet) {
       this.messageListOutlet.sent()
     }
+    this.inputTarget.dispatchEvent(new Event("input"))
   }
 
   preventEmptySubmit(event) {
-    if(this.inputTarget.value == "" && this.fileInputTarget.files.length === 0) {
+    const hasContent = this.inputTarget.value.trim() !== ""
+    const hasFile = this.hasFileInputTarget && this.fileInputTarget.files.length > 0
+
+    if (!hasContent && !hasFile) {
       event.preventDefault()
     }
   }
 
-  preventShiftSubmit(event) {
-    if (event.key === 'Enter' && event.shiftKey) {
+  handleKeydown(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
+      this.element.requestSubmit()
     }
   }
 

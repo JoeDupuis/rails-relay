@@ -155,7 +155,7 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
     get conversation_path(conversation)
     assert_response :ok
     assert_match "alice is offline.", response.body
-    assert_no_match /<input[^>]*type="text"[^>]*name="content"/, response.body
+    assert_no_match /<textarea[^>]*name="content"/, response.body
   end
 
   test "conversation show with online user shows enabled input" do
@@ -166,6 +166,6 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
     get conversation_path(conversation)
     assert_response :ok
     assert_no_match "alice is offline.", response.body
-    assert_match /<input[^>]*type="text"[^>]*name="content"/, response.body
+    assert_match /<textarea[^>]*name="content"/, response.body
   end
 end

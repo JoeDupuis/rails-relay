@@ -16,22 +16,29 @@ class Conversation::MessagesController < ApplicationController
   end
 
   def create
-    content = params[:content]
+    lines = params[:content].to_s.split("\n").map(&:chomp).reject(&:blank?)
 
-    @message = Message.create!(
-      server: @server,
-      channel: nil,
-      target: @conversation.target_nick,
-      sender: @server.nickname,
-      content: content,
-      message_type: "privmsg"
-    )
+    if lines.empty?
+      head :ok
+      return
+    end
 
-    InternalApiClient.send_command(
-      server_id: @server.id,
-      command: "privmsg",
-      params: { target: @conversation.target_nick, message: content }
-    )
+    lines.each do |line|
+      Message.create!(
+        server: @server,
+        channel: nil,
+        target: @conversation.target_nick,
+        sender: @server.nickname,
+        content: line,
+        message_type: "privmsg"
+      )
+
+      InternalApiClient.send_command(
+        server_id: @server.id,
+        command: "privmsg",
+        params: { target: @conversation.target_nick, message: line }
+      )
+    end
 
     @conversation.touch(:last_message_at)
 

@@ -115,6 +115,39 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_match "not connected", response.body
   end
 
+  test "POST with multi-line content creates multiple messages" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+
+    assert_difference -> { Message.count }, 3 do
+      post conversation_messages_path(conversation), params: { content: "line one\nline two\nline three" }
+    end
+
+    messages = Message.last(3)
+    assert_equal [ "line one", "line two", "line three" ], messages.map(&:content)
+  end
+
+  test "POST with multi-line content filters blank lines" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+
+    assert_difference -> { Message.count }, 2 do
+      post conversation_messages_path(conversation), params: { content: "hello\n\n  \nworld" }
+    end
+
+    messages = Message.last(2)
+    assert_equal %w[hello world], messages.map(&:content)
+  end
+
+  test "POST with multi-line content sends separate IRC commands per line" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+
+    post conversation_messages_path(conversation), params: { content: "first\nsecond" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands", times: 2)
+  end
+
   test "user can only send to their own conversations" do
     server = create_server
     conversation = create_conversation(server)

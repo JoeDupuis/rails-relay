@@ -9,12 +9,13 @@
               data: {
                   controller: "message-form",
                   message_form_message_list_outlet: ".messages",
-                  action: "keydown->message-form#preventShiftSubmit message-form#preventEmptySubmit turbo:submit-end->message-form#clearInput",
+                  action: "keydown->message-form#handleKeydown message-form#preventEmptySubmit turbo:submit-end->message-form#clearInput",
               }.compact do |f| %>
-    <%= f.text_field :content,
+    <%= f.text_area :content,
         placeholder: "Message #{messageable.display_name}",
+        rows: 1,
         class: "field",
-        data: { message_form_target: "input", action: "" } %>
+        data: { message_form_target: "input", controller: "auto-resize", action: "input->auto-resize#resize" } %>
     <% if is_channel %>
       <label class="upload">
         📎
@@ -34,7 +35,7 @@
   </div>
 <% elsif is_channel && messageable.server.connected? && !messageable.joined %>
   <div class="message-input">
-    <%= text_field_tag :content, nil, placeholder: "Message #{messageable.display_name}", class: "field", disabled: true %>
+    <%= text_area_tag :content, nil, placeholder: "Message #{messageable.display_name}", class: "field", rows: 1, disabled: true %>
   </div>
 <% else %>
   <div class="message-input">

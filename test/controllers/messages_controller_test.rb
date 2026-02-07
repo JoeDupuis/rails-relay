@@ -311,6 +311,92 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_in_delta Time.current, existing.reload.last_message_at, 2.seconds
   end
 
+  test "POST with multi-line content creates one message per non-blank line" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count }, 3 do
+      post channel_messages_path(channel), params: { content: "line one\nline two\nline three" }
+    end
+
+    messages = Message.last(3)
+    assert_equal %w[line\ one line\ two line\ three], messages.map(&:content)
+  end
+
+  test "POST with multi-line content filters blank and whitespace-only lines" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count }, 2 do
+      post channel_messages_path(channel), params: { content: "hello\n\n  \nworld" }
+    end
+
+    messages = Message.last(2)
+    assert_equal %w[hello world], messages.map(&:content)
+  end
+
+  test "POST with multi-line content sends separate IRC commands per line" do
+    server = create_server
+    channel = create_channel(server)
+
+    post channel_messages_path(channel), params: { content: "first\nsecond" }
+
+    assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands", times: 2)
+  end
+
+  test "POST with multi-line content treats /me as plain text" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count }, 2 do
+      post channel_messages_path(channel), params: { content: "hello\n/me waves" }
+    end
+
+    messages = Message.last(2)
+    assert_equal %w[hello /me\ waves], messages.map(&:content)
+    assert messages.all? { |m| m.message_type == "privmsg" }
+  end
+
+  test "POST with single line and trailing newline still parses commands" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "/me waves\n" }
+    end
+
+    message = Message.last
+    assert_equal "action", message.message_type
+    assert_equal "waves", message.content
+  end
+
+  test "POST with only blank lines returns ok without creating messages" do
+    server = create_server
+    channel = create_channel(server)
+
+    assert_no_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { content: "\n  \n\n" }
+    end
+
+    assert_response :ok
+  end
+
+  test "POST with multi-line content stops on IRC failure" do
+    server = create_server
+    channel = create_channel(server)
+
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: "", headers: {})
+      .then.to_return(status: 404, body: "", headers: {})
+
+    assert_difference -> { Message.count }, 1 do
+      post channel_messages_path(channel), params: { content: "line one\nline two\nline three" }
+    end
+
+    assert_redirected_to server_path(server)
+  end
+
   test "POST /channels/:id/messages with file creates message with file attached" do
     server = create_server
     channel = create_channel(server)
