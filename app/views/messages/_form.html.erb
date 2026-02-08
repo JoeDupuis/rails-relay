@@ -18,16 +18,16 @@
         class: "field",
         data: { message_form_target: "input", controller: "auto-resize", action: "input->auto-resize#resize" } %>
     <% if is_channel %>
-      <label class="upload" role="button" aria-label="Attach file">
+      <label class="upload">
         📎
         <input type="file"
                id="file_upload"
                name="message[file]"
                accept="image/png,image/jpeg,image/gif,image/webp"
                aria-label="Attach file"
+               class="_sr-only"
                data-action="change->message-form#submit"
-               data-message-form-target="fileInput"
-               hidden>
+               data-message-form-target="fileInput">
       </label>
     <% end %>
     <%= f.submit "Send", class: "submit", data: { action: "mousedown->message-form#preventFocusLoss" } %>
