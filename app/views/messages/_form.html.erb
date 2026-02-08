@@ -13,6 +13,7 @@
               }.compact do |f| %>
     <%= f.text_area :content,
         placeholder: "Message #{messageable.display_name}",
+        aria: { label: "Message #{messageable.display_name.delete('#')}" },
         rows: 1,
         class: "field",
         data: { message_form_target: "input", controller: "auto-resize", action: "input->auto-resize#resize" } %>
