@@ -1,19 +1,30 @@
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+<div class="login-form">
+  <%= form_with url: session_path, class: "card" do |form| %>
+    <h1 class="title">Rails Relay</h1>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
+    <% if flash[:alert] %>
+      <div class="alert"><%= flash[:alert] %></div>
+    <% end %>
+    <% if flash[:notice] %>
+      <div class="notice"><%= flash[:notice] %></div>
+    <% end %>
 
-  <% if Rails.env.development? %>
-    <div class="dev-signin" data-controller="dev-signin">
-      <h3>Development Sign In</h3>
-      <%= button_tag "Dev User", class: "dev-user-button", data: { action: "click->dev-signin#signIn", email: "dev@example.com", password: "Xk9#mP7$qR2@" } %>
-      <%= button_tag "Test User", class: "dev-user-button", data: { action: "click->dev-signin#signIn", email: "test@example.com", password: "123123" } %>
+    <div class="fields">
+      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Email address", value: params[:email_address], class: "field" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Password", maxlength: 72, class: "field" %>
     </div>
-  <% end %>
-<% end %>
-<br>
 
-<%= link_to "Forgot password?", new_password_path %>
+    <%= form.submit "Sign in", class: "submit" %>
+
+    <div class="links">
+      <%= link_to "Forgot password?", new_password_path %>
+    </div>
+
+    <% if Rails.env.development? %>
+      <div class="devsignin" data-controller="dev-signin">
+        <%= button_tag "Dev User", class: "button", data: { action: "click->dev-signin#signIn", email: "dev@example.com", password: "Xk9#mP7$qR2@" } %>
+        <%= button_tag "Test User", class: "button", data: { action: "click->dev-signin#signIn", email: "test@example.com", password: "123123" } %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
