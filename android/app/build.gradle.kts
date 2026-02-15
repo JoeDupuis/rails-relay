@@ -55,6 +55,7 @@ android {
 dependencies {
     implementation("dev.hotwire:core:1.2.4")
     implementation("dev.hotwire:navigation-fragments:1.2.4")
+    implementation("androidx.browser:browser:1.8.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

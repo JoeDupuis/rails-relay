@@ -6,11 +6,6 @@ class ConfigurationsController < ApplicationController
       settings: {},
       rules: [
         {
-          patterns: [ "/rails/active_storage/" ],
-          properties: {
-          }
-        },
-        {
           patterns: [ ".*" ],
           properties: {
             context: "default",
