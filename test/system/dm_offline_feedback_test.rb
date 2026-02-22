@@ -30,7 +30,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
 
     within(".input") do
       assert_selector ".message-input .disabled", text: "alice is offline."
-      assert_no_selector "input[name='content']"
+      assert_no_selector "textarea[name='content']"
     end
   end
 
@@ -49,7 +49,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
 
     within(".input") do
       assert_no_text "alice is offline."
-      assert_selector "input[name='content']"
+      assert_selector "textarea[name='content']"
     end
   end
 
@@ -91,7 +91,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
 
     within(".input") do
       assert_no_text "alice is offline."
-      assert_selector "input[name='content']", wait: 5
+      assert_selector "textarea[name='content']", wait: 5
     end
   end
 
@@ -109,7 +109,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
     visit conversation_path(conversation)
 
     within(".input") do
-      assert_selector "input[name='content']"
+      assert_selector "textarea[name='content']"
     end
 
     conversation.update!(online: false)
