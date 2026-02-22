@@ -185,7 +185,7 @@ class MessageTest < ActiveSupport::TestCase
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby")
 
-    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 200)
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202, body: { parts: [] }.to_json)
 
     message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
     message.file.attach(io: File.open(file_fixture("test.png")), filename: "test.png", content_type: "image/png")
@@ -222,7 +222,7 @@ class MessageTest < ActiveSupport::TestCase
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby")
 
-    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 200)
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202, body: { parts: [] }.to_json)
 
     message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
     message.file.attach(io: File.open(file_fixture("test.png")), filename: "test.png", content_type: "image/png")
@@ -238,7 +238,7 @@ class MessageTest < ActiveSupport::TestCase
 
     stub = stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
              .with(body: hash_including("command" => "privmsg", "params" => hash_including("target" => "#ruby")))
-             .to_return(status: 200)
+             .to_return(status: 202, body: { parts: [] }.to_json)
 
     message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
     message.file.attach(io: File.open(file_fixture("test.png")), filename: "test.png", content_type: "image/png")

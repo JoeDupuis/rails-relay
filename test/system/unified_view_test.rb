@@ -8,8 +8,7 @@ class UnifiedViewTest < ApplicationSystemTestCase
     stub_request(:get, %r{#{Rails.configuration.irc_service_url}/internal/irc/ison})
       .to_return(status: 200, body: { online: [ "alice" ] }.to_json, headers: { "Content-Type" => "application/json" })
 
-    stub_request(:post, %r{#{Rails.configuration.irc_service_url}/internal/irc/commands})
-      .to_return(status: 202, body: "", headers: {})
+    stub_irc_command
   end
 
   def create_server_with_channel
@@ -68,10 +67,6 @@ class UnifiedViewTest < ApplicationSystemTestCase
 
   test "DM message sending still works" do
     server, conversation = create_server_with_conversation
-
-    stub_request(:post, "http://localhost:3001/irc/commands")
-      .to_return(status: 200, body: "")
-
     sign_in_as(@user)
 
     visit conversation_path(conversation)

@@ -8,7 +8,7 @@ class CloseDmFlowTest < ActionDispatch::IntegrationTest
     @test_id = SecureRandom.hex(4)
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: "", headers: {})
+      .to_return(status: 202, body: { parts: [] }.to_json, headers: {})
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/events")
       .to_return(status: 200, body: "", headers: {})

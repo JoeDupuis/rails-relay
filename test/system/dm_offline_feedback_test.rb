@@ -9,7 +9,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
       .to_return(status: 200, body: { online: [] }.to_json, headers: { "Content-Type" => "application/json" })
 
     stub_request(:post, %r{#{Rails.configuration.irc_service_url}/internal/irc/commands})
-      .to_return(status: 202, body: "", headers: {})
+      .to_return(status: 202, body: { parts: [] }.to_json, headers: {})
   end
 
   def unique_address(base = "irc.example")
@@ -39,7 +39,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
     stub_request(:get, %r{#{Rails.configuration.irc_service_url}/internal/irc/ison})
       .to_return(status: 200, body: { online: [ "alice" ] }.to_json, headers: { "Content-Type" => "application/json" })
     stub_request(:post, %r{#{Rails.configuration.irc_service_url}/internal/irc/commands})
-      .to_return(status: 202, body: "", headers: {})
+      .to_return(status: 202, body: { parts: [] }.to_json, headers: {})
 
     server = create_server
     conversation = Conversation.create!(server: server, target_nick: "alice", online: true)
@@ -100,7 +100,7 @@ class DmOfflineFeedbackSystemTest < ApplicationSystemTestCase
     stub_request(:get, %r{#{Rails.configuration.irc_service_url}/internal/irc/ison})
       .to_return(status: 200, body: { online: [ "alice" ] }.to_json, headers: { "Content-Type" => "application/json" })
     stub_request(:post, %r{#{Rails.configuration.irc_service_url}/internal/irc/commands})
-      .to_return(status: 202, body: "", headers: {})
+      .to_return(status: 202, body: { parts: [] }.to_json, headers: {})
 
     server = create_server
     conversation = Conversation.create!(server: server, target_nick: "alice", online: true)

@@ -15,7 +15,7 @@ class AutoJoinTest < ActionDispatch::IntegrationTest
     )
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202)
+      .to_return(status: 202, body: { parts: [] }.to_json)
   end
 
   test "connected event triggers auto-join for channels with auto_join=true" do
@@ -24,11 +24,11 @@ class AutoJoinTest < ActionDispatch::IntegrationTest
 
     general_join = stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
       .with(body: hash_including(command: "join", params: { channel: "#general" }))
-      .to_return(status: 202)
+      .to_return(status: 202, body: { parts: [] }.to_json)
 
     random_join = stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
       .with(body: hash_including(command: "join", params: { channel: "#random" }))
-      .to_return(status: 202)
+      .to_return(status: 202, body: { parts: [] }.to_json)
 
     IrcEventHandler.handle(@server, { type: "connected" })
 

@@ -6,8 +6,7 @@ class OwnMessageUnreadBadgeTest < ApplicationSystemTestCase
     @user = users(:joe)
     @test_id = SecureRandom.hex(4)
 
-    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: "", headers: {})
+    stub_irc_command
   end
 
   test "sending message to channel does not show unread badge for own message" do

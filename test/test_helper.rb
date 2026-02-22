@@ -4,12 +4,14 @@ ENV["INTERNAL_API_SECRET"] ||= "test_internal_api_secret"
 require_relative "../config/environment"
 require "rails/test_help"
 require_relative "test_helpers/session_test_helper"
+require_relative "test_helpers/irc_command_stub_helper"
 require "minitest/mock"
 require "turbo/broadcastable/test_helper"
 
 module ActiveSupport
   class TestCase
     include SessionTestHelper
+    include IrcCommandStubHelper
     include ActiveJob::TestHelper
     include Turbo::Broadcastable::TestHelper
 
