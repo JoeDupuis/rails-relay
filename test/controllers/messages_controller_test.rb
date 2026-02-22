@@ -459,7 +459,7 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
 
     WebMock.reset!
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: { parts: ["line one"] }.to_json, headers: { "Content-Type" => "application/json" })
+      .to_return(status: 202, body: { parts: [ "line one" ] }.to_json, headers: { "Content-Type" => "application/json" })
       .then.to_return(status: 404, body: "", headers: {})
 
     assert_difference -> { Message.count }, 1 do
