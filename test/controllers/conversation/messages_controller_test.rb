@@ -172,6 +172,21 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_requested(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands", times: 2)
   end
 
+  test "create handles nil response from IRC service gracefully" do
+    server = create_server
+    conversation = create_conversation(server, target_nick: "alice")
+
+    WebMock.reset!
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return(status: 202, body: "{}", headers: { "Content-Type" => "application/json" })
+
+    assert_no_difference -> { Message.count } do
+      post conversation_messages_path(conversation), params: { content: "Hello" }
+    end
+
+    assert_response :success
+  end
+
   test "user can only send to their own conversations" do
     server = create_server
     conversation = create_conversation(server)

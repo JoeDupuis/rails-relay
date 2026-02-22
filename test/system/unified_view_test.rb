@@ -69,8 +69,12 @@ class UnifiedViewTest < ApplicationSystemTestCase
   test "DM message sending still works" do
     server, conversation = create_server_with_conversation
 
-    stub_request(:post, "http://localhost:3001/irc/commands")
-      .to_return(status: 200, body: "")
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
+      .to_return do |request|
+        body = JSON.parse(request.body)
+        message = body.dig("params", "message")
+        { status: 202, body: { parts: [ message ] }.to_json, headers: { "Content-Type" => "application/json" } }
+      end
 
     sign_in_as(@user)
 
