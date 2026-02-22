@@ -21,6 +21,12 @@ class Internal::Irc::StatusControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "GET /internal/irc/status with wrong secret returns 401 unauthorized" do
+    get internal_irc_status_path, headers: { "Authorization" => "Bearer wrong_secret" }
+
+    assert_response :unauthorized
+  end
+
   test "GET /internal/irc/status returns connected server IDs" do
     user = users(:joe)
     server1 = user.servers.create!(address: "irc1.example.com", nickname: "testnick")

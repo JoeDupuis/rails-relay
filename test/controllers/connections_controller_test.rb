@@ -64,4 +64,18 @@ class ConnectionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to server_path(@server)
     assert_equal "IRC service unavailable", flash[:alert]
   end
+
+  test "user cannot create connection for another user's server" do
+    sign_in_as(users(:jane))
+
+    post server_connection_path(@server)
+    assert_response :not_found
+  end
+
+  test "user cannot destroy connection for another user's server" do
+    sign_in_as(users(:jane))
+
+    delete server_connection_path(@server)
+    assert_response :not_found
+  end
 end

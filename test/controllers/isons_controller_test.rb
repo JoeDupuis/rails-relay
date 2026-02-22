@@ -140,4 +140,24 @@ class IsonsControllerTest < ActionDispatch::IntegrationTest
     assert_match "action=\"replace\"", response.body
     assert_match "conversation_#{conversation.id}_sidebar", response.body
   end
+
+  test "GET /ison only affects the signed-in user's conversations" do
+    joe = users(:joe)
+    jane = users(:jane)
+
+    joe_server = joe.servers.create!(address: "#{unique_address}-joe", nickname: "joenick", connected_at: Time.current)
+    joe_convo = Conversation.create!(server: joe_server, target_nick: "alice", online: false)
+
+    jane_server = jane.servers.create!(address: "#{unique_address}-jane", nickname: "janenick", connected_at: Time.current)
+    jane_convo = Conversation.create!(server: jane_server, target_nick: "bob", online: false)
+
+    sign_in_as(jane)
+
+    InternalApiClient.stub :ison, [ "bob" ] do
+      get ison_path, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    end
+
+    assert jane_convo.reload.online?
+    assert_not joe_convo.reload.online?
+  end
 end

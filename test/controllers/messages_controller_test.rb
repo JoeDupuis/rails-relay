@@ -515,4 +515,22 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_match "must be less than 10MB", response.body
   end
+
+  test "user cannot load messages from another user's channel" do
+    server = create_server
+    channel = create_channel(server)
+    message = Message.create!(server: server, channel: channel, sender: "nick", message_type: "privmsg", content: "secret")
+    sign_in_as(users(:jane))
+
+    get channel_messages_path(channel, before_id: message.id + 1)
+    assert_response :not_found
+  end
+
+  test "user cannot send server-scoped message on another user's server" do
+    server = create_server
+    sign_in_as(users(:jane))
+
+    post server_messages_path(server), params: { content: "Hello", target: "somenick" }
+    assert_response :not_found
+  end
 end

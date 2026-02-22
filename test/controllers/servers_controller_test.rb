@@ -252,4 +252,36 @@ class ServersControllerTest < ActionDispatch::IntegrationTest
     patch server_path(server), params: { server: { ssl_verify: false } }
     assert_equal false, server.reload.ssl_verify
   end
+
+  test "user cannot view another user's server" do
+    server = @user.servers.create!(address: unique_address("cross-show"), nickname: "testnick")
+    sign_in_as(users(:jane))
+
+    get server_path(server)
+    assert_response :not_found
+  end
+
+  test "user cannot edit another user's server" do
+    server = @user.servers.create!(address: unique_address("cross-edit"), nickname: "testnick")
+    sign_in_as(users(:jane))
+
+    get edit_server_path(server)
+    assert_response :not_found
+  end
+
+  test "user cannot update another user's server" do
+    server = @user.servers.create!(address: unique_address("cross-patch"), nickname: "testnick")
+    sign_in_as(users(:jane))
+
+    patch server_path(server), params: { server: { nickname: "hacked" } }
+    assert_response :not_found
+  end
+
+  test "user cannot destroy another user's server" do
+    server = @user.servers.create!(address: unique_address("cross-delete"), nickname: "testnick")
+    sign_in_as(users(:jane))
+
+    delete server_path(server)
+    assert_response :not_found
+  end
 end
