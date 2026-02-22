@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+require "socket"
+require "fileutils"
+
 if system(*%w[gem list --no-installed --exact --silent overmind])
   puts "Installing overmind..."
   system(*%w[gem install overmind])
@@ -10,6 +13,49 @@ def find_port_arg
     return ARGV[i + 1] if arg == "-p" && ARGV[i + 1] =~ /^\d+$/
   end
   nil
+end
+
+def port_available?(port)
+  server = TCPServer.new("127.0.0.1", port)
+  server.close
+  true
+rescue Errno::EADDRINUSE
+  false
+end
+
+def process_alive?(pid)
+  Process.kill(0, pid)
+  true
+rescue Errno::ESRCH, Errno::EPERM
+  false
+end
+
+def clean_stale_pid(path, label)
+  return unless File.exist?(path)
+
+  pid = File.read(path).strip.to_i
+  if pid > 0 && process_alive?(pid)
+    $stderr.puts "Killing leftover #{label} (PID #{pid})..."
+    Process.kill("TERM", pid)
+    5.times do
+      break unless process_alive?(pid)
+      sleep 0.5
+    end
+    Process.kill("KILL", pid) if process_alive?(pid)
+  end
+  File.delete(path) if File.exist?(path)
+end
+
+def clean_stale_overmind_sock
+  sock = ".overmind.sock"
+  return unless File.exist?(sock)
+
+  if system("overmind echo > /dev/null 2>&1")
+    $stderr.puts "Stopping leftover overmind session..."
+    system("overmind stop > /dev/null 2>&1")
+    sleep 1
+  end
+  File.delete(sock) if File.exist?(sock)
 end
 
 PORT = (ENV["PORT"] || find_port_arg || "3000").to_i
@@ -26,6 +72,17 @@ PROCFILE = "Procfile.dev"
 
 unless File.exist?(PROCFILE)
   Process.exec(*%w[bundle exec rails server], *RAILS_ARGS)
+end
+
+clean_stale_pid("tmp/pids/server.pid", "web server")
+clean_stale_pid("tmp/pids/irc.pid", "IRC server")
+clean_stale_overmind_sock
+
+[PORT, IRC_PORT].each do |port|
+  unless port_available?(port)
+    $stderr.puts "\e[33mWarning: Port #{port} is already in use.\e[0m"
+    $stderr.puts "Use -p to pick a different base port (e.g. bin/dev -p 3005)."
+  end
 end
 
 Signal.trap("INT") { }
