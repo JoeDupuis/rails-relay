@@ -30,6 +30,8 @@ class Conversation::MessagesController < ApplicationController
         params: { target: @conversation.target_nick, message: line }
       )
 
+      next unless result
+
       Message.create_outgoing!(server: @server, parts: result, target: @conversation.target_nick, message_type: "privmsg")
     end
 
