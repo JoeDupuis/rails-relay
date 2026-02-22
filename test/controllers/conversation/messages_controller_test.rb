@@ -198,4 +198,14 @@ class Conversation::MessagesControllerTest < ActionDispatch::IntegrationTest
     post conversation_messages_path(conversation), params: { content: "Hello" }
     assert_response :not_found
   end
+
+  test "user cannot load messages from another user's conversation" do
+    server = create_server
+    conversation = create_conversation(server)
+    message = Message.create!(server: server, target: "alice", sender: "testnick", message_type: "privmsg", content: "secret")
+    sign_in_as(users(:jane))
+
+    get conversation_messages_path(conversation, before_id: message.id + 1)
+    assert_response :not_found
+  end
 end

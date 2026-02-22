@@ -65,4 +65,14 @@ class Internal::Irc::CommandsControllerTest < ActionDispatch::IntegrationTest
       assert_response :unauthorized
     end
   end
+
+  test "POST /internal/irc/commands with wrong secret returns 401 unauthorized" do
+    post internal_irc_commands_path, params: {
+      server_id: @server_id,
+      command: "privmsg",
+      params: { target: "#ruby", message: "Hello!" }
+    }, headers: { "Authorization" => "Bearer wrong_secret" }, as: :json
+
+    assert_response :unauthorized
+  end
 end

@@ -84,4 +84,13 @@ class Internal::Irc::IsonsControllerTest < ActionDispatch::IntegrationTest
       assert_response :unauthorized
     end
   end
+
+  test "GET /internal/irc/ison with wrong secret returns 401" do
+    get internal_irc_ison_path, params: {
+      server_id: @server_id,
+      nicks: [ "alice" ]
+    }, headers: { "Authorization" => "Bearer wrong_secret" }
+
+    assert_response :unauthorized
+  end
 end

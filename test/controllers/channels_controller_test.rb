@@ -354,4 +354,30 @@ class ChannelsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to channel_path(channel)
     assert_equal false, channel.reload.auto_join
   end
+
+  test "user cannot create channel on another user's server" do
+    server = create_server
+    sign_in_as(users(:jane))
+
+    post server_channels_path(server), params: { channel: { name: "#hacked" } }
+    assert_response :not_found
+  end
+
+  test "user cannot update another user's channel" do
+    server = create_server
+    channel = create_channel(server)
+    sign_in_as(users(:jane))
+
+    patch channel_path(channel), params: { channel: { auto_join: true } }
+    assert_response :not_found
+  end
+
+  test "user cannot destroy another user's channel" do
+    server = create_server
+    channel = create_channel(server)
+    sign_in_as(users(:jane))
+
+    delete channel_path(channel)
+    assert_response :not_found
+  end
 end

@@ -63,6 +63,16 @@ class Internal::Irc::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "POST /internal/irc/events with wrong secret returns 401 unauthorized" do
+    post internal_irc_events_path, params: {
+      server_id: 1,
+      user_id: 1,
+      event: { type: "connected" }
+    }, headers: { "Authorization" => "Bearer wrong_secret" }, as: :json
+
+    assert_response :unauthorized
+  end
+
   test "POST /internal/irc/events with message event creates message" do
     server = @user.servers.create!(address: "irc-#{@test_id}.example.com", nickname: "testnick")
 
