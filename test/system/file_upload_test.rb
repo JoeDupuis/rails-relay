@@ -4,8 +4,7 @@ class FileUploadTest < ApplicationSystemTestCase
   setup do
     @user = users(:joe)
     @test_id = SecureRandom.hex(4)
-    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: { success: true }.to_json)
+    stub_irc_command
   end
 
   def create_connected_channel

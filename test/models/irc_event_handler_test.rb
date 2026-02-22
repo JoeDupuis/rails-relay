@@ -540,7 +540,7 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
   test "handle_connected sets connected_at" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
 
-    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202)
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202, body: { parts: [] }.to_json)
 
     event = { type: "connected" }
 
@@ -556,7 +556,7 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
 
     join_request = stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
       .with(body: hash_including(command: "join", params: { channel: "#ruby" }))
-      .to_return(status: 202)
+      .to_return(status: 202, body: { parts: [] }.to_json)
 
     event = { type: "connected" }
     IrcEventHandler.handle(server, event)
@@ -581,7 +581,7 @@ class IrcEventHandlerTest < ActiveSupport::TestCase
     Channel.create!(server: server, name: "#python", auto_join: true)
     Channel.create!(server: server, name: "#elixir", auto_join: true)
 
-    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202)
+    stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands").to_return(status: 202, body: { parts: [] }.to_json)
 
     event = { type: "connected" }
     IrcEventHandler.handle(server, event)

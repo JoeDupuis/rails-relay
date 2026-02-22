@@ -8,7 +8,7 @@ class ChannelFlowTest < ActionDispatch::IntegrationTest
     @test_id = SecureRandom.hex(4)
 
     stub_request(:post, "#{Rails.configuration.irc_service_url}/internal/irc/commands")
-      .to_return(status: 202, body: "", headers: {})
+      .to_return(status: 202, body: { parts: [] }.to_json, headers: {})
   end
 
   def unique_address(base = "irc.example")
