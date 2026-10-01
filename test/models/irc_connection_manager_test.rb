@@ -1,12 +1,23 @@
 require "test_helper"
 
 class MockIrcConnection
-  attr_accessor :started, :stopped, :executed_commands
+  attr_accessor :started, :stopped, :executed_commands, :error, :connected, :dead
 
   def initialize(**)
     @started = false
     @stopped = false
     @executed_commands = []
+    @error = nil
+    @connected = false
+    @dead = false
+  end
+
+  def alive?
+    started && !stopped && !dead
+  end
+
+  def connected?
+    connected
   end
 
   def start
@@ -18,7 +29,13 @@ class MockIrcConnection
   end
 
   def execute(command, params)
+    raise error if error
     @executed_commands << { command: command, params: params }
+  end
+
+  def ison(nicks)
+    raise error if error
+    nicks
   end
 end
 
@@ -173,6 +190,122 @@ class IrcConnectionManagerTest < ActiveSupport::TestCase
 
         assert_not @manager.send_command(1, "privmsg", { target: "#test", message: "hello" })
       end
+    end
+  end
+
+  test "send_command returns false when the connection is lost" do
+    mock_connection = MockIrcConnection.new
+    mock_connection.error = Yaic::ConnectionError.new("Connection closed by server")
+
+    IrcConnection.stub :new, mock_connection do
+      @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+      assert_not @manager.send_command(1, "privmsg", { target: "#test", message: "hello" })
+    end
+  end
+
+  test "ison returns nil when the connection is lost" do
+    mock_connection = MockIrcConnection.new
+    mock_connection.error = Yaic::ConnectionError.new("Connection closed by server")
+
+    IrcConnection.stub :new, mock_connection do
+      @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+      assert_nil @manager.ison(1, [ "someone" ])
+    end
+  end
+
+  test "late disconnected event from a replaced connection keeps the new connection" do
+    old_connection = MockIrcConnection.new
+    new_connection = MockIrcConnection.new
+    on_events = []
+    fake_new = ->(**kwargs) {
+      on_events << kwargs[:on_event]
+      on_events.size == 1 ? old_connection : new_connection
+    }
+    posted = []
+
+    IrcConnection.stub :new, fake_new do
+      InternalApiClient.stub :post_event, ->(**kwargs) { posted << kwargs[:event] } do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+        @manager.stop(1)
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+        on_events.first.call(type: "disconnected")
+
+        assert_includes @manager.active_connections, 1
+        assert @manager.send_command(1, "privmsg", { target: "#test", message: "hello" })
+        assert_equal 1, new_connection.executed_commands.size
+        assert_empty posted
+      end
+    end
+  end
+
+  test "disconnected event after stop is still delivered" do
+    captured_on_event = nil
+    fake_new = ->(**kwargs) {
+      captured_on_event = kwargs[:on_event]
+      MockIrcConnection.new
+    }
+    posted = []
+
+    IrcConnection.stub :new, fake_new do
+      InternalApiClient.stub :post_event, ->(**kwargs) { posted << kwargs[:event] } do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+        @manager.stop(1)
+
+        captured_on_event.call(type: "disconnected")
+
+        assert_equal [ "disconnected" ], posted.map { |event| event[:type] }
+      end
+    end
+  end
+
+  test "start re-announces a connection that is already connected" do
+    mock_connection = MockIrcConnection.new
+    posted = []
+
+    IrcConnection.stub :new, mock_connection do
+      InternalApiClient.stub :post_event, ->(**kwargs) { posted << kwargs } do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+        mock_connection.connected = true
+
+        result = @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+        assert_not result
+        assert_equal [ { server_id: 1, user_id: 1, event: { type: "connected" } } ], posted
+      end
+    end
+  end
+
+  test "start does not re-announce a connection that is still registering" do
+    posted = []
+
+    IrcConnection.stub :new, MockIrcConnection.new do
+      InternalApiClient.stub :post_event, ->(**kwargs) { posted << kwargs } do
+        @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+        assert_not @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+        assert_empty posted
+      end
+    end
+  end
+
+  test "start replaces a connection whose thread died" do
+    dead_connection = MockIrcConnection.new
+    fresh_connection = MockIrcConnection.new
+    connections = [ dead_connection, fresh_connection ]
+
+    IrcConnection.stub :new, ->(**) { connections.shift } do
+      @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+      dead_connection.dead = true
+
+      assert @manager.start(server_id: 1, user_id: 1, config: { address: "irc.test.com" })
+
+      assert fresh_connection.started
+      assert dead_connection.stopped
+      assert @manager.send_command(1, "privmsg", { target: "#test", message: "hello" })
+      assert_equal 1, fresh_connection.executed_commands.size
     end
   end
 end

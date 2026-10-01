@@ -14,6 +14,7 @@ class ConnectionsController < ApplicationController
 
   def destroy
     InternalApiClient.stop_connection(server_id: @server.id)
+    @server.mark_disconnected!
     redirect_back fallback_location: @server
   rescue InternalApiClient::ServiceUnavailable
     redirect_back fallback_location: @server, alert: "IRC service unavailable"

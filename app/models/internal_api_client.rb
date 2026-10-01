@@ -3,6 +3,7 @@ require "json"
 
 class InternalApiClient
   class ServiceUnavailable < StandardError; end
+  class ServiceTimeout < ServiceUnavailable; end
   class ConnectionNotFound < StandardError; end
 
   class << self
@@ -15,7 +16,10 @@ class InternalApiClient
     end
 
     def stop_connection(server_id:)
-      delete(irc_service_url("/internal/irc/connections/#{server_id}"))
+      response = delete(irc_service_url("/internal/irc/connections/#{server_id}"))
+      raise ServiceUnavailable, "IRC service error: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+      response
     end
 
     def send_command(server_id:, command:, params:)
@@ -73,48 +77,33 @@ class InternalApiClient
 
     def post(url, body)
       uri = URI(url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == "https"
-      http.open_timeout = 5
-      http.read_timeout = 10
-
       request = Net::HTTP::Post.new(uri.path)
-      request["Authorization"] = "Bearer #{secret}"
       request["Content-Type"] = "application/json"
       request.body = body.to_json
-
-      http.request(request)
-    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout, Net::ReadTimeout => e
-      raise ServiceUnavailable, "Service unreachable: #{e.message}"
+      perform(uri, request)
     end
 
     def get(url)
       uri = URI(url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == "https"
-      http.open_timeout = 5
-      http.read_timeout = 10
-
-      request = Net::HTTP::Get.new(uri.request_uri)
-      request["Authorization"] = "Bearer #{secret}"
-
-      http.request(request)
-    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout, Net::ReadTimeout => e
-      raise ServiceUnavailable, "Service unreachable: #{e.message}"
+      perform(uri, Net::HTTP::Get.new(uri.request_uri))
     end
 
     def delete(url)
       uri = URI(url)
+      perform(uri, Net::HTTP::Delete.new(uri.path))
+    end
+
+    def perform(uri, request)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
       http.open_timeout = 5
       http.read_timeout = 10
 
-      request = Net::HTTP::Delete.new(uri.path)
       request["Authorization"] = "Bearer #{secret}"
-
       http.request(request)
-    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout, Net::ReadTimeout => e
+    rescue Net::OpenTimeout, Net::ReadTimeout => e
+      raise ServiceTimeout, "Service timed out: #{e.message}"
+    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError => e
       raise ServiceUnavailable, "Service unreachable: #{e.message}"
     end
 

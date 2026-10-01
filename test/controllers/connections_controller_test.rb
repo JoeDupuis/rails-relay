@@ -56,6 +56,30 @@ class ConnectionsControllerTest < ActionDispatch::IntegrationTest
     assert_nil flash[:notice]
   end
 
+  test "DELETE /servers/:id/connection marks the server disconnected" do
+    @server.update!(connected_at: Time.current)
+    channel = @server.channels.create!(name: "#ruby", joined: true)
+    stub_request(:delete, "http://localhost:3000/internal/irc/connections/#{@server.id}")
+      .to_return(status: 200)
+
+    delete server_connection_path(@server)
+
+    assert_redirected_to server_path(@server)
+    assert_not @server.reload.connected?
+    assert_not channel.reload.joined?
+  end
+
+  test "DELETE /servers/:id/connection reports an IRC service error" do
+    @server.update!(connected_at: Time.current)
+    stub_request(:delete, "http://localhost:3000/internal/irc/connections/#{@server.id}")
+      .to_return(status: 500)
+
+    delete server_connection_path(@server)
+
+    assert_redirected_to server_path(@server)
+    assert_equal "IRC service unavailable", flash[:alert]
+  end
+
   test "DELETE /servers/:id/connection handles service unavailable" do
     stub_request(:delete, "http://localhost:3000/internal/irc/connections/#{@server.id}")
       .to_raise(Errno::ECONNREFUSED)

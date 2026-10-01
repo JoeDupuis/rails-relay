@@ -7,9 +7,11 @@ class IrcConnection
     @running = false
     @thread = nil
     @client = nil
+    @error_message = nil
   end
 
   THREAD_PREFIX = "rails_relay_irc_"
+  STOP_TIMEOUT = 3
 
   def start
     @running = true
@@ -18,8 +20,9 @@ class IrcConnection
   end
 
   def stop
-    execute("quit", {})
-    @thread&.join(5)
+    @running = false
+    quit_client
+    @thread&.join(STOP_TIMEOUT)
     @thread&.kill if @thread&.alive?
   end
 
@@ -35,9 +38,12 @@ class IrcConnection
     @thread&.alive? || false
   end
 
+  def connected?
+    @client&.connected? || false
+  end
+
   def ison(nicks)
-    return [] unless @client&.connected?
-    @client.ison(nicks)
+    connected_client.ison(nicks)
   end
 
   private
@@ -46,10 +52,15 @@ class IrcConnection
     connect
     event_loop
   rescue => e
-    @on_event.call(type: "error", message: e.message)
-    Rails.logger.error "IRC connection error: #{e.message}\n#{e.backtrace.join("\n")}"
+    report_error(e) if @running
   ensure
     cleanup
+  end
+
+  def report_error(error)
+    @error_message = error.message
+    @on_event.call(type: "error", message: error.message)
+    Rails.logger.error "[IRC-#{@server_id}] Connection error: #{error.message}"
   end
 
   def connect
@@ -89,35 +100,48 @@ class IrcConnection
     end
   end
 
+  def connected_client
+    client = @client
+    raise Yaic::ConnectionError, "Not connected" unless client&.connected?
+    client
+  end
+
   def execute_command(command:, params:)
+    client = connected_client
+
     case command
     when "join"
-      @client.join(params[:channel])
+      client.join(params[:channel])
       nil
     when "part"
-      @client.part(params[:channel], params[:message])
+      client.part(params[:channel], params[:message])
       nil
     when "privmsg"
-      @client.privmsg(params[:target], params[:message])
+      client.privmsg(params[:target], params[:message])
     when "notice"
-      @client.notice(params[:target], params[:message])
+      client.notice(params[:target], params[:message])
     when "action"
-      parts = @client.privmsg(params[:target], "\x01ACTION #{params[:message]}\x01")
+      parts = client.privmsg(params[:target], "\x01ACTION #{params[:message]}\x01")
       parts&.map { |part| part.delete_prefix("\x01ACTION ").delete_suffix("\x01") }
     when "nick"
-      @client.nick(params[:nickname])
-      nil
-    when "quit"
-      @running = false
-      @client.quit(params[:message])
+      client.nick(params[:nickname])
       nil
     end
   end
 
+  def quit_client
+    @client&.quit
+  rescue StandardError => e
+    Rails.logger.warn "[IRC-#{@server_id}] Quit failed: #{e.class}: #{e.message}"
+  end
+
   def cleanup
-    @client&.quit if @client&.connected?
-    @on_event.call(type: "disconnected")
-  rescue StandardError
+    quit_client
+    reason = @client&.disconnect_reason || @error_message
+    Rails.logger.info "[IRC-#{@server_id}] Disconnected: #{reason || "stopped"}"
+    @on_event.call(type: "disconnected", reason: reason)
+  rescue StandardError => e
+    Rails.logger.error "[IRC-#{@server_id}] Cleanup failed: #{e.class}: #{e.message}"
   end
 
   def serialize_event(event)
@@ -193,7 +217,12 @@ class IrcConnection
   end
 
   def handle_error_event(event)
-    case event.numeric
+    if (exception = event[:exception])
+      Rails.logger.error "[IRC-#{@server_id}] #{exception.class}: #{exception.message}"
+      return
+    end
+
+    case event[:numeric]
     when 401
       nick = event.params[1]
       @on_event.call(type: "no_such_nick", data: { nick: nick })

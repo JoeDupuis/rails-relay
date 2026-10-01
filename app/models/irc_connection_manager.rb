@@ -7,20 +7,32 @@ class IrcConnectionManager
   end
 
   def start(server_id:, user_id:, config:)
-    @mutex.synchronize do
-      return false if @connections[server_id]
+    replaced = nil
+    already_connected = false
 
+    started = @mutex.synchronize do
+      existing = @connections[server_id]
+      if existing&.alive?
+        already_connected = existing.connected?
+        next false
+      end
+
+      replaced = existing
       connection = IrcConnection.new(
         server_id: server_id,
         user_id: user_id,
         config: config,
-        on_event: ->(event) { handle_event(server_id, user_id, event) }
+        on_event: ->(event) { handle_event(connection, server_id, user_id, event) }
       )
 
       @connections[server_id] = connection
       connection.start
       true
     end
+
+    replaced&.stop
+    notify_web_service(server_id, user_id, { type: "connected" }) if already_connected
+    started
   end
 
   def stop(server_id)
@@ -34,12 +46,16 @@ class IrcConnectionManager
     return false unless connection
 
     connection.execute(command, params) || true
+  rescue Yaic::ConnectionError
+    false
   end
 
   def ison(server_id, nicks)
     connection = @mutex.synchronize { @connections[server_id] }
     return nil unless connection
     connection.ison(nicks)
+  rescue Yaic::ConnectionError
+    nil
   end
 
   def active_connections
@@ -51,20 +67,22 @@ class IrcConnectionManager
   end
 
   def reset!
-    @mutex.synchronize do
-      @connections.each_value(&:stop)
-      @connections.clear
-    end
+    connections = @mutex.synchronize { @connections.values.tap { @connections.clear } }
+    connections.each(&:stop)
   end
 
   private
 
-  def handle_event(server_id, user_id, event)
-    if event[:type] == "disconnected" || event[:type] == "error"
-      @mutex.synchronize { @connections.delete(server_id) }
+  def handle_event(connection, server_id, user_id, event)
+    forward = @mutex.synchronize do
+      current = @connections[server_id]
+      next false if current && !current.equal?(connection)
+
+      @connections.delete(server_id) if current && %w[disconnected error].include?(event[:type])
+      true
     end
 
-    notify_web_service(server_id, user_id, event)
+    notify_web_service(server_id, user_id, event) if forward
   end
 
   def notify_web_service(server_id, user_id, event)

@@ -25,6 +25,8 @@ class IrcEventHandler
       handle_connected
     when "disconnected"
       handle_disconnected
+    when "error"
+      handle_error
     when "message"
       handle_message
     when "action"
@@ -78,7 +80,12 @@ class IrcEventHandler
   end
 
   def handle_disconnected
+    Rails.logger.info "[IRC-#{@server.id}] Disconnected: #{@event[:reason] || "stopped"}"
     @server.mark_disconnected!
+  end
+
+  def handle_error
+    Rails.logger.warn "[IRC-#{@server.id}] Connection error: #{@event[:message]}"
   end
 
   def handle_message

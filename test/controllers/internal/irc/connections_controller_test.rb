@@ -1,6 +1,6 @@
 require "test_helper"
 
-class MockIrcConnection
+class MockIrcConnectionForConnections
   def initialize(**) = nil
   def start = nil
   def stop = nil
@@ -15,7 +15,7 @@ class Internal::Irc::ConnectionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /internal/irc/connections with valid secret returns 202 accepted" do
-    IrcConnection.stub :new, MockIrcConnection.new do
+    IrcConnection.stub :new, MockIrcConnectionForConnections.new do
       post internal_irc_connections_path, params: {
         server_id: 1,
         user_id: 1,

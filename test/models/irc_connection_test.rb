@@ -25,6 +25,10 @@ class MockYaicClient
     @connected
   end
 
+  def disconnect_reason
+    nil
+  end
+
   def join(channel)
     @join_calls << channel
   end

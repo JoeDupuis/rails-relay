@@ -27,6 +27,28 @@ class ConnectionHealthCheckJobTest < ActiveSupport::TestCase
     assert_empty @channel.channel_users
   end
 
+  test "keeps a server that connected while the status check was in flight" do
+    late_server = @user.servers.create!(address: "irc.late.example.com", nickname: "latenick")
+    WebMock.stub_request(:get, %r{/internal/irc/status}).to_return do
+      late_server.update!(connected_at: Time.current)
+      { status: 200, body: { status: "ok", connections: [ @server.id ] }.to_json, headers: { "Content-Type" => "application/json" } }
+    end
+
+    ConnectionHealthCheckJob.perform_now
+
+    assert late_server.reload.connected?
+    assert @server.reload.connected?
+  end
+
+  test "leaves connections alone when the IRC service times out" do
+    WebMock.stub_request(:get, %r{/internal/irc/status}).to_timeout
+
+    ConnectionHealthCheckJob.perform_now
+
+    assert @server.reload.connected?
+    assert @channel.reload.joined?
+  end
+
   test "keeps valid connections connected" do
     WebMock.stub_request(:get, %r{/internal/irc/status})
       .to_return(status: 200, body: { status: "ok", connections: [ @server.id ] }.to_json, headers: { "Content-Type" => "application/json" })

@@ -34,6 +34,15 @@ class InternalApiClientTest < ActiveSupport::TestCase
     assert_equal "200", response.code
   end
 
+  test "stop_connection raises service unavailable when the IRC service fails" do
+    stub_request(:delete, "http://localhost:3000/internal/irc/connections/42")
+      .to_return(status: 500)
+
+    assert_raises(InternalApiClient::ServiceUnavailable) do
+      InternalApiClient.stop_connection(server_id: 42)
+    end
+  end
+
   test "send_command returns parts array on 202" do
     stub_request(:post, "http://localhost:3000/internal/irc/commands")
       .to_return(status: 202, body: { parts: [ "Hello" ] }.to_json, headers: { "Content-Type" => "application/json" })

@@ -2,34 +2,27 @@ class ConnectionHealthCheckJob < ApplicationJob
   queue_as :default
 
   def perform
-    connected_servers = Server.where.not(connected_at: nil)
-    return if connected_servers.none?
+    return unless Server.where.not(connected_at: nil).exists?
 
+    checked_at = Time.current
     active_connection_ids = fetch_active_connections
-    mark_stale_connections_disconnected(connected_servers, active_connection_ids)
+    return if active_connection_ids.nil?
+
+    Server.where(connected_at: ...checked_at)
+      .where.not(id: active_connection_ids)
+      .find_each(&:mark_disconnected!)
   end
 
   private
 
   def fetch_active_connections
     response = InternalApiClient.status
-    json = JSON.parse(response.body)
-    json["connections"]
+    return unless response.is_a?(Net::HTTPSuccess)
+
+    JSON.parse(response.body)["connections"]
+  rescue InternalApiClient::ServiceTimeout
+    nil
   rescue InternalApiClient::ServiceUnavailable
     []
-  end
-
-  def mark_stale_connections_disconnected(connected_servers, active_connection_ids)
-    connected_servers.find_each do |server|
-      next if active_connection_ids.include?(server.id)
-
-      mark_server_disconnected(server)
-    end
-  end
-
-  def mark_server_disconnected(server)
-    server.update!(connected_at: nil)
-    server.channels.update_all(joined: false)
-    ChannelUser.joins(:channel).where(channels: { server_id: server.id }).delete_all
   end
 end
