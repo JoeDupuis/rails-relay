@@ -78,15 +78,37 @@ class ConnectionHealthCheckJobTest < ActiveSupport::TestCase
     assert_nil other_server.reload.connected_at
   end
 
-  test "does nothing when no servers are connected" do
-    @server.update!(connected_at: nil)
-
-    WebMock.reset!
-    stub = WebMock.stub_request(:get, %r{/internal/irc/status})
-      .to_return(status: 200, body: { status: "ok", connections: [] }.to_json, headers: { "Content-Type" => "application/json" })
+  test "marks a server connected when the IRC service reports it connected" do
+    @server.mark_disconnected!
+    @server.update_columns(updated_at: 1.minute.ago)
+    WebMock.stub_request(:get, %r{/internal/irc/status})
+      .to_return(status: 200, body: { status: "ok", connections: [ @server.id ], connected: [ @server.id ] }.to_json, headers: { "Content-Type" => "application/json" })
 
     ConnectionHealthCheckJob.perform_now
 
-    assert_not_requested stub
+    assert @server.reload.connected?
+  end
+
+  test "does not mark connected a server that is still registering" do
+    @server.mark_disconnected!
+    @server.update_columns(updated_at: 1.minute.ago)
+    WebMock.stub_request(:get, %r{/internal/irc/status})
+      .to_return(status: 200, body: { status: "ok", connections: [ @server.id ], connected: [] }.to_json, headers: { "Content-Type" => "application/json" })
+
+    ConnectionHealthCheckJob.perform_now
+
+    assert_not @server.reload.connected?
+  end
+
+  test "does not mark connected a server disconnected while the status check was in flight" do
+    server = @server
+    WebMock.stub_request(:get, %r{/internal/irc/status}).to_return do
+      server.mark_disconnected!
+      { status: 200, body: { status: "ok", connections: [ server.id ], connected: [ server.id ] }.to_json, headers: { "Content-Type" => "application/json" } }
+    end
+
+    ConnectionHealthCheckJob.perform_now
+
+    assert_not @server.reload.connected?
   end
 end

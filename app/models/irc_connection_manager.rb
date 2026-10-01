@@ -62,6 +62,11 @@ class IrcConnectionManager
     @mutex.synchronize { @connections.keys }
   end
 
+  def connected_connections
+    connections = @mutex.synchronize { @connections.dup }
+    connections.select { |_, connection| connection.connected? }.keys
+  end
+
   def connected?(server_id)
     @mutex.synchronize { @connections.key?(server_id) }
   end

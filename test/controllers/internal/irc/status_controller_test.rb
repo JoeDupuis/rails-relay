@@ -41,4 +41,18 @@ class Internal::Irc::StatusControllerTest < ActionDispatch::IntegrationTest
       assert_includes json["connections"], server2.id
     end
   end
+
+  test "GET /internal/irc/status returns the IDs of registered connections separately" do
+    manager = IrcConnectionManager.instance
+
+    manager.stub :active_connections, [ 1, 2 ] do
+      manager.stub :connected_connections, [ 1 ] do
+        get internal_irc_status_path, headers: { "Authorization" => "Bearer #{@secret}" }
+
+        json = JSON.parse(response.body)
+        assert_equal [ 1, 2 ], json["connections"]
+        assert_equal [ 1 ], json["connected"]
+      end
+    end
+  end
 end

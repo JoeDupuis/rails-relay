@@ -4,7 +4,8 @@ module Internal
       def show
         render json: {
           status: "ok",
-          connections: IrcConnectionManager.instance.active_connections
+          connections: IrcConnectionManager.instance.active_connections,
+          connected: IrcConnectionManager.instance.connected_connections
         }
       end
     end

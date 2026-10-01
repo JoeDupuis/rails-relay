@@ -308,4 +308,19 @@ class IrcConnectionManagerTest < ActiveSupport::TestCase
       assert_equal 1, fresh_connection.executed_commands.size
     end
   end
+
+  test "connected_connections lists only connections that finished registering" do
+    registered = MockIrcConnection.new
+    registering = MockIrcConnection.new
+    connections = [ registered, registering ]
+
+    IrcConnection.stub :new, ->(**) { connections.shift } do
+      @manager.start(server_id: 1, user_id: 1, config: { address: "irc.one.com" })
+      @manager.start(server_id: 2, user_id: 1, config: { address: "irc.two.com" })
+      registered.connected = true
+
+      assert_equal [ 1 ], @manager.connected_connections
+      assert_equal [ 1, 2 ], @manager.active_connections.sort
+    end
+  end
 end
