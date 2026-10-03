@@ -3,6 +3,11 @@ require "capybara/cuprite"
 require "webmock/minitest"
 
 WebMock.disable_net_connect!(allow_localhost: true)
+WebMock.globally_stub_request(:after_local_stubs) do |request|
+  if request.method == :get && request.uri.to_s.start_with?("#{Rails.configuration.irc_service_url}/internal/irc/ison")
+    { status: 200, body: { online: [] }.to_json, headers: { "Content-Type" => "application/json" } }
+  end
+end
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   Capybara.test_id = "data-qa"
@@ -16,9 +21,4 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     headless: true,
     process_timeout: 20
   }
-
-  setup do
-    stub_request(:get, %r{#{Rails.configuration.irc_service_url}/internal/irc/ison})
-      .to_return(status: 200, body: { online: [] }.to_json, headers: { "Content-Type" => "application/json" })
-  end
 end
