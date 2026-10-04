@@ -81,21 +81,17 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "POST with invalid file type returns 422" do
+  test "POST with PDF file works" do
     server = create_server
     channel = create_channel(server)
 
     file = fixture_file_upload("test.pdf", "application/pdf")
 
-    assert_no_difference -> { ActiveStorage::Blob.count } do
-      assert_no_difference -> { Message.count } do
-        post channel_uploads_path(channel), params: { file: file }, headers: json_headers
-      end
+    assert_difference -> { ActiveStorage::Blob.count } do
+      post channel_uploads_path(channel), params: { file: file }, headers: json_headers
     end
 
-    assert_response :unprocessable_entity
-    json = JSON.parse(response.body)
-    assert_equal "Invalid file type or size", json["error"]
+    assert_response :ok
   end
 
   test "POST with file too large returns 422" do
@@ -103,10 +99,10 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
     channel = create_channel(server)
 
     large_file = Rack::Test::UploadedFile.new(
-      StringIO.new("x" * (11 * 1024 * 1024)),
-      "image/png",
+      StringIO.new("x" * 101.megabytes),
+      "video/mp4",
       true,
-      original_filename: "large.png"
+      original_filename: "large.mp4"
     )
 
     assert_no_difference -> { ActiveStorage::Blob.count } do

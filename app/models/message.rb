@@ -6,13 +6,11 @@ class Message < ApplicationRecord
 
   validates :sender, presence: true
   validates :message_type, presence: true
-  validate :validate_file_type, if: -> { file.attached? }
   validate :validate_file_size, if: -> { file.attached? }
 
   after_create_commit :set_content_from_file, :broadcast_message, :broadcast_sidebar_update, :send_file_to_irc
 
-  ALLOWED_FILE_TYPES = %w[image/png image/jpeg image/gif image/webp].freeze
-  MAX_FILE_SIZE = 10.megabytes
+  MAX_FILE_SIZE = 100.megabytes
 
   def self.create_outgoing!(server:, parts:, target:, message_type:)
     parts.map do |part|
@@ -37,6 +35,22 @@ class Message < ApplicationRecord
     return false if from_me?(current_nickname)
     return false unless %w[privmsg action].include?(message_type)
     content.present? && content.match?(/\b#{Regexp.escape(current_nickname)}\b/i)
+  end
+
+  def file_kind
+    return unless file.attached?
+
+    if file.image?
+      :image
+    elsif file.video?
+      :video
+    elsif file.audio?
+      :audio
+    elsif file.content_type == "application/pdf"
+      :pdf
+    else
+      :download
+    end
   end
 
   private
@@ -64,17 +78,10 @@ class Message < ApplicationRecord
     )
   end
 
-  def validate_file_type
-    return unless file.attached?
-    unless ALLOWED_FILE_TYPES.include?(file.content_type)
-      errors.add(:file, "must be PNG, JPEG, GIF, or WebP")
-    end
-  end
-
   def validate_file_size
     return unless file.attached?
     if file.byte_size > MAX_FILE_SIZE
-      errors.add(:file, "must be less than 10MB")
+      errors.add(:file, "must be less than 100MB")
     end
   end
 

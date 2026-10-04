@@ -29,7 +29,45 @@ class FileUploadTest < ApplicationSystemTestCase
     assert_selector ".message-item", wait: 5
 
     within ".message-item" do
-      assert_selector ".content", text: /active_storage/
+      assert_selector ".message-attachment.-image img[src*='active_storage']"
+      assert_selector ".message-attachment .download", text: "test.png"
+    end
+  end
+
+  test "video upload plays inline" do
+    channel = create_connected_channel
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    find("input[name='message[file]']", visible: false).attach_file(file_fixture("test.mp4"))
+
+    within ".message-item", wait: 5 do
+      assert_selector ".message-attachment.-video video[controls][src*='active_storage']"
+    end
+  end
+
+  test "pdf upload previews inline" do
+    channel = create_connected_channel
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    find("input[name='message[file]']", visible: false).attach_file(file_fixture("test.pdf"))
+
+    within ".message-item", wait: 5 do
+      assert_selector ".message-attachment.-pdf object[type='application/pdf']"
+    end
+  end
+
+  test "other file types are shown as a download" do
+    channel = create_connected_channel
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    find("input[name='message[file]']", visible: false).attach_file(file_fixture("test.zip"))
+
+    within ".message-item", wait: 5 do
+      assert_selector ".message-attachment.-download a.download[href*='disposition=attachment']", text: "test.zip"
+      assert_no_selector "img, video, audio, object"
     end
   end
 
@@ -45,7 +83,7 @@ class FileUploadTest < ApplicationSystemTestCase
 
     assert_selector ".message-item", wait: 5
     within first(".message-item") do
-      assert_selector ".content", text: /active_storage/
+      assert_selector ".message-attachment"
     end
 
     fill_in "Message #uploads", with: "lol"
@@ -55,7 +93,7 @@ class FileUploadTest < ApplicationSystemTestCase
 
     within all(".message-item").last do
       assert_selector ".content", text: "lol"
-      assert_no_selector ".content", text: /active_storage/
+      assert_no_selector ".message-attachment"
     end
   end
 end

@@ -479,27 +479,40 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "image/png", message.file.content_type
   end
 
-  test "POST /channels/:id/messages with invalid file type shows error" do
+  test "POST /channels/:id/messages with video creates message with file attached" do
     server = create_server
     channel = create_channel(server)
 
-    file = fixture_file_upload("test.pdf", "application/pdf")
+    file = fixture_file_upload("test.mp4", "video/mp4")
 
-    assert_no_difference -> { Message.count } do
+    assert_difference -> { Message.count } do
       post channel_messages_path(channel), params: { message: { file: file } }
     end
 
-    assert_redirected_to channel_path(channel)
-    follow_redirect!
-    assert_match "must be PNG, JPEG, GIF, or WebP", response.body
+    assert_response :ok
+    assert_equal "video/mp4", Message.last.file.content_type
+  end
+
+  test "POST /channels/:id/messages with arbitrary file type creates message" do
+    server = create_server
+    channel = create_channel(server)
+
+    file = fixture_file_upload("test.zip", "application/zip")
+
+    assert_difference -> { Message.count } do
+      post channel_messages_path(channel), params: { message: { file: file } }
+    end
+
+    assert_response :ok
+    assert_equal "test.zip", Message.last.file.filename.to_s
   end
 
   test "POST /channels/:id/messages with oversized file shows error" do
     server = create_server
     channel = create_channel(server)
 
-    large_data = "x" * 15.megabytes
-    file = Rack::Test::UploadedFile.new(StringIO.new(large_data), "image/png", true, original_filename: "large.png")
+    large_data = "x" * 101.megabytes
+    file = Rack::Test::UploadedFile.new(StringIO.new(large_data), "video/mp4", true, original_filename: "large.mp4")
 
     assert_no_difference -> { Message.count } do
       post channel_messages_path(channel), params: { message: { file: file } }
@@ -507,7 +520,7 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to channel_path(channel)
     follow_redirect!
-    assert_match "must be less than 10MB", response.body
+    assert_match "must be less than 100MB", response.body
   end
 
   test "user cannot load messages from another user's channel" do

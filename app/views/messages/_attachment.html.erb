@@ -1,0 +1,18 @@
+<span class="message-attachment -<%= message.file_kind %>">
+  <% case message.file_kind %>
+  <% when :image %>
+    <%= link_to url_for(message.file), target: "_blank", rel: "noopener noreferrer", class: "preview" do %>
+      <%= image_tag url_for(message.file), alt: message.file.filename.to_s, loading: "lazy" %>
+    <% end %>
+  <% when :video %>
+    <%= video_tag url_for(message.file), controls: true, preload: "metadata", playsinline: true, class: "preview" %>
+  <% when :audio %>
+    <%= audio_tag url_for(message.file), controls: true, preload: "metadata", class: "preview" %>
+  <% when :pdf %>
+    <object data="<%= url_for(message.file) %>" type="application/pdf" class="preview"></object>
+  <% end %>
+  <%= link_to rails_blob_path(message.file, disposition: "attachment"), class: "download", target: "_blank", rel: "noopener noreferrer" do %>
+    <span class="name"><%= message.file.filename %></span>
+    <span class="size"><%= number_to_human_size(message.file.byte_size) %></span>
+  <% end %>
+</span>
