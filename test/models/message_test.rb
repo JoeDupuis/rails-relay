@@ -195,15 +195,38 @@ class MessageTest < ActiveSupport::TestCase
     assert message.file.attached?
   end
 
-  test "message with invalid file type has error" do
+  test "message accepts any file type" do
     server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
     channel = Channel.create!(server: server, name: "#ruby")
 
     message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
-    message.file.attach(io: File.open(file_fixture("test.pdf")), filename: "test.pdf", content_type: "application/pdf")
+    message.file.attach(io: File.open(file_fixture("test.zip")), filename: "test.zip", content_type: "application/zip")
 
-    assert_not message.valid?
-    assert_includes message.errors[:file], "must be PNG, JPEG, GIF, or WebP"
+    assert message.valid?
+  end
+
+  test "file_kind classifies attachments by content type" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+
+    kinds = {
+      [ "test.png", "image/png" ] => :image,
+      [ "test.mp4", "video/mp4" ] => :video,
+      [ "test.pdf", "application/pdf" ] => :pdf,
+      [ "test.zip", "application/zip" ] => :download
+    }
+
+    kinds.each do |(filename, content_type), kind|
+      message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+      message.file.attach(io: File.open(file_fixture(filename)), filename: filename, content_type: content_type)
+      assert_equal kind, message.file_kind, filename
+    end
+
+    message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
+    message.file.attach(io: StringIO.new("ID3"), filename: "song.mp3", content_type: "audio/mpeg")
+    assert_equal :audio, message.file_kind
+
+    assert_nil Message.new.file_kind
   end
 
   test "message with file too large has error" do
@@ -211,11 +234,11 @@ class MessageTest < ActiveSupport::TestCase
     channel = Channel.create!(server: server, name: "#ruby")
 
     message = Message.new(server: server, channel: channel, sender: "testnick", message_type: "privmsg")
-    large_file = StringIO.new("x" * 15.megabytes)
-    message.file.attach(io: large_file, filename: "large.png", content_type: "image/png")
+    large_file = StringIO.new("x" * 101.megabytes)
+    message.file.attach(io: large_file, filename: "large.mp4", content_type: "video/mp4")
 
     assert_not message.valid?
-    assert_includes message.errors[:file], "must be less than 10MB"
+    assert_includes message.errors[:file], "must be less than 100MB"
   end
 
   test "file upload generates URL in content" do

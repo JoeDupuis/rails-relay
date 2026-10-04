@@ -1,9 +1,6 @@
 class UploadsController < ApplicationController
   before_action :set_channel
 
-  ALLOWED_TYPES = %w[image/png image/jpeg image/gif image/webp].freeze
-  MAX_SIZE = 10.megabytes
-
   def create
     file = params[:file]
 
@@ -50,8 +47,7 @@ class UploadsController < ApplicationController
 
   def valid_file?(file)
     return false unless file.present?
-    return false unless ALLOWED_TYPES.include?(file.content_type)
-    return false if file.size > MAX_SIZE
+    return false if file.size > Message::MAX_FILE_SIZE
     true
   end
 end
