@@ -5,8 +5,41 @@ export default class extends Controller {
   static values = { uploadUrl: String, channelName: String }
   static outlets = ["message-list"]
 
+  connect() {
+    this.boundRestoreDraft = this.restoreDraft.bind(this)
+    document.addEventListener("turbo:morph", this.boundRestoreDraft)
+    this.restoreDraft()
+  }
+
+  disconnect() {
+    document.removeEventListener("turbo:morph", this.boundRestoreDraft)
+  }
+
+  saveDraft() {
+    try {
+      const value = this.inputTarget.value
+      if (value === "") {
+        localStorage.removeItem(this.draftKey)
+      } else {
+        localStorage.setItem(this.draftKey, value)
+      }
+    } catch {}
+  }
+
+  restoreDraft() {
+    let draft = null
+    try {
+      draft = localStorage.getItem(this.draftKey)
+    } catch {}
+    if (!draft || this.inputTarget.value === draft) return
+
+    this.inputTarget.value = draft
+    this.inputTarget.dispatchEvent(new Event("input"))
+  }
+
   clearInput(event) {
     this.inputTarget.value = ""
+    this.saveDraft()
     if (this.hasFileInputTarget) {
       this.fileInputTarget.value = ""
     }
@@ -38,5 +71,9 @@ export default class extends Controller {
 
   preventFocusLoss(event) {
     event.preventDefault()
+  }
+
+  get draftKey() {
+    return `message-draft:${new URL(this.element.action).pathname}`
   }
 }
