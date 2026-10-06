@@ -50,6 +50,47 @@ class ReadWhileWatchingTest < ApplicationSystemTestCase
     assert_eventually { @channel.reload.unread_count.zero? }
   end
 
+  test "new messages line marks where unread messages start when opening a channel" do
+    Message.create!(server: @server, channel: @channel, sender: "alice", content: "Missed message", message_type: "privmsg")
+
+    sign_in_as(@user)
+    visit channel_path(@channel)
+
+    assert_selector ".unread-divider + .message-item", text: "Missed message"
+    assert_selector ".unread-divider", count: 1
+  end
+
+  test "no new messages line when the channel is already read" do
+    sign_in_as(@user)
+    visit channel_path(@channel)
+    assert_selector ".message-item", text: "Initial message"
+
+    receive_message("Hello while watching")
+
+    assert_selector ".message-item", text: "Hello while watching", wait: 5
+    assert_no_selector ".unread-divider"
+  end
+
+  test "new messages line stays after refocusing the window" do
+    sign_in_as(@user)
+    visit channel_path(@channel)
+    assert_selector ".message-item", text: "Initial message"
+
+    page.execute_script("document.hasFocus = () => false")
+    receive_message("First while away")
+    assert_selector ".message-item", text: "First while away", wait: 5
+    receive_message("Second while away")
+    assert_selector ".message-item", text: "Second while away", wait: 5
+
+    page.execute_script("document.hasFocus = () => true; window.dispatchEvent(new Event('focus'))")
+    within(".channel-item", text: @channel.name) do
+      assert_no_selector ".badge", wait: 5
+    end
+
+    assert_selector ".unread-divider", count: 1
+    assert_selector ".unread-divider + .message-item", text: "First while away"
+  end
+
   test "direct messages arriving in the open conversation are read while the window is focused" do
     conversation = Conversation.create!(server: @server, target_nick: "alice")
     first = Message.create!(server: @server, target: "alice", sender: "alice", content: "Earlier", message_type: "privmsg")
