@@ -12,11 +12,13 @@ Rails.application.routes.draw do
   resources :channels, only: [ :show, :update, :destroy ] do
     resources :messages, only: [ :create, :index ]
     resources :uploads, only: [ :create ]
+    resource :read, only: [ :create ], controller: "channel/reads"
   end
 
   resources :conversations, only: [ :show ] do
     resources :messages, only: [ :create, :index ], controller: "conversation/messages"
     resource :closure, only: [ :create ], controller: "conversation/closures"
+    resource :read, only: [ :create ], controller: "conversation/reads"
   end
 
   resource :ison, only: [ :show ]

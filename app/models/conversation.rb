@@ -18,7 +18,7 @@ class Conversation < ApplicationRecord
   end
 
   after_create_commit :broadcast_sidebar_add
-  after_update_commit :broadcast_sidebar_update, if: :saved_change_to_last_message_at?
+  after_update_commit :broadcast_sidebar_update, if: -> { saved_change_to_last_message_at? || saved_change_to_last_read_message_id? }
 
   def messages
     Message.where(server: server, channel_id: nil, target: target_nick)
