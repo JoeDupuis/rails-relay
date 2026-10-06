@@ -3,6 +3,7 @@ class ConversationsController < ApplicationController
   before_action :set_conversation, only: [ :show ]
 
   def show
+    @last_read_message_id = @conversation.last_read_message_id
     @conversation.mark_as_read!
     @server = @conversation.server
     @messages = @conversation.messages.order(created_at: :desc).limit(50).reverse

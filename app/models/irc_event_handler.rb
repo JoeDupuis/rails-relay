@@ -110,7 +110,6 @@ class IrcEventHandler
       was_closed = conversation.persisted? && conversation.closed?
       conversation.reopen! if was_closed
       conversation.save! if conversation.new_record?
-      conversation.update!(last_message_at: Time.current, online: true)
       conversation.broadcast_sidebar_add if was_closed
 
       message = Message.create!(
@@ -121,6 +120,7 @@ class IrcEventHandler
         content: data[:text],
         message_type: "privmsg"
       )
+      conversation.update!(last_message_at: Time.current, online: true)
 
       notification = Notification.create!(message: message, reason: "dm")
       broadcast_notification(notification)

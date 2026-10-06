@@ -4,7 +4,8 @@
   <%= render "channels/header", messageable: @conversation %>
 
   <div class="messages"
-       data-controller="message-list"
+       data-controller="message-list read-marker"
+       data-read-marker-url-value="<%= conversation_read_path(@conversation) %>"
        data-message-list-target="messages"
        data-message-list-conversation-id-value="<%= @conversation.id %>"
        data-message-list-history-url-value="<%= conversation_messages_path(@conversation) %>"
@@ -13,9 +14,12 @@
     <div class="loading-indicator -hidden" data-message-list-target="loadingIndicator">
       Loading older messages...
     </div>
-    <div id="pm_messages" data-message-list-target="container">
-      <%= render partial: "messages/message", collection: @messages %>
+    <div id="pm_messages" data-message-list-target="container" data-read-marker-target="container">
+      <%= render "messages/list", messages: @messages, last_read_message_id: @last_read_message_id %>
     </div>
+    <template data-read-marker-target="dividerTemplate">
+      <%= render "messages/unread_divider" %>
+    </template>
     <div class="new-messages-indicator -hidden" data-message-list-target="newIndicator" data-action="click->message-list#scrollToNew">
       New messages below
     </div>

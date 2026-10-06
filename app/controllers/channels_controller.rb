@@ -3,6 +3,7 @@ class ChannelsController < ApplicationController
   before_action :set_channel, only: [ :show, :destroy, :update ]
 
   def show
+    @last_read_message_id = @channel.last_read_message_id
     @channel.mark_as_read!
     @messages = @channel.messages.order(created_at: :desc).limit(50).reverse
     @has_more = @messages.size == 50
