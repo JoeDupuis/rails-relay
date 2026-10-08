@@ -37,6 +37,7 @@ class Channel < ApplicationRecord
 
   def mark_as_read!
     update!(last_read_message_id: messages.maximum(:id))
+    server.user.read_notifications!(messages)
   end
 
   def broadcast_user_list

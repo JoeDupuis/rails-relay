@@ -1,6 +1,9 @@
 require "test_helper"
+require "webmock/minitest"
 
 class NotificationTest < ActiveSupport::TestCase
+  include ActionCable::TestHelper
+
   setup do
     @user = users(:joe)
     @server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
@@ -79,5 +82,60 @@ class NotificationTest < ActiveSupport::TestCase
 
     notification.mark_as_read!
     assert_in_delta original_read_at, notification.reload.read_at, 1.second
+  end
+
+  test "creating a notification enqueues a push when the user has a push subscription" do
+    subscribe_to_push
+
+    assert_enqueued_with(job: PushNotificationJob) do
+      Notification.create!(message: @message, reason: "highlight")
+    end
+  end
+
+  test "creating a notification does not enqueue a push without a push subscription" do
+    assert_no_enqueued_jobs(only: PushNotificationJob) do
+      Notification.create!(message: @message, reason: "highlight")
+    end
+  end
+
+  test "push delivers to every subscription of the user" do
+    subscribe_to_push
+    stub_request(:post, "https://push.example.com/send/abc123").to_return(status: 201)
+
+    Notification.create!(message: @message, reason: "highlight")
+    perform_enqueued_jobs
+
+    assert_requested(:post, "https://push.example.com/send/abc123", times: 1)
+  end
+
+  test "target is the channel for a channel message" do
+    notification = Notification.create!(message: @message, reason: "highlight")
+
+    assert_equal @channel, notification.target
+  end
+
+  test "target is the conversation for a direct message" do
+    conversation = @server.conversations.create!(target_nick: "alice")
+    message = Message.create!(server: @server, target: "alice", sender: "alice", content: "hi", message_type: "privmsg")
+
+    assert_equal conversation, Notification.create!(message: message, reason: "dm").target
+  end
+
+  test "mark_as_read! broadcasts the new unread count" do
+    notification = Notification.create!(message: @message, reason: "highlight")
+
+    assert_broadcast_on("user_#{@user.id}_notifications", { type: "unread_count", unread_count: 0 }) do
+      notification.mark_as_read!
+    end
+  end
+
+  private
+
+  def subscribe_to_push
+    @user.push_subscriptions.create!(
+      endpoint: "https://push.example.com/send/abc123",
+      p256dh_key: "BPVlhw23nOgbBx8WsBDlRsSwa81irMttlLOw4q29DG-2vIHzBXNZzbYZpQ9-aWCYDib3PIDpJ8Q0Ol9giHD5boM",
+      auth_key: "5vR17us8wBhIdl1G4Zl_IA"
+    )
   end
 end

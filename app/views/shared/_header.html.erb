@@ -1,7 +1,7 @@
 <button class="hamburger" data-action="click->sidebar#toggle" data-qa="hamburger">☰</button>
 <%= link_to "IRC Client", root_path, class: "logo", data: { qa: "logo" } %>
 <div class="spacer"></div>
-<div class="notifications" data-controller="notifications" data-notifications-user-id-value="<%= Current.user.id %>">
+<div class="notifications" data-controller="notifications" data-notifications-user-id-value="<%= Current.user.id %>" data-notifications-vapid-public-key-value="<%= Rails.configuration.vapid_public_key %>">
   <%= link_to notifications_path, class: "bell", data: { qa: "notifications-bell" } do %>
     🔔
     <span class="badge <%= '-hidden' if unread_notification_count.zero? %>" data-notifications-target="badge">

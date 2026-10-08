@@ -57,6 +57,8 @@ Rails.application.configure do
 
   config.irc_service_url = "http://localhost:3000"
   config.web_service_url = "http://localhost:3000"
+  config.vapid_public_key = "BA6Uy3Yw4L3kATkZ23tZpcZk1EaFhy201eG-JXws5PSswiVUyBe8ufqpSNXCzrNDaeE5MpoMrYUbeabEWNs7nN8="
+  config.vapid_private_key = "OIcXWBr0u3XX8JrFn6YcXRflKGDE2Wt50Phv0HHd2s4="
 
   config.active_record.encryption.primary_key = "test_primary_key_for_encryption"
   config.active_record.encryption.deterministic_key = "test_deterministic_key_for_enc"

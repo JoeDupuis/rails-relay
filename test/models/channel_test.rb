@@ -240,4 +240,15 @@ class ChannelTest < ActiveSupport::TestCase
       channel.mark_as_read!
     end
   end
+
+  test "mark_as_read! marks the channel's notifications as read" do
+    server = @user.servers.create!(address: "irc.example.com", nickname: "testnick")
+    channel = Channel.create!(server: server, name: "#ruby")
+    message = channel.messages.create!(server: server, sender: "user1", content: "hey testnick", message_type: "privmsg")
+    notification = Notification.create!(message: message, reason: "highlight")
+
+    channel.mark_as_read!
+
+    assert notification.reload.read?
+  end
 end

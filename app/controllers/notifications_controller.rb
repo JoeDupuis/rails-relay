@@ -7,25 +7,12 @@ class NotificationsController < ApplicationController
     @notification = current_user_notifications.find(params[:id])
     @notification.mark_as_read!
 
-    redirect_to notification_target_path(@notification)
+    redirect_to polymorphic_path(@notification.target, anchor: "message_#{@notification.message.id}")
   end
 
   private
 
   def current_user_notifications
-    Notification.joins(message: :server).where(servers: { user_id: Current.user.id })
-  end
-
-  def notification_target_path(notification)
-    if notification.message.channel
-      channel_path(notification.message.channel, anchor: "message_#{notification.message.id}")
-    else
-      conversation = notification.message.server.conversations.find_by(target_nick: notification.message.target)
-      if conversation
-        conversation_path(conversation, anchor: "message_#{notification.message.id}")
-      else
-        server_path(notification.message.server)
-      end
-    end
+    Current.user.notifications
   end
 end

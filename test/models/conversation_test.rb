@@ -302,4 +302,14 @@ class ConversationTest < ActiveSupport::TestCase
     assert_not_includes closed_conversations, open2
     assert_includes closed_conversations, closed1
   end
+
+  test "mark_as_read! marks the conversation's notifications as read" do
+    conversation = Conversation.create!(server: @server, target_nick: "alice")
+    message = Message.create!(server: @server, target: "alice", sender: "alice", content: "hi", message_type: "privmsg")
+    notification = Notification.create!(message: message, reason: "dm")
+
+    conversation.mark_as_read!
+
+    assert notification.reload.read?
+  end
 end
