@@ -8,15 +8,25 @@ export default class extends Controller {
   static targets = ["badge"]
 
   connect() {
-    this.setAppBadge(this.currentCount())
+    this.observeSidebar()
+    this.refreshAppBadge()
     this.requestPermission()
     this.subscribeToChannel()
   }
 
   disconnect() {
+    this.sidebarObserver?.disconnect()
     if (this.subscription) {
       this.subscription.unsubscribe()
     }
+  }
+
+  observeSidebar() {
+    const sidebar = document.querySelector(".channel-sidebar")
+    if (!sidebar) return
+
+    this.sidebarObserver = new MutationObserver(() => this.refreshAppBadge())
+    this.sidebarObserver.observe(sidebar, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] })
   }
 
   async requestPermission() {
@@ -90,14 +100,19 @@ export default class extends Controller {
       this.badgeTarget.textContent = count
       this.badgeTarget.classList.toggle("-hidden", count === 0)
     }
-    this.setAppBadge(count)
+    this.refreshAppBadge()
   }
 
-  setAppBadge(count) {
+  refreshAppBadge() {
     if (!("setAppBadge" in navigator)) return
+
+    const count = this.currentCount()
+    const unreadMessages = document.querySelector(".channel-item.-unread, .dm-item.-unread")
 
     if (count > 0) {
       navigator.setAppBadge(count).catch(() => {})
+    } else if (unreadMessages) {
+      navigator.setAppBadge().catch(() => {})
     } else {
       navigator.clearAppBadge().catch(() => {})
     }
