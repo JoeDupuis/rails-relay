@@ -4,6 +4,7 @@ class MockIrcConnectionForConnections
   def initialize(**) = nil
   def start = nil
   def stop = nil
+  def connected? = false
   def execute(command, params) = nil
 end
 
@@ -11,6 +12,10 @@ class Internal::Irc::ConnectionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @secret = "test_internal_api_secret"
     ENV["INTERNAL_API_SECRET"] = @secret
+    IrcConnectionManager.instance.reset!
+  end
+
+  teardown do
     IrcConnectionManager.instance.reset!
   end
 
