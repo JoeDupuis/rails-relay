@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
+  namespace :notifications do
+    resource :clearance, only: [ :create ]
+  end
   resources :notifications, only: [ :index, :update ]
   resources :servers do
     resource :connection, only: [ :create, :destroy ]

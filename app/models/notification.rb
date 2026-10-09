@@ -5,6 +5,11 @@ class Notification < ApplicationRecord
 
   scope :unread, -> { where(read_at: nil) }
   scope :recent, -> { order(created_at: :desc).limit(50) }
+  scope :for_user, ->(user) { joins(message: :server).where(servers: { user_id: user.id }) }
+
+  def self.mark_all_as_read!
+    unread.update_all(read_at: Time.current)
+  end
 
   def read?
     read_at.present?
