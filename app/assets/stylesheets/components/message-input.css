@@ -55,3 +55,24 @@
     padding: 8px 0;
   }
 }
+
+.channel-view:has(.message-input.-dropping) {
+  position: relative;
+}
+
+.channel-view:has(.message-input.-dropping)::after {
+  content: "Drop to upload";
+  position: absolute;
+  inset: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-lg);
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 10;
+}

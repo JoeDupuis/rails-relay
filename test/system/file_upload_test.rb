@@ -96,4 +96,50 @@ class FileUploadTest < ApplicationSystemTestCase
       assert_no_selector ".message-attachment"
     end
   end
+
+  test "pasting an image into the message box uploads it and keeps the typed text" do
+    channel = create_connected_channel
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    fill_in "Message #uploads", with: "look at this"
+    dispatch_file_event("paste", "test.png", "image/png")
+
+    within ".message-item", wait: 5 do
+      assert_selector ".message-attachment.-image img[src*='active_storage']"
+    end
+    assert_field "Message #uploads", with: "look at this"
+  end
+
+  test "dropping a file anywhere on the channel uploads it" do
+    channel = create_connected_channel
+    sign_in_as(@user)
+    visit channel_path(channel)
+
+    dispatch_file_event("drop", "test.zip", "application/zip")
+
+    within ".message-item", wait: 5 do
+      assert_selector ".message-attachment.-download a.download", text: "test.zip"
+    end
+  end
+
+  private
+
+  def dispatch_file_event(type, fixture, content_type)
+    assert_selector ".message-input"
+    execute_script(<<~JS, type, Base64.strict_encode64(file_fixture(fixture).binread), fixture, content_type)
+      const [type, base64, name, contentType] = arguments
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+      const transfer = new DataTransfer()
+      transfer.items.add(new File([bytes], name, { type: contentType }))
+      if (type === "paste") {
+        document.querySelector(".message-input .field").dispatchEvent(new ClipboardEvent("paste", { clipboardData: transfer, bubbles: true, cancelable: true }))
+      } else {
+        const target = document.querySelector(".messages")
+        for (const eventType of ["dragenter", "dragover", "drop"]) {
+          target.dispatchEvent(new DragEvent(eventType, { dataTransfer: transfer, bubbles: true, cancelable: true }))
+        }
+      }
+    JS
+  end
 end
