@@ -9,8 +9,11 @@ class User < ApplicationRecord
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   def read_notifications!(messages)
-    read = notifications.unread.where(message_id: messages.select(:id)).update_all(read_at: Time.current)
-    broadcast_unread_notification_count if read.positive?
+    mark_notifications_read(notifications.where(message_id: messages.select(:id)))
+  end
+
+  def read_all_notifications!
+    mark_notifications_read(notifications)
   end
 
   def broadcast_unread_notification_count
@@ -18,5 +21,12 @@ class User < ApplicationRecord
       "user_#{id}_notifications",
       { type: "unread_count", unread_count: notifications.unread.count }
     )
+  end
+
+  private
+
+  def mark_notifications_read(scope)
+    read = scope.unread.update_all(read_at: Time.current)
+    broadcast_unread_notification_count if read.positive?
   end
 end
