@@ -38,11 +38,16 @@ export default class extends Controller {
   }
 
   clearInput(event) {
+    if (this.hasFileInputTarget && this.fileInputTarget.files.length > 0) {
+      this.fileInputTarget.value = ""
+      if (this.hasMessageListOutlet) {
+        this.messageListOutlet.sent()
+      }
+      return
+    }
+
     this.inputTarget.value = ""
     this.saveDraft()
-    if (this.hasFileInputTarget) {
-      this.fileInputTarget.value = ""
-    }
     if (this.hasMessageListOutlet) {
       this.messageListOutlet.sent()
     }
@@ -67,6 +72,60 @@ export default class extends Controller {
 
   submit() {
     this.element.requestSubmit()
+  }
+
+  paste(event) {
+    if (!this.hasFileInputTarget) return
+
+    const data = event.clipboardData
+    if (!data || data.files.length === 0 || data.types.includes("text/plain")) return
+
+    event.preventDefault()
+    this.#uploadFile(data.files[0])
+  }
+
+  dragEnter(event) {
+    if (!this.#draggingFiles(event)) return
+
+    event.preventDefault()
+    this.dragDepth = (this.dragDepth || 0) + 1
+    this.element.classList.add("-dropping")
+  }
+
+  dragOver(event) {
+    if (!this.#draggingFiles(event)) return
+
+    event.preventDefault()
+    event.dataTransfer.dropEffect = "copy"
+  }
+
+  dragLeave(event) {
+    if (!this.#draggingFiles(event)) return
+
+    this.dragDepth = Math.max((this.dragDepth || 0) - 1, 0)
+    if (this.dragDepth === 0) this.element.classList.remove("-dropping")
+  }
+
+  drop(event) {
+    if (!this.#draggingFiles(event)) return
+
+    event.preventDefault()
+    this.dragDepth = 0
+    this.element.classList.remove("-dropping")
+
+    const file = event.dataTransfer.files[0]
+    if (file) this.#uploadFile(file)
+  }
+
+  #uploadFile(file) {
+    const transfer = new DataTransfer()
+    transfer.items.add(file)
+    this.fileInputTarget.files = transfer.files
+    this.submit()
+  }
+
+  #draggingFiles(event) {
+    return this.hasFileInputTarget && event.dataTransfer && Array.from(event.dataTransfer.types).includes("Files")
   }
 
   preventFocusLoss(event) {

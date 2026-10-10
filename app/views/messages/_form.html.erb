@@ -9,7 +9,7 @@
               data: {
                   controller: "message-form",
                   message_form_message_list_outlet: ".messages",
-                  action: "keydown->message-form#handleKeydown message-form#preventEmptySubmit turbo:submit-end->message-form#clearInput",
+                  action: "keydown->message-form#handleKeydown message-form#preventEmptySubmit turbo:submit-end->message-form#clearInput paste->message-form#paste dragenter@window->message-form#dragEnter dragover@window->message-form#dragOver dragleave@window->message-form#dragLeave drop@window->message-form#drop",
               }.compact do |f| %>
     <%= f.text_area :content,
         placeholder: "Message #{messageable.display_name}",
