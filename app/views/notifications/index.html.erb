@@ -1,5 +1,10 @@
 <div class="notification-list">
-  <h1 class="title">Notifications</h1>
+  <div class="header">
+    <h1 class="title">Notifications</h1>
+    <% if @notifications.any? %>
+      <%= button_to "Clear all", notifications_clearance_path, class: "clear", data: { qa: "clear-notifications" } %>
+    <% end %>
+  </div>
 
   <% if @notifications.any? %>
     <ul class="items">

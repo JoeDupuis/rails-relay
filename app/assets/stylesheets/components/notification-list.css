@@ -3,9 +3,31 @@
   margin: 0 auto;
   padding: var(--space-lg);
 
-  & > .title {
-    font-size: var(--font-xl);
+  & > .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
     margin-bottom: var(--space-lg);
+  }
+
+  & > .header > .title {
+    font-size: var(--font-xl);
+    margin: 0;
+  }
+
+  & > .header > form > .clear {
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    cursor: pointer;
+  }
+
+  & > .header > form > .clear:hover {
+    background: var(--color-surface-raised);
   }
 
   & > .items {
