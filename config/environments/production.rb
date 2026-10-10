@@ -82,6 +82,8 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   config.irc_service_url = ENV["IRC_SERVICE_URL"]
+  config.vapid_public_key = ENV["VAPID_PUBLIC_KEY"]
+  config.vapid_private_key = ENV["VAPID_PRIVATE_KEY"]
   config.web_service_url = ENV["WEB_SERVICE_URL"]
 
   # Enable DNS rebinding protection and other `Host` header attacks.

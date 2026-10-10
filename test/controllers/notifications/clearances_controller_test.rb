@@ -1,6 +1,8 @@
 require "test_helper"
 
 class Notifications::ClearancesControllerTest < ActionDispatch::IntegrationTest
+  include ActionCable::TestHelper
+
   setup do
     @user = users(:joe)
     sign_in_as(@user)
@@ -60,5 +62,13 @@ class Notifications::ClearancesControllerTest < ActionDispatch::IntegrationTest
 
     get notifications_path
     assert_select "[data-qa='clear-notifications']", count: 1
+  end
+
+  test "POST /notifications/clearance broadcasts the cleared count so badges reset" do
+    create_notification
+
+    assert_broadcast_on("user_#{@user.id}_notifications", { type: "unread_count", unread_count: 0 }) do
+      post notifications_clearance_path
+    end
   end
 end

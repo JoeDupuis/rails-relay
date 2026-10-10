@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     resource :clearance, only: [ :create ]
   end
   resources :notifications, only: [ :index, :update ]
+  resources :push_subscriptions, only: [ :create ]
   resources :servers do
     resource :connection, only: [ :create, :destroy ]
     resources :channels, only: [ :create ]

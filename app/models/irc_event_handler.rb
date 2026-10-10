@@ -321,6 +321,7 @@ class IrcEventHandler
         type: "notification",
         id: notification.id,
         reason: notification.reason,
+        unread_count: @server.user.notifications.unread.count,
         sender: notification.message.sender,
         preview: notification.message.content.truncate(100),
         channel: notification.message.channel&.name
