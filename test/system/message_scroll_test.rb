@@ -41,6 +41,27 @@ class MessageScrollTest < ApplicationSystemTestCase
     })
   end
 
+  test "opening a channel lands on the last message once images have loaded" do
+    channel = create_server_with_channel_and_many_messages
+    3.times do |i|
+      message = Message.create!(channel: channel, server: channel.server, sender: "bot", message_type: "privmsg", content: "photo #{i}")
+      message.file.attach(io: file_fixture("photo.png").open, filename: "photo#{i}.png", content_type: "image/png")
+    end
+    sign_in_as(@user)
+
+    visit channel_path(channel)
+
+    assert_selector ".message-attachment img", count: 3
+    assert page.evaluate_async_script(<<~JS)
+      const done = arguments[0]
+      const images = Array.from(document.querySelectorAll(".message-attachment img"))
+      const loaded = () => images.every(image => image.complete && image.naturalHeight > 0)
+      const check = () => loaded() ? requestAnimationFrame(() => requestAnimationFrame(() => done(true))) : setTimeout(check, 50)
+      check()
+    JS
+    assert_scrolled_to_bottom
+  end
+
   test "auto-scroll on new message when at bottom" do
     channel = create_server_with_channel_and_many_messages
     sign_in_as(@user)
@@ -156,5 +177,12 @@ class MessageScrollTest < ApplicationSystemTestCase
     sleep 0.3
 
     assert_no_selector ".new-messages-indicator:not(.-hidden)", wait: 5
+  end
+
+  private
+
+  def assert_scrolled_to_bottom
+    distance = page.evaluate_script("(el => el.scrollHeight - el.scrollTop - el.clientHeight)(document.querySelector('.messages'))")
+    assert_operator distance, :<, 50, "Should be scrolled to the bottom"
   end
 end
