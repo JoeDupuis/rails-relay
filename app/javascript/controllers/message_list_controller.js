@@ -12,10 +12,16 @@ export default class extends Controller {
 
   connect() {
     this.atBottom = true
+    this.lastScrollTop = 0
     this.isLoading = false
     this.scrollToBottom()
     this.observeScroll()
     this.observeNewMessages()
+    this.observeResize()
+  }
+
+  disconnect() {
+    this.resizeObserver?.disconnect()
   }
 
   scrollToBottom() {
@@ -27,7 +33,9 @@ export default class extends Controller {
   observeScroll() {
     if (this.hasMessagesTarget) {
       this.messagesTarget.addEventListener("scroll", () => {
-        this.atBottom = this.isAtBottom()
+        const scrollTop = this.messagesTarget.scrollTop
+        this.atBottom = this.isAtBottom() || (this.atBottom && scrollTop >= this.lastScrollTop)
+        this.lastScrollTop = scrollTop
         if (this.atBottom) {
           this.hideNewIndicator()
         }
@@ -132,6 +140,15 @@ export default class extends Controller {
     })
 
     observer.observe(this.containerTarget, { childList: true })
+  }
+
+  observeResize() {
+    if (!this.hasContainerTarget) return
+
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.atBottom) this.scrollToBottom()
+    })
+    this.resizeObserver.observe(this.containerTarget)
   }
 
   messageAdded() {
